@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <script src="{{url_for('static',filename='scripts/jquery.min.js')}}"></script>
+    <link href="{{url_for('static',filename='styles/main.css')}}" rel="stylesheet"/>
+    <link rel="icon" type="image/x-icon" href="../static/images/logo_mdmm.ico">
+    <script src="https://kit.fontawesome.com/10bcaa5c11.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-duration-picker@latest/dist/html-duration-picker.min.js"></script>
+    <title> CPU | {% block title %}{% endblock %}</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg" style="background-color: rgb(44, 65, 173);">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fw-bolder" href="/">MDMM</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarScroll">
+                <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+                    <li class="nav-item">
+                        <a class="nav-link active text-white" aria-current="page" href="{{url_for('views.duty_query')}}">Query Imports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{url_for('views.machine_details')}}">Configurations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{url_for('imports.form_view')}}">Imports Each</a>
+                    </li>
+                    <li class="nav-item dropdown ">
+                        <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Reports</a>
+                        <ul class="dropdown-menu">
+                            <li><a type="button" onclick="giveProjectCodes()" class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#monthlyReport" >Monthly</a></li>
+                            <li><a class="dropdown-item" href="{{url_for('reports.summary_duty_report')}}">Summary</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="">Not Considered..</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <form class="d-flex" role="search"  action="{{url_for('auth.logout')}}">
+                <input value="Nani" hidden>
+                {% if request.cookies.get('username') %}
+                <span class="navbar-text text-white font-monospace me-3">
+                    Hello {{request.cookies.get('username')}} !!
+                </span>
+                {% endif %}
+                <button class="btn btn-outline-primary" type="submit">Log Out</button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Modal for monthly report -->
+    <div class="modal fade" id="monthlyReport" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Monthly Duty Report</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                {% if request.cookies.get('role') in ('2','3','4') %}
+                    <form action="/duty/get-monthly-duty" method="POST">
+                        <div class="modal-body">
+                            <div class="filters m-3">
+                                <div class="dropdown text-center">
+                                    <button class="btn btn-secondary dropdown-toggle button-74 text-white text-center text-wrap" id="own" pjID="False" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Project Name & Project Code
+                                    </button>
+                                    <div class="dropdown-menu business-unit">
+                                        <input type="text" id="pj_id" name="pj_id" style="display: none;">
+                                        <input type="text" id="pj_name" name="pj_name" style="display: none;" value=" _&_ ">
+                                        <input type="search" id="inputForProjectInMonthly" size="22" autocomplete="off" style="margin-left: 10px;" onkeyup="getShops(this)"/>
+                                        <div style="max-height: 150px;overflow-y: auto;display: none;" id="aboveProjectCodes">
+                                        </div>                                 
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center mb-3">
+                                <button class="btn btn-secondary disabled" id="pjCode" style="display: none;">Project Code</button>        
+                            </div>
+                            <div class="text-center mb-3">
+                                <label for="start text-center">Each Machine : </label>
+                                <input class="form-check-input ms-3" type="checkbox" name="radioOPtionsCheck" value="class" id="flexRadioGroup1" onchange="checkEachMachineOrAll(this)">
+                            </div>
+                            <div class="text-center mb-3 d-none">
+                                <label for="start text-center">Start Date : </label>
+                                <input type="date" id="start" name="start_date_for_each" min="2020-01-01" max="2030-12-31" value="2023-05-11">
+                                <label for="start text-center">End   Date : </label>
+                                <input type="date" id="start" name="end_date_for_each" min="2020-01-01" max="2030-12-31" onchange="check_or_trace_start_date(this)" value="2023-05-11">
+                            </div>
+                            <div class="text-center mb-3">
+                                <label for="start text-center">Month of Report : </label>
+                                <input type="month" id="start" name="start" min="2020-01" max="2030-12" value="2023-05">
+                            </div>
+                            <div>
+                                <strong class="d-flex">Group By Report with </strong>
+                                <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="class" id="flexRadioGroup1" checked>
+                                <label class="form-check-label" for="flexRadioGroup1">
+                                    Machine Class
+                                </label>
+                                <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="type" id="flexRadioGroup2">
+                                <label class="form-check-label" for="flexRadioGroup2">
+                                    Machine Type
+                                </label>
+                                <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="capacity" id="flexRadioGroup2">
+                                <label class="form-check-label" for="flexRadioGroup2">
+                                    Machine Capacity
+                                </label>
+                            </div>
+                            <div class="groupby-report">
+                                <strong class="d-flex"> Report Fields With </strong>
+                                <input class="form-check-input ms-4" type="radio" name="radioOPtionsTwo" value="qty" id="flexRadioField1" checked>
+                                <label class="form-check-label" for="flexRadioField1">
+                                    Duty
+                                </label>
+                                <input class="form-check-input ms-3" type="radio" name="radioOPtionsTwo" value="price" id="flexRadioField2" >
+                                <label class="form-check-label" for="flexRadioField2">
+                                    Price
+                                </label>
+                                <input class="form-check-input ms-3" type="radio" name="radioOPtionsTwo" value="consumption" id="flexRadioField2" >
+                                <label class="form-check-label" for="flexRadioField2">
+                                    Consumption Report
+                                </label>
+                            </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit"  class="btn btn-primary">Generate Report</button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="modal-body">
+                    <h4><i>You don't have enough access to the report section..</i> </h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button"  class="btn btn-primary">Understood</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% block content %}
+    {% endblock %}
+</body> 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <!-- Include the SheetJS library using CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+    <script src="{{url_for('static',filename='scripts/home.js')}}"></script>
+</html>

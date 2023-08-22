@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% block title %} Duty Query {% endblock %}
+{% block content %}
+
+<h3 class="m-3 ms-5">Duty Query Import</h3>
+<form method="POST" action="/upload-duty" enctype="multipart/form-data">
+<div class="conatiner m-3 ms-5">
+    <div class="row">
+        <div class="col">
+            <div class="form-group w-100">
+                <input type="file"  required class="form-control" name="upload_duty_data">
+            </div>
+        </div>
+        <div class="col">
+            <select class="form-select form-select" name="selectedMonth"  required aria-label=".form-select-sm example">
+            <option value="1">January</option>
+            <option value="2">Feburary</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7" selected>July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+            </select>
+        </div>
+        <div class="col">
+        <select class="form-select form-select" name="selectedYear"  required aria-label=".form-select-sm example">
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>                
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+            <option value="all">All</option>
+        </select>
+        </div>
+        <div class="col">
+        <select class="form-select" name="selectedQuery" required>
+            <option value="Duty Query">Duty Query</option>
+            <option value="Expenses Query">Expenses Query</option>
+            <option value="Sales Query">Sales Query</option>
+        </select>
+        </div>
+        <div class="col">
+            <button type="submit" onclick="showTruckAnimation()" class="btn btn-success btn-block">Upload Excel</button>
+        </div>
+    </div>
+</div>
+</form>
+
+<div id="duty-expense-container">
+
+<h1 class="text-center m-2">Duty Query Table</h1>
+
+<!-- <button class="button-55">Add Duty Query Line by Line</button> -->
+<div class="container text-center mt-5">
+<div class="row">
+<div class="col">
+    <form class="d-flex" role="search">
+    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+    <button class="btn btn-outline-success" type="submit">Search</button>
+    </form>
+</div>
+<div class="col">
+    <div class="flex-end">
+    <div class="btn-group" role="group" aria-label="Basic example">
+        <button type="button" onclick="clickPagination(this,'dty','prev')" class="btn btn-secondary">Prev</button>
+        <button type="button" class="btn btn-outline-dark" disabled> 1-81 / {{total[0]}}</button>
+        <button type="button" onclick="clickPagination(this,'dty','next')" class="btn btn-secondary">Next</button>
+    </div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="m-5 mt-1 table-responsive machine-data-container">
+<table class="table table-hover">
+<thead>
+    <tr>
+    <th scope="col">Date</th>
+    <th scope="col">Pj.Code</th>
+    <th scope="col">Pj.Name</th>
+    <th scope="col">Machine</th>
+    <th scope="col">Operator</th>
+    <th scope="col">Morg.Start</th>
+    <th scope="col">Morg.End</th>
+    <th scope="col">Noon.Start</th>
+    <th scope="col">Noon.End</th>
+    <th scope="col">Evn.Start</th>
+    <th scope="col">Evn.End</th>
+    <th scope="col">Total Hr.</th>
+    <th scope="col">PayPerHour</th>
+    <th scope="col">Total Fuel</th>
+    <th scope="col">PayPer1Litre</th>
+    <th scope="col">Amt. for Duty</th>
+    <th scope="col">Amt. for Fuel</th>
+    <th scope="col">Total Amount</th>
+    <th scope="col">Way</th>
+    <th scope="col">Complete Feet</th>
+    <th scope="col">Complete Suds</th>
+    </tr>
+</thead>
+<tbody class="table-group-divider">
+    {% for duty_data in duty_datas %}
+    <tr class="duty-query-changeable">
+        <td>{{duty_data[0]}}</td>
+        <td>{{duty_data[1]}}</td>
+        <td>{{duty_data[2]}}</td>
+        <td>{{duty_data[3]}}</td>
+        <td>{{duty_data[4]}}</td>
+        <td>{{duty_data[5]}}</td>
+        <td>{{duty_data[6]}}</td>
+        <td>{{duty_data[7]}}</td>
+        <th>{{duty_data[8]}}</th>
+        <td>{{duty_data[9]}}</td>
+        <td>{{duty_data[10]}}</td>
+        <td>{{duty_data[11]}}</td>
+        <td>{{duty_data[12]}}</td>
+        <td>{{duty_data[13]}}</td>
+        <td>{{duty_data[14]}}</td>
+        <td>{{duty_data[15]}}</td>
+        <th>{{duty_data[16]}}</th>
+        <td>{{duty_data[17]}}</td>
+        <td>{{duty_data[18]}}</td>
+        <td>{{duty_data[19]}}</td>
+        <td>{{duty_data[20]}}</td>
+        <td>{{duty_data[21]}}</td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+</div>
+
+<h1 class="text-center m-2">Expense Query Table</h1>
+
+<!-- <button class="button-55">Add Duty Query Line by Line</button> -->
+<div class="container text-center mt-5">
+    <div class="row">
+        <div class="col">
+            <form class="d-flex" role="search">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+        </div>
+        <div class="col">
+            <div class="flex-end">
+                <div class="btn-group" role="group" aria-label="Basic example">
+                    <button type="button" onclick="clickPagination(this,'expense','prev')" class="btn btn-secondary">Prev</button>
+                    <button type="button" class="btn btn-outline-dark" disabled> 1-81 / {{total[1]}}</button>
+                    <button type="button" onclick="clickPagination(this,'expense','next')" class="btn btn-secondary">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="m-5 mt-1 table-responsive machine-data-container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Pj.code</th>
+            <th scope="col">Pj.Name</th>
+            <th scope="col">Unit</th>
+            <th scope="col">Expense</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            {% for exp_data in expense_datas %}
+            <tr id="{{exp_data[5]}}" class="expense-list-changeable">
+                <td>{{exp_data[0]}}</td>
+                <td>{{exp_data[1]}}</td>
+                <td>{{exp_data[2]}}</td>
+                <td>{{exp_data[3]}}</td>
+                <td>{{exp_data[4]}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</div>
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#exampleModal" id="autoClicker"></button>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal-dialog">
+<div class="modal-content">
+    <div class="modal-header">
+    <h1 class="modal-title fs-5 text-danger-emphasis" id="exampleModalLabel">User Error</h1>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body" id="modalUserWarn">
+    <strong>{{message | safe }}</strong>
+    </div>
+    <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    </div>
+</div>
+</div>
+</div>
+
+
+<div class="sending-container" style="display: none;">
+    <div class="sending-box">
+        <div class="border one"></div>
+        <div class="border two"></div>
+        <div class="border three"></div>
+        <div class="border four"></div>
+
+        <div class="line one"></div>
+        <div class="line two"></div>
+        <div class="line three"></div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block content %}
+        <form class="row gx-3 gy-2 align-items-center ms-4 me-4 mt-2" action="/import/upload" method="post">
+            <input type="text" hidden name="db" value="duty_odoo_report">
+            <div class="col-sm-3">
+                <p class="d-block mb-2">ဆိုဒ် ကုဒ်</p>
+                <input type="text" class="form-control" name="duty-datas" placeholder="" required></div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">ဆိုဒ် အမည်</p>
+                <input type="text" class="form-control" name="duty-datas" placeholder="" required></div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">နေ့စွဲ</p>
+                <input type="date" class="form-control" name="duty-datas" placeholder="" required value="2005-05-11"></div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">စက် အမည်</p>
+                <input type="text" class="form-control" name="duty-datas" placeholder="" required></div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">စက်မောင်း အမည်</p>
+                <input type="text" class="form-control" name="duty-datas" placeholder="" required>
+            </div>
+            <div class="col-sm-3">
+                <div class="row mt-4">
+                    <div class="col mt-2">
+                        <p>မနက် စချိန်</p>
+                    </div>
+                    <div class="col">
+                        <div class="time-picker" data-time="00:00">
+                            <div class="hour">
+                                <input type="number" class="hr" onchange="changeTheTime(this,23)" value="00" />
+                            </div>
+                            <div class="separator">:</div>
+                            <div class="minute">
+                                <input type="number" class="min" onchange="changeTheTime(this,59)" value="00">
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="row mt-4">
+                    <div class="col mt-2">
+                        <p>မနက် ဆုံးချိန်</p>
+                    </div>
+                    <div class="col">
+                        <div class="time-picker" data-time="00:00">
+                            <div class="hour">
+                                <input type="number" onchange="changeTheTime(this,23)" class="hr" value="00" />
+                            </div>
+                            <div class="separator">:</div>
+                            <div class="minute">
+                                <input type="number" class="min" onchange="changeTheTime(this,59)" value="00">
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="row mt-4">
+                    <div class="col mt-2">
+                        <p>နေ့လည် စချိန်</p>
+                    </div>
+                    <div class="col">
+                        <div class="time-picker" data-time="00:00">
+                            <div class="hour">
+                                <input type="number" class="hr" onchange="changeTheTime(this,23)" value="00" />
+                            </div>
+                            <div class="separator">:</div>
+                            <div class="minute">
+                                <input type="number" class="min" onchange="changeTheTime(this,59)" value="00">
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="row mt-4">
+                    <div class="col mt-2">
+                        <p>နေ့လည် ဆုံးချိန်</p>
+                    </div>
+                    <div class="col">
+                        <div class="time-picker" data-time="00:00">
+                            <div class="hour">
+                                <input type="number" class="hr" onchange="changeTheTime(this,23)" value="00" />
+                            </div>
+                            <div class="separator">:</div>
+                            <div class="minute">
+                                <input type="number" class="min" onchange="changeTheTime(this,59)" value="00">
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="row mt-4">
+                    <div class="col mt-2">
+                        <p>ညနေ (ည) စချိန်</p>
+                    </div>
+                    <div class="col">
+                        <div class="time-picker" data-time="00:00">
+                            <div class="hour">
+                                <input type="number" class="hr" onchange="changeTheTime(this,23)" value="00" />
+                            </div>
+                            <div class="separator">:</div>
+                            <div class="minute">
+                                <input type="number" class="min" onchange="changeTheTime(this,59)" value="00">
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="row mt-4">
+                    <div class="col mt-2">
+                        <p>ညနေ (ည) စချိန်</p>
+                    </div>
+                    <div class="col">
+                        <div class="time-picker" data-time="00:00">
+                            <div class="hour">
+                                <input type="number" class="hr" onchange="changeTheTime(this,23)" value="00" />
+                            </div>
+                            <div class="separator">:</div>
+                            <div class="minute">
+                                <input type="number" class="min" onchange="changeTheTime(this,59)" value="00">
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">၁ ဂျူတီ ပေးနှုန်း</p>
+                <input type="number" class="form-control" name="duty-datas" placeholder="" required>
+            </div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">ဂျူတီ ကုန်ကျငွေ</p>
+                <input type="number" class="form-control" name="duty-datas" placeholder="" required>
+            </div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">သုံးဆီပေါင်း</p>
+                <input type="number" class="form-control" name="duty-datas" placeholder="" required>
+            </div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">၁ လီတာ ပေးနှုန်း</p>
+                <input type="number" class="form-control" name="duty-datas" placeholder="" required>
+            </div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">ဆီ ကုန်ကျငွေ</p>
+                <input type="number" class="form-control" name="duty-datas" placeholder="" required>
+            </div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">စုစုပေါင်း ကုန်ကျငွေ</p>
+                <input type="number" disabled class="form-control" name="duty-datas" placeholder="">
+            </div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">ကားအခေါက်ရေ</p>
+                <input type="number" class="form-control" name="duty-datas" placeholder="" required>
+            </div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">ပြီးစီးမှုပေ</p>
+                <input type="number" class="form-control" name="duty-datas" placeholder="" required>
+            </div>
+            <div class="col-sm-3">
+                <p class="d-block mb-2">ပြီးစီးမှု ကျင်း</p>
+                <input type="number" class="form-control" name="duty-datas" placeholder="" required>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+{% endblock %}

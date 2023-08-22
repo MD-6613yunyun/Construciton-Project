@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Construction Activiteis Report</title>
+    <link rel="stylesheet" href="{{url_for('')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <h3>Daily Construction Activities<i class="fa-solid fa-minus plus-sign"></i></h3>
+    <form action="">
+        <!-- project status -->
+        <section class="project-status-section  add-table">
+            <div class="first-div">
+                <span>Project Status</span>
+                    <label for="working">Working
+                        <input type="radio" value="working" name="work" id="working">
+                    </label>
+                    <label for="notWorking">Not Working
+                        <input type="radio" value="notWorking" name="work" id="notWorking">
+                    </label>
+                    <input type="text" placeholder="reson for not working"><br>
+            </div>
+            <div class="sec-div">
+                <span>Daily Report Number</span>
+                <span>- DCR/2021/000001</span>
+                <span>Date</span>
+                <span>- 12/1/2021</span>
+            </div>
+        </section>
+        <!-- xxx -->
+        <h3>Project Details<i class="fa-solid fa-minus plus-sign"></i></h3>
+        <section class="project-details-section add-table">
+            <span>Project Code</span>
+            <input type="text">
+
+            <span>HO A/C Name</span>
+            <span>- Theint Theint San</span>
+
+            <span>Project Name</span>
+            <span>- AYA-Pathein-Gway To-Byait Kone Chaung</span>
+
+            <span>Project Location</span>
+            <span>- Ayawady</span>
+
+            <span>Project Start Date</span>
+            <span>- 18/12/2021</span>
+
+            <span>Supervisor</span>
+            <span>- Myoe Min Naung@ Tote Gyi</span>
+        </section>
+        <!-- xxx -->
+        <!-- Affects of Weather On Project -->
+        <h3>Weather<i class="fa-solid fa-plus plus-sign"></i></h3>
+        <section class="weather add-table toggle-table">
+            <span>No Affects All Day</span>
+            <input type="checkbox">
+            <span>Affected % of Work Day</span>
+            <input type="number" placeholder="%">
+            <span>Affected All Day</span>
+            <input type="checkbox">
+        </section>
+                    
+        <!-- xxx -->
+        <h3>Estimate & Result<i class="fa-solid fa-plus plus-sign"></i></h3>
+        <table class="estimate-result-table add-table toggle-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Estimate</th>
+                    <th>Finished</th>
+                    <th>Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Day</td>
+                    <td>75</td>
+                    <td><input type="number" ></td>
+                    <td>45</td>
+                </tr>
+                <tr>
+                    <td>Feet</td>
+                    <td>4545.6</td>
+                    <td><input type="number" step=".01"></td>
+                    <td>4297.5</td>
+                </tr>
+                <tr>
+                    <td>Sud</td>
+                    <td>34500</td>
+                    <td><input type="number" step=".01"></td>
+                    <td>443</td>
+                </tr>
+                <tr>
+                    <td>Hours</td>
+                    <td>34500</td>
+                    <td><input type="number" step=".01"></td>
+                    <td>443</td>
+                </tr>
+                <tr>
+                    <td>Disel(Liter)</td>
+                    <td>34500</td>
+                    <td><input type="number" step=".01"></td>
+                    <td>443</td>
+                </tr>
+                <tr>
+                    <td>Expense(Amount)</td>
+                    <td>34500</td>
+                    <td><input type="number" step=".01"></td>
+                    <td>443</td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- xxx -->
+        <h3>Activites<i class="fa-solid fa-plus plus-sign"></i></h3>
+        <table class="activities-table add-table toggle-table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Machine</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr class="add-btn">
+                    <td><button>+</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- xxx -->
+        <h3>Manpower & Equipment<i class="fa-solid fa-plus plus-sign"></i></h3>
+        <div class="manpower add-table toggle-table">
+            <table id="acc-table" class="manpower-equiment-table">
+                <thead>
+                    <tr>
+                        <th colspan="3">Manpower</th>
+                        <th colspan="3">Equipment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Desgnation</td>
+                        <td>Number</td>
+                        <td>Present</td>
+                        <td>Machine Type</td>
+                        <td>Number</td>
+                        <td>Present</td>
+                    </tr>
+                    <tr>
+                        <td>Engineer</td>
+                        <td>1</td>
+                        <td><input type="text"></td>
+                        <td>12Wheels</td>
+                        <td>5</td>
+                        <td><input type="text"></td>
+                    </tr>
+                    <tr>
+                        <td>Checker</td>
+                        <td>20</td>
+                        <td><input type="text"></td>
+                        <td>10Wheels</td>
+                        <td>10</td>
+                        <td><input type="text"></td>
+                    </tr>
+                    <tr>
+                        <td>Driver</td>
+                        <td>3</td>
+                        <td><input type="text"></td>
+                        <td>BH</td>
+                        <td>10</td>
+                        <td><input type="text"></td>
+                    </tr>
+                    <tr>
+                        <td>Operator</td>
+                        <td>20</td>
+                        <td><input type="text"></td>
+                        <td>Dozer</td>
+                        <td>10</td>
+                        <td><input type="text"></td>
+                    </tr>
+                    <tr>
+                        <td>Total</td>
+                        <td>27</td>
+                        <td></td>
+                        <td>Total</td>
+                        <td>23</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- repair & maintainance -->
+        <h3>Repair & Maintainance<i class="fa-solid fa-plus plus-sign"></i></h3>
+        <table class="repair-maintainace-table add-table toggle-table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Machine Name</th>
+                    <th>Description</th>
+                    <th>Accident</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="checkbox"></td>
+                </tr>
+                <tr class="add-btn">
+                    <td><button>+</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="btn-bg">
+            <button class="submit-btn">Submit</button>
+        </div>
+    </form>
+    <script>
+        const acc = document.getElementsByClassName("plus-sign")
+        for(let i = 0; i < acc.length; i++){
+            acc[i].addEventListener("click", function(){
+              let table = document.getElementsByClassName("add-table")
+              if(table[i].classList.contains("toggle-table")){
+                table[i].classList.remove("toggle-table")
+                if(acc[i].classList.contains("fa-minus")){
+                    acc[i].classList.replace ("fa-minus", "fa-plus")        
+                }else if(acc[i].classList.contains("fa-plus")){
+                    acc[i].classList.replace ("fa-plus", "fa-minus")        
+                }
+              }else{
+                table[i].classList.add("toggle-table")  
+                if(acc[i].classList.contains("fa-minus")){
+                    acc[i].classList.replace ("fa-minus", "fa-plus")        
+                }else if(acc[i].classList.contains("fa-plus")){
+                    acc[i].classList.replace ("fa-plus", "fa-minus")        
+                }       
+              }
+            })
+        }
+    </script>
+</body>
+</html>

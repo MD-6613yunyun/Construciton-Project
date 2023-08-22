@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/html-duration-picker@latest/dist/html-duration-picker.min.js"></script>
+    <style type="text/css">
+
+    </style>
+</head>
+<body>
+
+    <script type="text/javascript">
+        const time_picker_element = document.querySelector('.time-picker');
+
+        const hr_element = document.querySelector('.time-picker .hour .hr');
+        const min_element = document.querySelector('.time-picker .minute .min');
+
+        let d = new Date();
+
+        let hour = d.getHours();
+        let minute = d.getMinutes();
+        setTime();
+
+        hr_element.addEventListener('change', hour_change);
+        min_element.addEventListener('change', minute_change);
+
+        function hour_change (e) {
+            if (e.target.value > 23) {
+                e.target.value = 23;
+            } else if (e.target.value < 0) {
+                e.target.value = '00';
+            }else if((e.target.value.length > 2) && e.target.value.startsWith('0')){
+                e.target.value = e.target.value.slice(e.target.value.length-2)
+            }
+
+            if (e.target.value == "") {
+                e.target.value = formatTime(hour);
+            }
+
+            hour = e.target.value;
+        }
+
+        function minute_change (e) {
+            if (e.target.value > 59) {
+                e.target.value = 59;
+            } else if (e.target.value < 0) {
+                e.target.value = '00';
+            }else if((e.target.value.length > 2) && e.target.value.startsWith('0')){
+                e.target.value = e.target.value.slice(e.target.value.length-2)
+            }
+
+            if (e.target.value == "") {
+                e.target.value = formatTime(minute);
+            }
+
+            minute = e.target.value;
+        }
+
+        function setTime () {
+            hr_element.value = formatTime(hour);
+            min_element.value = formatTime(minute);
+            time_picker_element.dataset.time = formatTime(hour) + ':' + formatTime(minute);
+        }
+
+        function formatTime (time) {
+            if (time < 10) {
+                time = '0' + time;
+            }
+            return time;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% block title %} Data Reports {% endblock %}
+{% block content %}
+
+{% if pj_datas %}
+<form action="/duty/get-monthly-duty" method="POST">
+    <div class="filters m-3">
+        <div class="dropdown text-center">
+            <button class="btn btn-secondary dropdown-toggle button-74 text-white text-center text-wrap" id="own" pjID="False" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Project Name & Project Code
+            </button>
+            <div class="dropdown-menu business-unit">
+                <input type="text" id="pj_id" name="pj_id" style="display: none;">
+                <input type="text" id="pj_name" name="pj_name" style="display: none;" value=" _&_ ">
+                <input type="search" id="inputForProjectInMonthly" size="22" style="margin-left: 10px;" onkeyup="getShops(this)"/>
+                <div style="max-height: 150px;overflow-y: auto;display: none;">
+                    {% for data in pj_datas %}
+                    <p class="m-1 ms-2" shopID="{{data[0]}}" projectCode="{{data[2]}}" onclick="assignShop(this)">{{data[1]}} _&_ {{data[2]}}</p>
+                    {% endfor %}                               
+                </div>                                 
+            </div>
+        </div>
+    </div>
+    <div class="text-center mb-3">
+        <button class="btn btn-secondary disabled" id="pjCode" style="display: none;">Project Code</button>        
+    </div>
+    <div class="text-center mb-3">
+        <label for="start text-center">Each Machine : </label>
+        <input class="form-check-input ms-3" type="checkbox" name="radioOPtionsCheck" value="class" id="flexRadioGroup1" onchange="checkEachMachineOrAll(this)">
+    </div>
+    <div class="text-center mb-3 d-none">
+        <label for="start text-center">Start Date : </label>
+        <input type="date" id="start" name="start_date_for_each" min="2020-01-01" max="2030-12-31" value="2023-05-11">
+        <label for="start text-center">End   Date : </label>
+        <input type="date" id="start" name="end_date_for_each" min="2020-01-01" max="2030-12-31" onchange="check_or_trace_start_date(this)" value="2023-05-11">
+    </div>
+    <div class="text-center mb-3">
+        <label for="start text-center">Month of Report : </label>
+        <input type="month" id="start" name="start" min="2020-01" max="2030-12" value="2023-05">
+    </div>
+    <div class="groupby-report">
+        <strong class="d-flex">Group By Report with </strong>
+        <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="class" id="flexRadioGroup1" checked>
+        <label class="form-check-label" for="flexRadioGroup1">
+            Machine Class
+        </label>
+        <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="type" id="flexRadioGroup2">
+        <label class="form-check-label" for="flexRadioGroup2">
+            Machine Type
+        </label>
+        <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="capacity" id="flexRadioGroup2">
+        <label class="form-check-label" for="flexRadioGroup2">
+            Machine Capacity
+        </label>
+    </div>
+    <div class="groupby-report">
+        <strong class="d-flex"> Report Fields With </strong>
+        <input class="form-check-input ms-4" type="radio" name="radioOPtionsTwo" value="qty" id="flexRadioField1" checked>
+        <label class="form-check-label" for="flexRadioField1">
+            Duty
+        </label>
+        <input class="form-check-input ms-3" type="radio" name="radioOPtionsTwo" value="price" id="flexRadioField2" >
+        <label class="form-check-label" for="flexRadioField2">
+            Price
+        </label>
+        <input class="form-check-input ms-3" type="radio" name="radioOPtionsTwo" value="consumption" id="flexRadioField2" >
+        <label class="form-check-label" for="flexRadioField2">
+            Consumption Report
+        </label>
+    </div>
+    <div class="text-center mb-3">
+        <button type="submit" class="btn btn-dark">Generate</button>
+    </div>
+</form>
+{% else %}
+<div id="excavator-container">
+    <div class="excavator">
+    <!-- EXCAVATOR IMAGES -->
+        <div class="image one"></div>
+        <div class="image two tremolo turnUp extend"></div>
+        <div class="image three tremolo turnUp"></div>
+        <div class="image four tremolo turnUp extend"></div>
+        <div class="image five upDown"></div>
+        <div class="image six tilt"></div>
+        <div class="image seven scale2"></div>
+        <div class="image eight scale"></div>
+    </div>
+</div>
+
+
+
+<table class="table text-center table-borderless" id="headerTable">
+    <tr>
+        <td colspan="{{h_datas[3]}}"><h5>{{h_datas[0]}}</h5></td>
+    </tr>
+    <tr>
+        <td colspan="{{h_datas[3]}}"><h5>{{h_datas[2]}}</h5></td>
+    </tr>
+    <tr>
+        <td colspan="{{h_datas[3]}}"><h6>{{h_datas[1]}}, Monthly Overall Report</h6></td>
+    </tr>
+</table>
+
+    {% if final_dct != {}  %}
+    <button onclick="exportTableToExcel('monthly-duty-table')" class="btn btn-info ms-4">Export Data to Excel</button>
+    <div class="m-4 table-responsive report-data-container" id="report-data-container" style="display: none;">
+        <table class="table table-bordered border-dark" id="monthly-duty-table">
+            <thead>
+                <tr class="d-none">
+                    <td ><h5>{{h_datas[0]}}</h5></td>
+                </tr>
+                <tr class="d-none">
+                    <td ><h5>{{h_datas[2]}}</h5></td>
+                </tr>
+                <tr class="d-none">
+                    <td ><h6>{{h_datas[1]}}, Monthly Overall Report</h6></td>
+                </tr>
+                <tr class="text-center align-middle">
+                    <th rowspan="2" class="fixed-table-date">Date</th>
+                    <th scope="col" rowspan="2">#</th>
+                    {% for machine_class in all_classes %}
+                        <th scope="col" colspan="{{show_all}}">{{machine_class[0]}}</th>
+                    {% endfor %}
+                    {% if show_all != 2%}
+                        <th scope="col" colspan="{{show_all+3}}">Overall Daily</th>
+                    {% else %}
+                        {% if flt == 'Qty' %}
+                            <th scope="col" colspan="{{show_all+2}}">Overall Daily</th>   
+                        {% else %}
+                            <th scope="col" colspan="{{show_all}}">Overall Daily</th>                  
+                        {% endif %}
+
+                    {% endif %}
+                    
+                </tr>
+                <tr class="text-center align-middle" >
+                    {% if show_all == 6 %}
+                        {% for machine_class in all_classes %}
+                            <th scope="col" >Duty Qty.</th>
+                            <th scope="col">Fuel Qty.</th>
+                            <th scope="col">Fuel per Hr.</th>
+                            <th scope="col" >Duty Price</th>
+                            <th scope="col">Fuel Price</th>
+                            <th scope="col">Way</th>
+                        {% endfor %}
+
+                        <th scope="col" >Total Duty Qty</th>
+                        <th scope="col">Total Fuel Qty</th>                     
+                        <th scope="col" >Total Duty Price</th>
+                        <th scope="col">Total Fuel Price</th>
+                        <th scope="col">Total Expsense</th>  
+                        <th scope="col">Total Price</th>
+                        <th scope="col">Total Work Done</th>
+                        <th scope="col">Consumption / Sud </th>
+                        <th scope="col">Cost / Sud </th>
+                    {% else %}
+                        {% for machine_class in all_classes %}
+                            <th scope="col" >Duty {{flt}}</th>
+                            <th scope="col">Fuel {{flt}}</th>
+                        {% endfor %}
+                        <th scope="col">Duty {{flt}}</th>
+                        <th scope="col">Fuel {{flt}}</th>
+                        {% if flt != 'Price' %}
+                            <th scope="col">Work Done</th>
+                            <th scope="col">Consumption / Sud </th>
+                        {% endif %}
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody class="table-group-divider monthly-duty-table-body">
+                {% for date_data,result_data in final_dct.items() %}
+                    <tr class="text-center align-middle">
+                        <th  scope="row" rowspan="2">{{date_data}}</th>
+                        <td>Day</td>
+                            {% for machine_dt in result_data[0] %}
+                                <td class="time_wrong_format" scope="row">{{machine_dt[1]}}</td>
+                                {% if show_all == 2 %}
+                                    <td class="fuel_column">{{machine_dt[2]}}</td>
+                                {% else %}
+                                    {% for i in range(2,show_all) %}
+                                        <td class="fuel_column">{{machine_dt[i]}}</td>
+                                    {% endfor %}
+                                    <td class="fuel_column">{{machine_dt[6]}}</td>
+                                    {% if machine_dt[0] == 'Daily Overall' %}
+                                    <td class="fuel_column">{{machine_dt[7]}}</td>
+                                    <td class="fuel_column">{{machine_dt[8]}}</td>
+                                    <td class="fuel_column">{{machine_dt[9]}}</td>
+                                    {% endif %}
+                                {% endif %}
+                                {% if flt == 'Qty' and machine_dt[0] == 'Daily Overall' %}
+                                <td class="fuel_column">{{machine_dt[3]}}</td>
+                                <td class="fuel_column">{{machine_dt[4]}}</td>
+                                {% endif %}
+                            {% endfor %}
+                    </tr>
+                    <tr class="text-center table-info">
+                        <td>To Day</td>
+                            {% for machine_dt in result_data[1] %}
+                                <td class="time_wrong_format">{{machine_dt[1]}}</td>
+                                {% if show_all == 2 %}
+                                    <td class="fuel_column">{{machine_dt[2]}}</td>
+                                {% else %}
+                                    {% for i in range(2,show_all) %}
+                                        <td class="fuel_column">{{machine_dt[i]}}</td>
+                                    {% endfor %}
+                                    <td class="fuel_column">{{machine_dt[6]}}</td>  
+                                    {% if machine_dt[0] == 'Daily Overall' %}
+                                    <td class="fuel_column">{{machine_dt[7]}}</td>  
+                                    <td class="fuel_column">{{machine_dt[8]}}</td>
+                                    <td class="fuel_column">{{machine_dt[9]}}</td>
+                                    {% endif %}                            
+                                {% endif %}
+                                {% if flt == 'Qty' and machine_dt[0] == 'Daily Overall' %}
+                                <td class="fuel_column">{{machine_dt[3]}}</td>
+                                <td class="fuel_column">{{machine_dt[4]}}</td>
+                                {% endif %}
+                                <!-- <td class="fuel_column">{{machine_dt[2]}}</td> -->
+                            {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <h1 class="text-center align-middle mt-5">No Data Was Found for the specific Project and Month..</h1>
+    {% endif %}
+
+{% endif %}
+
+
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#exampleModal" id="autoClicker"></button>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5 text-danger-emphasis" id="exampleModalLabel">User Error</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modalUserWarn">
+        <strong>{{message | safe }}</strong>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

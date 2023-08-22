@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* styles.css */
+
+.upper-div {
+    width: 100vw;
+    background-color: #f0f0f0;
+    padding: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.lower-div {
+    width: 100%;
+    overflow-x: auto; /* Enable horizontal scrolling */
+    max-height: calc(100vh - 60px); /* Adjust the height to leave space for the upper div */
+}
+
+.scrollable-content {
+    width: max-content; /* Allows content to expand beyond the container width */
+}
+
+/* Style your table if needed */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+    </style>
+</head>
+<body>
+    <div class="upper-div">
+        <!-- Content of the upper div -->
+    </div>
+    <div class="lower-div">
+        <div class="scrollable-content">
+            <!-- Content of the long div (including a table) -->
+        </div>
+    </div>
+</body>
+</html>

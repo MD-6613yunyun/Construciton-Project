@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %} Report By Each Machine {% endblock %}
+{% block content %}
+
+
+
+<div class="text-center mt-3">
+    <h5>{{pj_datas[0]}}</h5>   
+    <h5>{{pj_datas[1]}}</h5>   
+</div>
+
+{% if vehicles_dct != {} %}
+
+<button onclick="exportTableToExcel('each-machine-table')" class="btn btn-info ms-4">Export Data to Excel</button>
+
+<div class="table-responsive report-data-container m-4" style="height: 80vh;">
+    <table class="table table-bordered" id="each-machine-table">
+        <thead class="text-center align-middle">
+            <tr class="d-none">
+                <td ><h5>{{pj_datas[0]}}</h5></td>
+            </tr>
+            <tr class="d-none">
+                <td ><h5>{{pj_datas[1]}}</h5></td>
+            </tr>
+            <tr>
+                <th rowspan="2">Sr.No.</th>
+                <th colspan="2" rowspan="2">Machine No.</th>                
+                <th colspan="{{date_diff[2]}}">{{date_diff[3]}}</th>
+                <th rowspan="2">Total</th>
+            </tr>
+            <tr>
+                {% for day in range(date_diff[0],date_diff[1]+1) %}
+                    <th>{{day}}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody class="align-middle text-center each-machine-report-body">
+            {% for vehicle_name,data_dct in vehicles_dct.items() %}
+            <tr>
+                <td rowspan="3">{{loop.index}}</td>
+                <th rowspan="3">{{vehicle_name}}</th>
+                <td>Hour</td>
+                {% for dty in data_dct[0] %}
+                    <td>{{dty}}</td>            
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>HSD</td>
+                {% for hsd in data_dct[1] %}
+                    <td>{{hsd}}</td>            
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Production</td>
+                {% for dty in data_dct[0] %}
+                    <td></td>            
+                {% endfor %}
+            </tr>
+            {%endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+<h1 class="text-center align-middle mt-5">No Data Was Found for the specific Project and Month..</h1>
+{% endif %}
+
+{% endblock %}

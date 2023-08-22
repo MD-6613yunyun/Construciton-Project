@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style type="text/css">
+        @import 'https://fonts.googleapis.com/css?family=Open+Sans';
+
+        .wrapper { box-sizing: border-box; }
+        *,
+        .wrapper::before,
+        .wrapper::after { box-sizing: inherit; }
+
+        body {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 1.5;
+        color: #666;
+        background-color: #eee;
+        }
+
+        .wrapper {
+        max-width: 400px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 32px rgba(0, 0, 0, .1);
+        }
+
+        .form-group { position: relative; }
+
+        .form-group::after {
+        position: absolute;
+        bottom: 0;
+        left: 49%;
+        z-index: 1;
+        content: "";
+        width: 2%;
+        height: 2px;
+        visibility: hidden;
+        background-color: #2196F3;
+        transition-duration: .4s;
+        transition-timing-function: cubic-bezier(.4,0,.2,1);
+        }
+
+        .form-group.is-focused::after {
+        left: 0;
+        width: 100%;
+        visibility: visible;
+        }
+
+        .form-control {
+        display: block;
+        width: 100%;
+        padding: 8px 12px;
+        font-family: 'Open Sans', sans-serif;
+        color: #666;
+        border: none;
+        border-bottom: 2px solid #ccc;
+        }
+        .form-control:focus {
+        border-color: #ccc;
+        outline: none;
+        }
+
+        .material {
+    width: 200px;
+    position: relative;
+    margin-bottom: 45px;
+  }
+  .material input {
+    font-size: 18px;
+    padding: 12px 12px 7px;
+    display: block;
+    width: calc(100% - 24px);
+    border: none;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    border-radius: 3px;
+  }
+  .material input:focus {
+    outline: none;
+  }
+  .material input:focus ~ label, .material input:valid ~ label {
+    top: -7px;
+    font-size: 12px;
+    color: #5264AE;
+    background: #fff;
+    padding: 0px 5px;
+  }
+  .material input:focus ~ .borda {
+    border: 2px solid #5264AE;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    border-radius: 3px;
+    position: absolute;
+    width: calc( 100% - 2px );
+    height: calc( 100% - 2px);
+    top: 0px;
+    pointer-events: none;
+    -moz-transition: all 0.1s ease;
+    -ms-transition: all 0.1s ease;
+    -o-transition: all 0.1s ease;
+    -webkit-transition: all 0.1s ease;
+  }
+  .material label {
+    color: #888888;
+    font-size: 18px;
+    font-weight: normal;
+    position: absolute;
+    pointer-events: none;
+    left: 12px;
+    top: 12px;
+    -moz-transition: all 0.2s ease;
+    -ms-transition: all 0.2s ease;
+    -o-transition: all 0.2s ease;
+    -webkit-transition: all 0.2s ease;
+  }
+  .material .borda {
+    border: 1px solid #cecece;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    border-radius: 3px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    pointer-events: none;
+    -moz-transition: all 0.3s ease;
+    -ms-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    -webkit-transition: all 0.3s ease;
+  }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+            <div class="material">      
+                <input type="text" style="height: 3rem;line-height: 3rem;" height="90" required>
+                <span class="borda form-control"></span>
+                <label>Nome Grande Ok</label>
+            </div>
+        </div>
+    </div>
+    <script>
+        const inputContainer = document.getElementById('some-inputs-container');
+
+        // Event delegation for "focus" event
+        inputContainer.addEventListener('focus', function(event) {
+        if (event.target.tagName === 'INPUT') {
+            // Code to execute when an input element gains focus
+            event.target.classList.add('is-focused')
+            console.log(event.target)
+            console.log('Input element with ID ' + event.target.id + ' has received focus.');
+        }
+        }, true); // Use "true" to capture the event during the capturing phase
+
+        // Event delegation for "blur" event
+        inputContainer.addEventListener('blur', function(event) {
+        if (event.target.tagName === 'INPUT') {
+            // Code to execute when an input element loses focus
+            event.target.classList.remove('is-focused')
+            console.log('Input element with ID ' + event.target.id + ' has lost focus.');
+        }
+        }, true); // Use "true" to capture the event during the capturing phase
+
+    </script>
+</body>
+</html>
