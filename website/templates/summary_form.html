@@ -31,87 +31,13 @@
             </div>
             <div class="col">
                 <div class="text-center mt-3">
-                    <button type="submit" class="btn btn-dark">Generate Summary Statistics</button>
+                    <button type="submit" class="btn btn-dark bg-success border-0">Generate Summary Statistics</button>
                 </div>
             </div>
         </div>
     </div>
 </form>
-<div class="m-3">
-    <h3>Add Project Statistics</h3>
-    <form action="/duty/summary-duty-report" method="POST">
-        <div class="input-group">
-            <input class="form-control" list="datalistOptions" name="code" id="exampleDataListCode" placeholder="ဆိုဒ် ကုဒ် / ဆိုဒ်အမည် " required>
-            <datalist id="datalistOptions" style="height: 100px;">
-                {% for data in pj_datas %}
-                    <option value="{{data[1]}} | {{data[2]}} | {{data[0]}}">
-                {% endfor %}
-            </datalist>
-            <input type="text" name="location" class="form-control" placeholder="ဆိုဒ် တည်နေရာ" required>
-            <input type="date"  name="pj-start-date" class="form-control" placeholder="ဆိုဒ် စတင်ရက်" required>
-            <input type="text" name="supervisior" class="form-control site-supervisors" placeholder="တာဝန်ခံ" required>
-        </div>
-        <div class="input-group">
-            <input type="number"  name="feet" class="form-control" placeholder="ပမာဏပေ" required>
-            <input type="number" name="will-sud" class="form-control" placeholder="ပမာဏကျင်း" required>
-            <input type="number" name="sud" class="form-control" placeholder="ဆောင်ရွက်မည့်ကျင်း" required>
-            <input type="number" step=".01" name="duty" class="form-control" placeholder="Estimate Duty" required>
-        </div>
-        <div class="input-group">
-            <input type="number" step=".01" name="fuel" class="form-control" placeholder="Estimate Fuel" required>
-            <input type="number" step=".01" name="expense" class="form-control" placeholder="Estimate Expenses" required>
-            <input type="number" step=".01" name="estimate_day" class="form-control" placeholder="Estimate Day" required>
-            <input class="form-control" list="datalistOptionsMachines" onchange="chooseMachineInSelect(this)" placeholder="စက်ကားများ">
-            <datalist id="datalistOptionsMachines"  style="height: 100px;">
-                {% for data in machine_datas %}
-                    <option value="{{data[1]}} | {{data[0]}}">
-                {% endfor %}
-            </datalist>
-        </div>
 
-        <div class="row">
-            <div class="col">
-                <table class="table table-bordered mt-3 text-center align-middle">
-                    <thead>
-                        <tr>
-                            <th>Machine Name</th>
-                            <th> # </th>
-                        </tr>
-                    </thead>
-                    <tbody id="machineListForProjectStats">
-                    </tbody>
-                </table>  
-            </div>
-            <div class="col">
-                <!-- Button trigger modal -->
-                <button type="button" onclick="checkSupervisor()" class="btn btn-primary mt-2 w-100" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                    Submit Datas
-                </button>                
-            </div>
-
-
-        
-        <!-- Modal -->
-        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-            <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Check the data carefully!</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div id="inside-statistics-modal-body" class="modal-body">
-                
-                </div>
-                <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="inModalStatisticsClose" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" id="inModalStatistics" class="btn btn-primary">Submit</button>
-                </div>
-            </div>
-            </div>
-        </div>
-
-    </form>
-</div>
 <div class="m-3">
     <h4 class="d-inline-block">Project Statistics</h4>
     <input class="form-control mt-3" size="22" type="search" placeholder="Search" onkeyup="getShops(this)" aria-label="Search">

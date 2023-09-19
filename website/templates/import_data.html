@@ -4,61 +4,38 @@
 
 {% block content %}
 
-<h2 class="text-center mt-3">Machine Details Table</h2>
-<div class="container text-center mt-5">
-  <div class="row">
-    {% for name,datas in data.items() %}
-    <div class="col scroll-bar mt-3">
-      <div class="table-responsive table-container scroll-bar">
-        <table class="table table-striped">
-          <thead>
-            <tr class="table-dark">
-              <th>{{name}}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <form method="POST" action="/import/upload-each-machine-details">
-                  <input type="text" style="display: none;" name="table" value="{{name}}">
-                  <button class="button-83"  role="button" onclick="create_add_machine_input(this,event)">Add Data</button>
-                  <div class="div-machine-details" style="display: none;">
-                      <input type="text" id="enter" name="data" class="add-machine-details" value="{% if request.form.get('data')  %}  {{request.form.get('data')}} {% else %}  {% endif %}"  placeholder="Type.." onkeyup="search_and_add(this,event)">
-                      <button id="clear" type="submit" class="submit-in-input" onclick="insert_data_and_return_back_button(this)">Submit</button>
-                  </div>
-                </form>
-              </td>
-            </tr>
-            {% for dt in datas%}
-            <tr>
-              <td>
-                {{dt[1]}} <button onclick="chngInp(this)" class="edit-pen-btn" id="{{dt[0]}}" dbTable="{{name}}" data-machine="{{dt[1]}}"><i class="fa-solid fa-pencil"></i></button>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-</div>
 
+<h3 class="text-center m-4"> {{name}} Import</h3>
 
-<h3 class="text-center m-4"> Project Data Line Import</h3>
+{% if name == 'Project Line' %}
+
 <div class="m-5 mt-1">
     <div class="card card-body">
         <form class="row gx-3 gy-2 align-items-center ms-4 me-4 mt-2" action="/import/upload" method="post">
             <input type="text" hidden name="db"  value="analytic_project_code">
-            <div class="col-sm-3"><input type="text" name="pj-datas" class="form-control" placeholder="ဆိုဒ် ကုဒ်" aria-label="Username" required></div>
-            <div class="col-sm-3"><input type="text" name="pj-datas" class="form-control" placeholder="ဆိုဒ် အမည်" aria-label="Server" required></div>
-            <div class="col-sm-3"><input type="text" name="pj-datas" class="form-control" placeholder="ဆိုဒ် ဂရု ကုဒ်" aria-label="Username" required></div>
-            <div class="col-sm-3"><input type="text" list="datalistOptions" name="pj-datas" class="form-control" placeholder="ဆိုဒ် အမျိုးအစား" aria-label="Server" required></div>
+            <div class="col-sm-3"><input type="text" name="pj-datas" class="form-control" placeholder="ဆိုဒ် ကုဒ်" aria-label="Username" required autocomplete="off"></div>
+            <div class="col-sm-3"><input type="text" name="pj-datas" class="form-control" placeholder="ဆိုဒ် အမည်" aria-label="Server" required autocomplete="off"></div>
             <div class="col-sm-3">
-                <input class="form-control" list="datalistOptions" autocomplete="off" name="pj-datas" id="exampleDataListCode" placeholder="Business Unit" required>
+                <input type="text" name="pj-datas" list="grouplistOptions" class="form-control" placeholder="ဆိုဒ် ဂရု ကုဒ်" aria-label="Username" required autocomplete="off">
+                <datalist id="grouplistOptions" style="height: 100px;">
+                    {% for dta in data['Project Group'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="col-sm-3">
+                <input type="text" list="datalistOptions" list="typelistOptions" name="pj-datas" class="form-control" placeholder="ဆိုဒ် အမျိုးအစား" aria-label="Server" required autocomplete="off">
+                <datalist id="typelistOptions" style="height: 100px;">
+                    {% for dta in data['Project Type'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="col-sm-3">
+                <input class="form-control" list="datalistOptions" autocomplete="off" name="pj-datas" id="exampleDataListCode" placeholder="Business Unit" required autocomplete="off">
                 <datalist id="datalistOptions" style="height: 100px;">
                     {% for dta in data['Business Unit'] %}
-                        <option value="{{dta[1]}}">
+                        <option value="{{dta[0]}}">
                     {% endfor %}
                 </datalist>
             </div>
@@ -69,57 +46,58 @@
     </div>
 </div>
 
-<h3 class="text-center m-4"> Machine Data Line Import</h3>
+{% elif name == 'Machine Line' %}
+
 <div class="m-5 mt-1">
     <div class="card card-body">
         <form class="row gx-3 gy-2 align-items-center ms-4 me-4 mt-2" action="/import/upload" method="POST">
             <input type="text" hidden name="db" value="fleet_vehicle">
-            <div class="col-sm-3"><input type="text" name="vehicle-datas" class="form-control" placeholder="Machine Name" aria-label="Username"></div>
+            <div class="col-sm-3"><input type="text" name="vehicle-datas" class="form-control" placeholder="Machine Name" aria-label="Username" autocomplete="off"></div>
             <div class="col-sm-3">
-                <input type="text" name="vehicle-datas" autocomplete="off" class="form-control" list="datalistOptionsType" placeholder="Machine Type" aria-label="Server">
+                <input type="text" name="vehicle-datas" autocomplete="off" class="form-control" list="datalistOptionsType" placeholder="Machine Type" aria-label="Server" autocomplete="off">
                 <datalist id="datalistOptionsType" style="height: 100px;">
                     {% for dta in data['Machine Type'] %}
-                        <option value="{{dta[1]}}">
+                        <option value="{{dta[0]}}">
                     {% endfor %}
                 </datalist>
             </div>
             <div class="col-sm-3">
-                <input type="text" name="vehicle-datas" list="datalistOptionsClass" class="form-control" autocomplete="off" placeholder="Machine Class" aria-label="Username">
+                <input type="text" name="vehicle-datas" list="datalistOptionsClass" class="form-control" autocomplete="off" placeholder="Machine Class" aria-label="Username" autocomplete="off">
                 <datalist id="datalistOptionsClass" style="height: 100px;">
                     {% for dta in data['Machine Class'] %}
-                        <option value="{{dta[1]}}">
+                        <option value="{{dta[0]}}">
                     {% endfor %}
                 </datalist>
             </div>
             <div class="col-sm-3">
-                <input type="text" name="vehicle-datas" list="datalistOptionsCapacity" class="form-control" placeholder="Machine Capacity" aria-label="Server">
+                <input type="text" name="vehicle-datas" list="datalistOptionsCapacity" class="form-control" placeholder="Machine Capacity" aria-label="Server" autocomplete="off">
                 <datalist id="datalistOptionsCapacity" style="height: 100px;">
                     {% for dta in data['Machine Capacity'] %}
-                        <option value="{{dta[1]}}">
-                    {% endfor %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %} 
                 </datalist>
             </div>
             <div class="col-sm-3">
-                <input type="text" name="vehicle-datas" list="datalistOptionsBrand" class="form-control" placeholder="Machine Brand" aria-label="Username">
+                <input type="text" name="vehicle-datas" list="datalistOptionsBrand" class="form-control" placeholder="Machine Brand" aria-label="Username" autocomplete="off">
                 <datalist id="datalistOptionsBrand" style="height: 100px;">
                     {% for dta in data['Machine Brand'] %}
-                        <option value="{{dta[1]}}">
+                        <option value="{{dta[0]}}">
                     {% endfor %}
                 </datalist>
             </div>
             <div class="col-sm-3">
-                <input type="text" name="vehicle-datas" class="form-control" list="datalistOptionsUnit" placeholder="Business Unit" aria-label="Server">
+                <input type="text" name="vehicle-datas" class="form-control" list="datalistOptionsUnit" placeholder="Business Unit" aria-label="Server" autocomplete="off">
                 <datalist id="datalistOptionsUnit" style="height: 100px;">
                     {% for dta in data['Business Unit'] %}
-                        <option value="{{dta[1]}}">
+                        <option value="{{dta[0]}}">
                     {% endfor %}
                 </datalist>
             </div>
             <div class="col-sm-3">
-                <input type="text" name="vehicle-datas" list="datalistOptionsOwner" class="form-control" placeholder="Owner Name" aria-label="Server">
+                <input type="text" name="vehicle-datas" list="datalistOptionsOwner" class="form-control" placeholder="Owner Name" aria-label="Server" autocomplete="off">
                 <datalist id="datalistOptionsOwner" style="height: 100px;">
                     {% for dta in data['Owner'] %}
-                        <option value="{{dta[1]}}">
+                        <option value="{{dta[0]}}">
                     {% endfor %}
                 </datalist>
             </div>
@@ -130,8 +108,109 @@
     </div>
 </div>
 
+{% elif name == 'Project Statistics Line' %}
 
-<div style="margin-top: 80px;"></div>
+<div class="m-5 mt-1 mb-1">
+    <div class="card card-body">
+        <form class="row gx-3 gy-2 align-items-center ms-4 me-4 mt-2" action="/import/upload" method="POST">
+            <input type="text" hidden name="db" value="fleet_vehicle">
+            <div class="col-sm-3">
+                <input class="form-control" list="datalistOptions" name="code" id="exampleDataListCode" placeholder="ဆိုဒ် ကုဒ် / ဆိုဒ်အမည် " required autocomplete="off">
+                <datalist id="datalistOptions" style="height: 100px;">
+                    {% for dta in  data['Project Code'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="col-sm-3"><input type="text" name="location" class="form-control" placeholder="ဆိုဒ် တည်နေရာ" required autocomplete="off"></div>
+            <div class="col-sm-3"><input type="date"  name="pj-start-date" class="form-control" placeholder="ဆိုဒ် စတင်ရက်" required autocomplete="off"></div>
+            <div class="col-sm-3"><input type="text" name="supervisior" class="form-control site-supervisors" placeholder="တာဝန်ခံ" required autocomplete="off"></div>
+            <div class="col-sm-3"><input type="number"  name="feet" class="form-control" placeholder="ပမာဏပေ" required autocomplete="off"></div>
+            <div class="col-sm-3"><input type="number" name="will-sud" class="form-control" placeholder="ပမာဏကျင်း" required autocomplete="off"></div>
+            <div class="col-sm-3"><input type="number" name="sud" class="form-control" placeholder="ဆောင်ရွက်မည့်ကျင်း" required autocomplete="off"></div>
+            <div class="col-sm-3"><input type="number" step=".01" name="duty" class="form-control" placeholder="Estimate Duty" required autocomplete="off"></div>
+            <div class="col-sm-3"><input type="number" step=".01" name="fuel" class="form-control" placeholder="Estimate Fuel" required autocomplete="off"></div>
+            <div class="col-sm-3"><input type="number" step=".01" name="expense" class="form-control" placeholder="Estimate Expenses" required autocomplete="off"></div>
+            <div class="col-sm-3"><input type="number" step=".01" name="estimate_day" class="form-control" placeholder="Estimate Day" required autocomplete="off"></div>
+
+
+            <div class="row machine-name-container">
+                <div class="col mt-3">
+                    <input class="form-control rounded-end" list="machinelistOptions" onchange="chooseMachineInSelect(this)" placeholder="စက်ကားများ" autocomplete="off">
+                    <datalist id="machinelistOptions" style="height: 100px;">
+                        {% for dta in  data['Machine'] %}
+                            <option value="{{dta[0]}}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="col rounded table-responsive mt-3 added machine-name-table">
+                    <table class="table rounded table-bordered text-center align-middle">
+                        <thead class="table-dark">
+                            <tr style='font-size:13px;'>
+                                <th>Machine Name</th>
+                                <th> # </th>
+                            </tr>
+                        </thead>
+                        <tbody id="machineListForProjectStats"></tbody>
+                    </table>  
+                </div>
+    
+                <!-- Modal -->
+                <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="staticBackdropLabel">Check the data carefully!</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div id="inside-statistics-modal-body" class="modal-body"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" id="inModalStatisticsClose" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" id="inModalStatistics" class="btn btn-primary">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row machine-name-container">
+                <div class="col mt-3">
+                    <input class="form-control rounded-end" list="machinelistOptions" onchange="chooseMachineInSelect(this)" placeholder="စက်ကားများ" autocomplete="off">
+                    <datalist id="machinelistOptions" style="height: 100px;">
+                        {% for dta in  data['Machine'] %}
+                            <option value="{{dta[0]}}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="col rounded table-responsive mt-3 added machine-name-table">
+                    <table class="table rounded table-bordered text-center align-middle">
+                        <thead class="table-dark">
+                            <tr style='font-size:13px;'>
+                                <th>Machine Name</th>
+                                <th>Machine Name</th>
+                                <th> # </th>
+                            </tr>
+                        </thead>
+                        <tbody id="machineListForProjectStats"></tbody>
+                    </table>  
+                </div>
+
+            </div>
+
+            <div class="row machine-name-container">
+                <div class="col button-div mt-1">
+                    <!-- Button trigger modal -->
+                    <button type="button" onclick="checkSupervisor()" class="btn btn-primary mt-3 ms-5 w-25 shadow-sm" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                        Submit Datas
+                    </button>                
+                </div>            
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endif  %}
+
 
 
 <!-- Button trigger modal -->

@@ -483,11 +483,13 @@ color: white;
     animation: extend 5s linear infinite;
 }
 
-.monthly-duty-table-body th, .each-machine-report-body th{
+.monthly-duty-table-body th{
     position: sticky;
     left: 0;
     z-index: 5;
 }
+
+
 
 #monthly-duty-table .fixed-table-date{
     top: 0;
@@ -889,4 +891,26 @@ html.under-construction {
     80%  {margin-left:-50px;opacity:1;}
     90% {height:35px;width:50px;margin-left:50px;opacity:0;}
     100% {opacity:0;}
+}
+/* Summary Report */
+.add-project-statistics{
+    margin: 20px auto;
+    background-color: #b5c1fc;
+}
+
+.add-project-statistics h3{
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: #2C41AD;
+    border: 5px;
+}
+
+.machine-name-container .machine-name-table{
+    max-height: 150px;
+    overflow: auto;
+}
+
+.machine-name-container .machine-name-table table thead{
+    position: sticky;
+    top: 0;
 }

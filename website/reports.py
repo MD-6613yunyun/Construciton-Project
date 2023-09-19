@@ -469,6 +469,9 @@ def report_by_each_machine():
     pj_id = request.form.get("pj_id")
     start_dt = request.form.get('start_date_for_each')
     end_dt = request.form.get('end_date_for_each')
+    print(start_dt)
+    print(end_dt)
+    print(pj_id)
     yer , mon , sth = map(int,start_dt.split("-"))
     if pj_id == "" or start_dt == "" or end_dt == "" or pj_name == "":
         return redirect(url_for('reports.monthly_duty_report',mgs=f"Incomplete Field For Project Name - Project Code."))

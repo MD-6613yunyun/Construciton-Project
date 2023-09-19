@@ -29,60 +29,141 @@ def home():
         return render_template('home.html')
     return render_template('auth.html',typ='log')
 
-@views.route('/machine-details/<mgs>',methods=['GET','POST'])
-@views.route('/machine-details',methods=['GET','POST'])
-def machine_details(mgs=None):
+@views.route("/transactions/<what>/<mgs>",methods =['GET','POST'])
+@views.route("/transactions/<what>",methods =['GET','POST'])
+def show_transactions(what,mgs=None):
     role = request.cookies.get('role')
     if not role:
         return redirect(url_for('views.home'))
     else:
         if int(role) not in (1,3,4):
             return render_template('access_error.html')
-    global mappings,machine_brand_mapping,machine_capacity_mapping,machine_class_mapping,machine_owner_mapping,machine_type_mapping,business_unit_mapping
+    conn = db_connect()
+    cur = conn.cursor()
+    if request.method == 'POST':
+        pass
+    else:
+        if what == 'duty':
+            query = """ SELECT 
+                            dty.duty_date,pj.code,pj.name,fv.machine_name,dty.operator_name,dty.morg_start,dty.morg_end,
+                            dty.aftn_start,dty.aftn_end,dty.evn_start,dty.evn_end,dty.total_hr,dty.hrper_rate,
+                            dty.totaluse_fuel,dty.fuel_price,dty.duty_amt,dty.fuel_amt,dty.total_amt,dty.way,
+                            dty.complete_feet, dty.complete_sud 
+                        FROM duty_odoo_report dty
+                            LEFT JOIN fleet_vehicle fv ON fv.id = dty.machine_id
+                            LEFT JOIN analytic_project_code pj ON pj.id = dty.project_id ORDER BY dty.duty_date ASC LIMIT 81"""
+            cur.execute(query)
+            datas = cur.fetchall()
+            cur.execute("SELECT count(*) FROM duty_odoo_report;")
+            total = cur.fetchall()[0][0]
+            name = "Duty Query"
+        elif what == 'expense':
+            query = """ SELECT
+                            exp.duty_date,pj.code,pj.name,bi.name,exp.expense_amt
+                        FROM expense_prepaid AS exp
+                        INNER JOIN analytic_project_code AS pj
+                        ON pj.id = exp.project_id
+                        INNER JOIN res_company bi
+                        ON bi.id = exp.res_company_id
+                        LIMIT 81; """
+            cur.execute(query)
+            datas = cur.fetchall()
+            cur.execute("SELECT count(*) FROM expense_prepaid;")
+            total = cur.fetchall()[0][0]
+            name = "Expenses Query"
+        elif what == 'service':
+            datas = []
+            name = "Service Query"
+            total = 70
+        return render_template("transactions.html",datas=datas,total=total,name=name,message=mgs)
+
+@views.route("/configurations/<what>/<mgs>",methods=['GET','POST'])
+@views.route("/configurations/<what>",methods=['GET','POST'])
+def configurations(what,mgs=None):
+
     conn = db_connect()
     cur = conn.cursor()
 
-    totals = []
     machine_name_wildcard = pj_name_wildcard = ""
-    searchs = [False,False]
+    extra_datas = ["",False,0]
+
     if request.method == 'POST':
         machine_name = request.form.get('name-search')
+        print(machine_name)
         pj_name = request.form.get('project-search')
-        
+
         machine_name_wildcard = machine_name.strip() if machine_name else ""
         pj_name_wildcard = pj_name.strip() if pj_name else ""
-        if machine_name_wildcard != "":
-            searchs[0] = True
-        elif pj_name_wildcard != "":
-            searchs[1] = True
 
-    cur.execute("""SELECT fv.machine_name,mt.name,mc.name,rc.name,mcf.name,vb.name,vo.name,fv.id
-                FROM fleet_vehicle fv
-                LEFT JOIN machine_type mt ON mt.id = fv.machine_type_id 
-                LEFT JOIN machine_class mc ON mc.id = fv.machine_class_id
-                LEFT JOIN res_company rc ON rc.id = fv.business_unit_id
-                LEFT JOIN fleet_vehicle_model_brand vb ON vb.id = fv.brand_id
-                LEFT JOIN vehicle_owner vo ON vo.id = fv.owner_name_id
-                LEFT JOIN vehicle_machine_config mcf ON mcf.id = fv.machine_config_id 
-                WHERE fv.machine_name ILIKE %s
-                ORDER BY CASE WHEN fv.machine_name = %s THEN 0 ELSE 1 END
-                LIMIT 81;""",('%'+machine_name_wildcard+'%',machine_name_wildcard))
-    machine_datas = cur.fetchall()
-    cur.execute("SELECT count(id) FROM fleet_vehicle;")
-    totals.append(cur.fetchall()[0][0])
+        if machine_name_wildcard != "" or pj_name_wildcard != "":
+            extra_datas[1] = True
 
-    cur.execute("""SELECT 
-                code,pj.name,pj_group,type,bi.name,finished_state,pj.id
-                FROM analytic_project_code pj 
-                LEFT JOIN res_company bi
-                ON pj.business_unit_id = bi.id
-                WHERE code ILIKE %s OR pj.name ILIKE %s
-                ORDER BY CASE WHEN pj.name = %s THEN 0 ELSE 1 END
-                LIMIT 81;""",('%'+pj_name_wildcard+'%','%'+pj_name_wildcard+'%',pj_name_wildcard))
-    pj_datas = cur.fetchall()
+    if what == 'machine':
+        cur.execute("""SELECT fv.machine_name,mt.name,mc.name,rc.name,mcf.name,vb.name,vo.name,fv.id
+                    FROM fleet_vehicle fv
+                    LEFT JOIN machine_type mt ON mt.id = fv.machine_type_id 
+                    LEFT JOIN machine_class mc ON mc.id = fv.machine_class_id
+                    LEFT JOIN res_company rc ON rc.id = fv.business_unit_id
+                    LEFT JOIN fleet_vehicle_model_brand vb ON vb.id = fv.brand_id
+                    LEFT JOIN vehicle_owner vo ON vo.id = fv.owner_name_id
+                    LEFT JOIN vehicle_machine_config mcf ON mcf.id = fv.machine_config_id 
+                    WHERE fv.machine_name ILIKE %s
+                    ORDER BY CASE WHEN fv.machine_name = %s THEN 0 ELSE 1 END
+                    LIMIT 81;""",('%'+machine_name_wildcard+'%',machine_name_wildcard))
+        data = cur.fetchall()
+        cur.execute("SELECT count(id) FROM fleet_vehicle;")
+        extra_datas[2] = cur.fetchall()[0][0]
+        extra_datas[0] = "Machine List"
+    elif what == 'project':
+        cur.execute("""SELECT 
+                    code,pj.name,pj_group,type,bi.name,finished_state,pj.id
+                    FROM analytic_project_code pj 
+                    LEFT JOIN res_company bi
+                    ON pj.business_unit_id = bi.id
+                    WHERE code ILIKE %s OR pj.name ILIKE %s
+                    ORDER BY CASE WHEN pj.name = %s THEN 0 ELSE 1 END
+                    LIMIT 81;""",('%'+pj_name_wildcard+'%','%'+pj_name_wildcard+'%',pj_name_wildcard))
+        data = cur.fetchall()
+        cur.execute("""SELECT count(id) FROM analytic_project_code;""")
+        extra_datas[2] = cur.fetchall()[0][0]
+        extra_datas[0] = "Project List"
+    elif what == 'details':
+        data = {}
+        extra_datas[0] = "Machine Details"
+        cur.execute("SELECT id,name FROM machine_type")
+        datas = cur.fetchall()
+        data["Machine Type"] = datas
 
-    cur.execute("""SELECT count(id) FROM analytic_project_code;""")
-    totals.append(cur.fetchall()[0][0])
+        cur.execute("SELECT id,name FROM machine_class")
+        datas = cur.fetchall()
+        data["Machine Class"] = datas
+
+        cur.execute("SELECT id,name FROM res_company")
+        datas = cur.fetchall()
+        data["Business Unit"] = datas
+
+        cur.execute("SELECT id,name FROM vehicle_machine_config")
+        datas = cur.fetchall()
+        data["Machine Capacity"] = datas
+
+        cur.execute("SELECT id,name FROM fleet_vehicle_model_brand")
+        datas = cur.fetchall()
+        data["Machine Brand"] = datas
+
+        cur.execute("SELECT id,name FROM vehicle_owner")
+        datas = cur.fetchall()
+        data["Owner"] = datas
+    
+    cur.close()
+    conn.close()
+
+    return render_template('configurations.html',message=mgs,datas=data,extra_datas = extra_datas)
+        
+def get_necessary_data_for_imports():
+    global mappings,machine_brand_mapping,machine_capacity_mapping,machine_class_mapping,machine_owner_mapping,machine_type_mapping,business_unit_mapping
+    
+    conn = db_connect()
+    cur = conn.cursor()
     
     cur.execute("SELECT id,name FROM machine_type")
     datas = cur.fetchall()
@@ -110,9 +191,6 @@ def machine_details(mgs=None):
 
     mappings = [business_unit_mapping,machine_type_mapping,machine_capacity_mapping,machine_brand_mapping,machine_owner_mapping,machine_class_mapping]
 
-    if mgs:
-        mgs = mgs.replace("&#47;","/")
-    return render_template('machine_details.html',message=mgs,machine_datas=machine_datas,pj_datas = pj_datas,totals=totals,searchs = searchs)
 
 @views.route("/upload-machine-details",methods=['GET','POST'])
 def upload_machine_details():
@@ -120,6 +198,7 @@ def upload_machine_details():
     if request.method == 'POST':
         upload_file = request.files["upload_excel_machine_details"]
         excel_file_type = request.form.get('selectedOption')
+        what_dct = {"Machine List":"machine","Project Code":"project"}
         if upload_file.filename != '' and upload_file.filename.endswith(".xlsx"):
             workbook = load_workbook(filename=upload_file,data_only=True,read_only=True)
             # Select the worksheet to read from
@@ -127,7 +206,9 @@ def upload_machine_details():
                 worksheet = workbook[excel_file_type]  # Replace 'Sheet1' with the actual sheet name
             except:
                 mgs = f"The sheet name of your Imported Excel file doesn't match with <strong>{excel_file_type}<&#47;strong>"
-                return redirect(url_for('views.machine_details',mgs=mgs))
+                return redirect(url_for('views.configurations',what=what_dct.get(excel_file_type),mgs=mgs))
+            # GET
+            get_necessary_data_for_imports()
             # Iterate over rows in the worksheet
             conn = db_connect()
             cur = conn.cursor()
@@ -199,9 +280,11 @@ def upload_machine_details():
             cur.close()
             conn.close()
 
-            return redirect(url_for('views.machine_details',mgs=mgs))
-            # return render_template("ExcelFile.html",data=data.to_html(index=False).replace('<th>','<th style="text-align:center">'))
-    return render_template("home.html")
+            return redirect(url_for('views.configurations',what=what_dct.get(excel_file_type),mgs=mgs))
+        else:    
+            return redirect(url_for('views.configurations',what=what_dct.get(excel_file_type,"project"),mgs="Invalid File Type"))
+    else:
+        return render_template("home.html")
 
 @views.route("/get-pj-datas")
 def get_pj_datas():
@@ -213,46 +296,6 @@ def get_pj_datas():
     
     return jsonify(pj_datas)
 
-@views.route("/duty-query/<mgs>")
-@views.route("/duty-query")
-def duty_query(mgs=None):
-    role = request.cookies.get('role')
-    if not role:
-        return redirect(url_for('views.home'))
-    else:
-        if int(role) not in (1,3,4):
-            return render_template('access_error.html')
-    conn = db_connect()
-    cur = conn.cursor()
-    total = []
-    query = """ SELECT 
-                    dty.duty_date,pj.code,pj.name,fv.machine_name,dty.operator_name,dty.morg_start,dty.morg_end,
-                    dty.aftn_start,dty.aftn_end,dty.evn_start,dty.evn_end,dty.total_hr,dty.hrper_rate,
-                    dty.totaluse_fuel,dty.fuel_price,dty.duty_amt,dty.fuel_amt,dty.total_amt,dty.way,
-                    dty.complete_feet, dty.complete_sud 
-                FROM duty_odoo_report dty
-                    LEFT JOIN fleet_vehicle fv ON fv.id = dty.machine_id
-                    LEFT JOIN analytic_project_code pj ON pj.id = dty.project_id ORDER BY dty.duty_date ASC LIMIT 81"""
-    cur.execute(query)
-    duty_datas = cur.fetchall()
-    cur.execute("SELECT count(*) FROM duty_odoo_report;")
-    total.append(cur.fetchall()[0][0])
-
-    query = """ SELECT
-                    exp.duty_date,pj.code,pj.name,bi.name,exp.expense_amt
-                FROM expense_prepaid AS exp
-                INNER JOIN analytic_project_code AS pj
-                ON pj.id = exp.project_id
-                INNER JOIN res_company bi
-                ON bi.id = exp.res_company_id
-                LIMIT 81; """
-    cur.execute(query)
-    expense_datas = cur.fetchall()
-    cur.execute("SELECT count(*) FROM expense_prepaid;")
-    total.append(cur.fetchall()[0][0])
-    conn.close()
-    cur.close()
-    return render_template("duty.html",message=mgs,expense_datas = expense_datas,duty_datas=duty_datas,total = total)
 
 @views.route("upload-duty",methods=['GET','POST'])
 def upload_duty():
@@ -262,14 +305,14 @@ def upload_duty():
         month = request.form.get("selectedMonth")
         year = request.form.get("selectedYear")
         query = request.form.get('selectedQuery')
-
+        what_dct = {"Duty Query":'duty',"Expenses Query":'expense','Services Query':"service"}
         if upload_file.filename != '' and upload_file.filename.endswith(".xlsx"):
             workbook = load_workbook(filename=upload_file,read_only=True,data_only=True)
             # Select the worksheet to read from
             try:
                 worksheet = workbook[query]  # Replace 'Sheet1' with the actual sheet name
             except:
-                return redirect(url_for('views.duty_query',mgs=f"Sheet Name must be {query} "))
+                return redirect(url_for('views.show_transactions',what=what_dct.get(query,'duty'),mgs=f"Sheet Name must be  {query}"))     
             # Iterate over rows in the worksheet
             conn = db_connect()
             cur = conn.cursor()
@@ -281,7 +324,7 @@ def upload_duty():
                     # 3,4,10,11,14,15,16,17,18,19,20,30,33,37,38,43,46
                     # 3,4,10,11,27,28,29,39,31,32,33,43,46,52,53,56,59
                     if row[3].value is None or row[4].value is None or row[10].value is None or row[11].value is None or row[27].value is None or row[28].value is None or row[29].value is None or row[30].value is None or row[31].value is None or row[32].value is None or row[33].value is None or row[46].value is None or row[50].value is None or row[51].value is None:
-                        return redirect(url_for('views.duty_query',mgs=f"Invalid field or Blank field at Row - {row_counter}"))
+                        return redirect(url_for('views.show_transactions',what=what_dct.get(query,'duty'),mgs=f"Invalid Field or Blank Field at Row - {row_counter}"))     
                     else:
                         if year != 'all':
                             if row[4].value.month != int(month) and row[4].value.year != int(year):
@@ -299,7 +342,7 @@ def upload_duty():
                             mgs = f"Invalid field or Unknown Field at Row - {row_counter} <br>"
                             mgs = mgs + f"Project Code - {row[3].value.replace('/','&#47;')} doesnt't match with system <br>" if not pj_id else mgs
                             mgs = mgs + f"Machine Name - {row[10].value.replace('/','&#47;')} doesnt't match with system <br>" if not machine_id else mgs
-                            return redirect(url_for('views.duty_query',mgs=mgs))
+                            return redirect(url_for('views.show_transactions',what=what_dct.get(query,'duty'),mgs=mgs))
                         insert_statement_query += f""" ({pj_id},'{row[4].value.strftime("%Y-%m-%d")}',{machine_id},'{row[11].value}','{row[27].value}','{row[28].value}','{row[29].value}','{row[30].value}','{row[31].value}','{row[32].value}','{row[33].value}','{row[46].value}','{row[50].value}','{row[51].value}',{row[52].value},{row[53].value},'{way}','{com_feet}','{com_sud}'),"""
                 table = 'duty_odoo_report'
             elif query == 'Expenses Query':
@@ -320,10 +363,29 @@ def upload_duty():
                     if unit_id and id != []:
                         if row[38].value.strip() == 'P&L':
                             expenses = row[22].value if row[22].value else 0
-                            insert_statement_query += f""" ('{unit_id}','{id[0][0]}','{row[10].value}',{expenses}),""" 
+                            insert_statement_query += f""" ('{unit_id}','{id[0][0]}','{row[10].value}',{expenses}),"""
                     else:
-                        return redirect(url_for('views.duty_query',mgs=f"Unknown Project Code or Unknown Unit at Row - {row_counter}"))                        
+                        return redirect(url_for('views.show_transactions',what=what_dct.get(query,'duty'),mgs=f"Unknown Project Code or Unknown Unit at Row - {row_counter}"))                        
                 table = "expense_prepaid"
+            elif query == "Services Query":
+                insert_statement_query = """ INSERT INTO service_datas (service_date,business_unit_id,machine_id,
+                category_id,parts_price,parts_qty) VALUES """
+                cur.execute("SELECT machine_name,id FROM fleet_vehicle;")
+                vehicle_datas = {data[0]:data[1] for data in cur.fetchall()}
+                cur.execute("SELECT name,id FROM res_company;")
+                bi_datas = {data[0]:data[1] for data in cur.fetchall()}
+                cur.execute("SELECT name,id FROM service_category;")
+                category_datas = {data[0]:data[1] for data in cur.fetchall()}
+                for row_counter , row in enumerate(worksheet.iter_rows(min_row=2),start=2):
+                    print(row[0].value,row[2].value,row[3].value,row[4].value,row[5].value,row[6].value)
+                    if None in (row[0].value,row[2].value,row[3].value,row[4].value,row[5].value,row[6].value) or row[2].value not in bi_datas or row[3].value not in vehicle_datas:
+                        print("Blank Field")
+                    category_id = row[4].value.strip()
+                    if not category_datas.get(category_id):
+                        cur.execute("INSERT INTO service_category(name) VALUES (%s) ON CONFLICT (name) DO NOTHING RETURNING id;",(category_id,))
+                        category_id = cur.fetchall()[0][0]
+                    insert_statement_query += f""" ('{row[0].value}','{bi_datas.get(row[2].value.strip())}','{vehicle_datas.get(row[3].value.strip())}','{category_id}','{row[5].value.strip()}','{row[6].value.strip()}') """
+            print(insert_statement_query)
             if year != 'all':
                 s_date , e_date = get_first_and_last_day(int(month),int(year))
                 cur.execute("""DELETE FROM {} WHERE duty_date BETWEEN '{}' AND '{}' """.format(table,s_date,e_date))
@@ -331,7 +393,9 @@ def upload_duty():
             mgs = catch_db_insert_error(cur,conn,[insert_statement_query[:-1]])
             cur.close()
             conn.close()
-    return redirect(url_for('views.duty_query',mgs=mgs))
+        else:
+            mgs = "Invalid File Type.."
+    return redirect(url_for('views.show_transactions',what=what_dct.get(query,'duty'),mgs=mgs))
 
 @views.route("/delete-data/<db>/<id>")
 def delete_data(db,id):

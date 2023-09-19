@@ -1,23 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Rubik&display=swap');
 
-body{
+.body-for-daily-table{
     margin: 0;
     box-sizing: border-box;
     font-family: 'Rubik', sans-serif;
-    background-color: rgb(245, 245, 245);
-    /* #ACCBE1 */
 }
 
 h3{
     text-align: center;
     background-color: #3E517A;
-    padding: 15px 0;
+    padding: 10px 0;
     color: white;
     border-radius: 20px;
     margin: 15px auto;
     position: relative;
     width: 80%;
     box-shadow: 0px 1.5px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    font-size: 20px;
 }
 
 .plus-sign{
@@ -27,30 +27,6 @@ h3{
     top: 50%;
     transform: translateY(-50%);
 }
-
-/* h3:before{
-    content: "";
-    display: block;
-    width: 400px;   
-    height: 2px;
-    background: #3E517A;
-    left: 0;
-    top: 50%;
-    transform: translateX(-100%);
-    position: absolute;
-} */
-
-/* h3:after{
-    content: "";
-    display: block;
-    width: 0px;    
-    height: 2px;
-    background: #3E517A;
-    right: 0;
-    top: 50%;
-    transform: translateX(100%);
-    position: absolute; 
-} */ 
 
 input{
     border: none;
@@ -94,6 +70,7 @@ input::placeholder{
 
 .first-div input[type="text"]{
     margin-top: 10px;
+    display: none;
 }
 
 .first-div{
@@ -135,6 +112,21 @@ input::placeholder{
     margin-bottom: 10px;
 }
 
+#projectDetailsSec #dropDetails{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#projectDetailsSec #dropDetails div{
+    display: grid;
+    grid-template-columns: 50% 50%;
+}
+
+.project-details-section .label{
+    display: none;
+}
+
 .weather{
     background-color: #ACCBE1;
     width: 50%;
@@ -155,7 +147,7 @@ input::placeholder{
 }
 
 .weather input[type="number"]{
-    height: 10px;
+    height: 20px;
 }
 
 /* table */
@@ -165,14 +157,46 @@ th{
 }
 
 .estimate-result-table, .activities-table, .manpower-equiment-table, .repair-maintainace-table{
-    /* border-collapse: collapse; */
     margin: 0 auto;
 }
 
-.manpower{
+.activities-table, .estimate-result-table, .manpower{
+    width: 80%;
+}
+
+.activities-table .duty-hour{
+    display: flex;
+}
+
+.activities-table .duty-hour input{
+    width: 50px;
+    margin: 0 5px;
+}
+
+.activities-table table{
+    width: 100%;
+}
+
+.activities-table input{
     width: 95%;
+}
+
+.trash-icon{
+    color : #E63946;
+}
+
+.manpower{
+    width: 80%;
     margin: 0 auto;
     overflow: scroll;
+}
+
+.manpower .manpower-equiment-table{
+    width: 100%;
+}
+
+.manpower-equiment-table input{
+    width: 96%;
 }
 
 td, th{
@@ -197,7 +221,6 @@ tbody tr button{
     padding: 5px;
 }
 
-
 .add-btn button{
     background-color: rgb(110, 110, 110);
     color: white;
@@ -215,11 +238,7 @@ tbody tr button{
 }
 
 .estimate-result-table input{
-    width: 100px;
-}
-
-.activities-table input{
-    width: 300px;
+    width: 97%;
 }
 
 @media screen and (max-width: 2010px){
@@ -228,9 +247,21 @@ tbody tr button{
     } 
 }
 
+@media screen and (max-width: 1100px){
+    .activities-table{
+        width: 600px;
+        overflow: auto;
+    }
+
+}
+
 @media screen and (max-width: 1080px) {
     .project-status-section{
         width: 60%;
+    }
+
+    .activities-table input{
+        width: 100px;
     }
 
     h3{
@@ -275,13 +306,13 @@ tbody tr button{
         width: 70%;
     }
 
+    .activities-table{
+        width: 90%;
+    }
+
     .first-div input[type="text"]{
         margin-right: 15px;
         width: 150px;
-    }
-
-    .activities-table input{
-        width: 200px;
     }
 
     .manpower-equiment-table input{

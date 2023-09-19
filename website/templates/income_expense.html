@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %} Income / Expense Import {% endblock %}
+{% block styles %}
+    <link href="{{url_for('static',filename='styles/income_expense.css')}}" rel="stylesheet"/>
+    <script src="{{url_for('static',filename='scripts/site-imports.js')}}"></script>
+{% endblock %}
+{% block content %}
+<div class="body-for-income-expense-table">
+    <h3>Daily Cash In/Cash Out<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+    <form action="">
+        <!-- project status -->
+        <section class="project-status-section add-table">
+            <div class="first-div">
+                <span>Cash Type</span>
+                <label for="working">Income
+                    <input type="radio" value="incomes" name="work" id="working" autocomplete="off" required>
+                </label>
+                <label for="notWorking">Expense
+                    <input type="radio" value="expenses" name="work" id="notWorking" autocomplete="off" required>
+                </label>
+            </div>
+            <div class="sec-div">
+                <span>Import No</span>
+                <span>- DCR/2021/000001</span>
+                <span>Date</span>
+                <span>- <input type="date" required></span>
+            </div>
+        </section>
+        <!-- xxx -->
+        <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <section class="project-details-section add-table" id="projectDetailSec">
+            <span>Project Code</span>
+            <input type="text" autocomplete="off" list="prjCd" onchange="projectFill(this)" required>
+            <datalist id="prjCd">
+            </datalist>
+            <input id="hiddenId" type="hidden">
+            <label class="label">HO A/C Name</label>
+            <span id="hoAcName"></span>
+
+            <label class="label">Project Name</label>
+            <span id="prjName"></span>
+
+            <label class="label">Project Location</label>
+            <span id="prjLoca"></span>
+
+            <label class="label">Project Start Date</label>
+            <label id="prjDate"></label>
+
+            <label class="label">Supervisor</label>
+            <span id="sprVisor"></span>
+        </section> 
+        <!-- xxx -->
+        <h3>Activites<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <div class="activities-table add-table toggle-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Description</th>
+                        <th>Voucher No.</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Amount</th>
+                        <th>Remark</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="activitiesTable">
+                    <tr onchange="fillValue(this)">
+                        <td>1</td>
+                        <td><input type="text" autocomplete="off" required style="width: 150px;"></td>
+                        <td><input type="text" autocomplete="off" style="width: 70px;"></td>
+                        <td><input type="number" autocomplete="off" required class="quan"  style="text-align: right;width: 70px;"></td>
+                        <td><input type="number" autocomplete="off" required class="prc"  style="text-align: right;width: 70px;"></td>
+                        <td><input type="number" autocomplete="off" required class="amt"  style="text-align: right;width: 70px;"></td>
+                        <td><input type="text" autocomplete="off"></td>
+                        <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                    </tr>
+                    <tr class="add-btn">
+                        <td onclick="newRow(this)" class="activityBtn"><button type="button">+</button></td>
+                        <td colspan="5" style="text-align: right;">Total</td>
+                        <td id="total" style="text-align: right;"></td>
+                    </tr>
+                    <tr onchange="fillValue(this)" class="d-none">
+                        <td id="no">1</td>
+                        <td><input type="text" autocomplete="off" required style="width: 150px;"></td>
+                        <td><input type="text" autocomplete="off" style="width: 70px;"></td>
+                        <td><input type="number" autocomplete="off" required class="quan"  style="text-align: right;width: 70px;"></td>
+                        <td><input type="number" autocomplete="off" required class="prc"  style="text-align: right;width: 70px;"></td>
+                        <td><input type="number" autocomplete="off" required class="amt"  style="text-align: right;width: 70px;"></td>
+                        <td><input type="text" autocomplete="off"></td>
+                        <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="btn-bg">
+            <button class="submit-btn" type="submit">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

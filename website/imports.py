@@ -15,9 +15,9 @@ def get_id_from_table(cur, table_name,value):
     idd = cur.fetchone()
     return idd[0] if idd else None
 
-@imports.route("/<mgs>")
-@imports.route("")
-def form_view(mgs=None):
+@imports.route("/<what>/<mgs>")
+@imports.route("/<what>")
+def import_data(what,mgs=None):
     role = request.cookies.get('role')
     if not role:
         return redirect(url_for('views.home'))
@@ -27,32 +27,49 @@ def form_view(mgs=None):
     conn = db_connect()
     cur = conn.cursor()
     data = {}
+    if what == 'machine':
+        cur.execute("SELECT name FROM machine_type")
+        datas = cur.fetchall()
+        data["Machine Type"] = datas
 
-    cur.execute("SELECT id,name FROM machine_type")
-    datas = cur.fetchall()
-    data["Machine Type"] = datas
+        cur.execute("SELECT name FROM machine_class")
+        datas = cur.fetchall()
+        data["Machine Class"] = datas
 
-    cur.execute("SELECT id,name FROM machine_class")
-    datas = cur.fetchall()
-    data["Machine Class"] = datas
+        cur.execute("SELECT name FROM res_company")
+        datas = cur.fetchall()
+        data["Business Unit"] = datas
 
-    cur.execute("SELECT id,name FROM res_company")
-    datas = cur.fetchall()
-    data["Business Unit"] = datas
+        cur.execute("SELECT name FROM vehicle_machine_config")
+        datas = cur.fetchall()
+        data["Machine Capacity"] = datas
 
-    cur.execute("SELECT id,name FROM vehicle_machine_config")
-    datas = cur.fetchall()
-    data["Machine Capacity"] = datas
+        cur.execute("SELECT name FROM fleet_vehicle_model_brand")
+        datas = cur.fetchall()
+        data["Machine Brand"] = datas
 
-    cur.execute("SELECT id,name FROM fleet_vehicle_model_brand")
-    datas = cur.fetchall()
-    data["Machine Brand"] = datas
+        cur.execute("SELECT name FROM vehicle_owner")
+        datas = cur.fetchall()
+        data["Owner"] = datas
+        name = 'Machine Line'
+    elif what == 'project':
+        cur.execute("SELECT name FROM res_company;")
+        data["Business Unit"] = cur.fetchall()
 
-    cur.execute("SELECT id,name FROM vehicle_owner")
-    datas = cur.fetchall()
-    data["Owner"] = datas
+        cur.execute("SELECT name FROM project_group;")
+        data["Project Group"] = cur.fetchall()
 
-    return render_template("import_data.html",data = data,mgs=mgs)
+        cur.execute("SELECT name FROM project_type;")
+        data["Project Type"] = cur.fetchall()
+        name = 'Project Line'
+    elif what == 'project_stat':
+        cur.execute("SELECT name || ' | ' || code FROM analytic_project_code;")
+        data['Project Code'] = cur.fetchall()
+        cur.execute("SELECT machine_name || ' | ' || id FROM fleet_vehicle;")
+        data['Machine'] = cur.fetchall()
+        name = 'Project Statistics Line'
+
+    return render_template("import_data.html",data = data,name=name,mgs=mgs)
 
 @imports.route("/upload-each-machine-details",methods=['GET','POST'])
 def upload_each():
@@ -142,6 +159,14 @@ def upload_each_duty():
         print(all_duty_datas)
 
     return redirect(url_for('imports.form_view'))
+
+@imports.route("/daily-acitvity")
+def daily_activities_report():
+    return render_template("daily-table.html")
+
+@imports.route("/income-expense")
+def income_expense_report():
+    return render_template("income_expense.html")
 
 @imports.route("duty-line")
 def duty_line():

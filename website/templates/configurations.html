@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% block title %} Machine Details {% endblock %}
+{% block content %}
+
+<div class="col-md-10 offset-md-1 mt-2 mb-3" style="margin-top:70px;">
+    <form method="POST" action="/upload-machine-details" enctype="multipart/form-data">
+        <h3 class="page-header text-primary">Upload Excel File</h3>
+        <div class="conatiner">
+        <div class="row">
+            <div class="col">
+            <div class="form-group w-100">
+                <input type="file"  required class="form-control" name="upload_excel_machine_details">
+            </div>
+            </div>
+            <div class="col">
+                <select class="form-select form-select" name="selectedOption"  required aria-label=".form-select-sm example">
+                    <option value="Machine List" {% if extra_datas[0] == 'Machine List'%}selected{% endif %}>Machine List</option>
+                    <option value="Machine Details" {% if extra_datas[0] == 'Machine Details'%}selected{% endif %}>Machine Details</option>
+                    <option value="Project Code" {% if extra_datas[0] == 'Project List'%}selected{% endif %}>Project Code</option>
+                    <option value="Work Done">Work Done</option>
+                </select>
+            </div>
+            <div class="col">
+            <button type="submit" class="btn btn-success btn-block">Upload Excel</button>
+            </div>
+        </div>
+        </div>
+    </form>
+</div>
+
+
+<h1 class="text-center">{{extra_datas[0]}} Table</h1>
+
+{% if extra_datas[0] != 'Machine Details' %}
+
+    <div class="container text-center mt-5 mb-3">
+        <div class="row">
+            <div class="col">
+                <form class="d-flex" action="{% if extra_datas[0] == 'Machine List'%} {{url_for('views.configurations',what='machine')}} {% elif extra_datas[0] == 'Project List' %} {{url_for('views.configurations',what='project')}} {% endif %}" method="post" role="search">
+                    <input autocomplete="off" class="form-control me-2" type="search" name="{% if extra_datas[0] == 'Machine List'%}name-search{% elif extra_datas[0] == 'Project List' %}project-search{% endif %}" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+            </div>
+            {% if not extra_datas[1] %}
+            <div class="col">
+                <div class="flex-end">
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                    <button type="button" onclick="clickPagination(this,'pj','prev')" class="btn btn-secondary">Prev</button>
+                    <button type="button" class="btn btn-outline-dark" disabled> 1-81 / {{extra_datas[2]}}</button>
+                    <button type="button" onclick="clickPagination(this,'pj','next')" class="btn btn-secondary">Next</button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+{% endif %}
+
+{% if extra_datas[0] == 'Project List' %}
+<div class="m-5 mt-1 table-responsive machine-data-container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+            {% if extra_datas[1] %}
+            <th scope="col">#</th>
+            {% endif %}
+            <th scope="col">Project Code</th>
+            <th scope="col">Project Name</th>
+            <th scope="col">Project Group</th>
+            <th scope="col">Project Type</th>
+            <th scope="col">Business Unit</th>
+            <th scope="col">Finished State</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+        {% for pj_data in datas %}
+        <tr id="{{pj_data[6]}}" class="pj-data-changeable" {% if extra_datas[1] %} onclick="edit_data(this,true)" {% endif %}>
+            {% if extra_datas[1] %}
+            <td scope="col">✏️</td>
+            {% endif %}
+            <td>{{pj_data[0]}}</td>
+            <td>{{pj_data[1]}}</td>
+            <td>{{pj_data[2]}}</td>
+            <td>{{pj_data[3]}}</td>
+            <td>{{pj_data[4]}}</td>
+            <td>{{pj_data[5]}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% elif extra_datas[0] == 'Machine List' %}
+
+<div class="m-5 mt-1 table-responsive machine-data-container">
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            {% if searchs %}
+            <th scope="col">#</th>
+            {% endif %}
+            <th scope="col">Name</th>
+            <th scope="col">Type</th>
+            <th scope="col">Class</th>
+            <th scope="col">Unit</th>
+            <th scope="col">Capacity</th>
+            <th scope="col">Brand</th>
+            <th scope="col">Owner</th>
+        </tr>
+        </thead>
+        <tbody class="table-group-divider">
+        {% for machine_data in datas %}
+        <tr id="{{machine_data[7]}}" class="machine-list-changeable" {% if extra_datas[1] %} onclick="edit_data(this)" {% endif %}>
+            {% if extra_datas[1] %}
+            <td scope="col">✏️</td>
+            {% endif %}
+            <td>{{machine_data[0]}}</td>
+            <td>{{machine_data[1]}}</td>
+            <td>{{machine_data[2]}}</td>
+            <td>{{machine_data[3]}}</td>
+            <td>{{machine_data[4]}}</td>
+            <td>{{machine_data[5]}}</td>
+            <td>{{machine_data[6]}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% elif extra_datas[0] == 'Machine Details' %}
+
+<div class="container text-center mt-5">
+    <div class="row">
+        {% for name,data in datas.items() %}
+        <div class="col scroll-bar mt-3">
+            <div class="table-responsive table-container scroll-bar">
+                <table class="table table-striped">
+                    <thead>
+                        <tr class="table-dark">
+                            <th>{{name}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                            <form method="POST" action="/import/upload-each-machine-details">
+                                <input type="text" style="display: none;" name="table" value="{{name}}">
+                                <button class="button-83"  role="button" onclick="create_add_machine_input(this,event)">Add Data</button>
+                                <div class="div-machine-details" style="display: none;">
+                                    <input type="text" id="enter" name="data" class="add-machine-details" value="{% if request.form.get('data')  %}  {{request.form.get('data')}} {% else %}  {% endif %}"  placeholder="Type.." onkeyup="search_and_add(this,event)">
+                                    <button id="clear" type="submit" class="submit-in-input" onclick="insert_data_and_return_back_button(this)">Submit</button>
+                                </div>
+                            </form>
+                            </td>
+                        </tr>
+                        {% for dt in data%}
+                        <tr>
+                            <td>
+                            {{dt[1]}} <button onclick="chngInp(this)" class="edit-pen-btn" id="{{dt[0]}}" dbTable="{{name}}" data-machine="{{dt[1]}}"><i class="fa-solid fa-pencil"></i></button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endif %}
+
+
+<div class="col-md-10 offset-md-1 mt-5" style="margin-top:70px;margin-bottom: 100px;">
+<form method="POST" action="/export/" enctype="multipart/form-data">
+    <h3 class="page-header text-primary">Export Data in Excel File Format</h3>
+    <div class="conatiner mt-3">
+    <div class="row">
+        <div class="col">
+        <select class="form-select form-select" name="selectedOption"  required aria-label=".form-select-sm example">
+            <option value="Machine List">Machine List</option>
+            <option value="Project Code">Project Code</option>
+        </select>
+        </div>
+        <div class="col">
+        <button type="submit" class="btn btn-success btn-block">Export Excel</button>
+        </div>
+    </div>
+    </div>
+</form>
+</div>
+
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#exampleModal" id="autoClicker"></button>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5 text-danger-emphasis" id="exampleModalLabel">User Error</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalUserWarn">
+            <strong>{{message | safe }}</strong> 
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+<!-- HTML !-->
+
+

@@ -10,7 +10,6 @@ auth = Blueprint('auth',__name__)
 @auth.route("/")
 @auth.route("/<typ>",methods = ['GET','POST'])
 def authenticate(typ='log'):
-    print("nani")
     if request.method == 'POST':
         conn = db_connect()
         cur = conn.cursor()

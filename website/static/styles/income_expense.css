@@ -1,0 +1,454 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik&display=swap');
+
+.body-for-income-expense-table{
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Rubik', sans-serif;
+    background-color: rgb(245, 245, 245);
+}
+
+h3{
+    text-align: center;
+    background-color: #3E517A;
+    padding: 15px 0;
+    color: white;
+    border-radius: 20px;
+    margin: 15px auto;
+    position: relative;
+    width: 80%;
+    box-shadow: 0px 1.5px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.plus-sign{
+    font-size: 15px;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+input{
+    border: none;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+input:focus{
+    outline: none;
+}
+
+input::placeholder{
+    color: #c0c0c0ab;
+}
+
+.submit-btn{
+    display: block;
+    border: none;
+    padding: 10px;
+    border-radius: 15px;
+    background-color: #52AA5E;
+    color: white;
+    margin: 20px auto;
+    width: 50%;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.project-status-section{
+    width: 45%;
+    margin: 0 auto;
+    text-align: center;
+    background-color: #ACCBE1;
+    padding: 5px 0px 5px 0px;
+    border-radius: 15px;
+    box-shadow: 0px 1.5px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+}
+
+.first-div{
+    margin: 10px 0;
+    width: 100%;
+}
+
+.first-div label{
+    font-size: 17px;
+}
+
+.first-div #working{
+    accent-color: green;
+}
+
+.first-div #notWorking{
+    accent-color: red;
+}  
+.project-status-section span{
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.sec-div{
+    display: grid;
+    grid-template-columns: auto auto;
+    width: 100%;
+    text-align: left;
+}
+
+.sec-div > *{
+    margin: 10px 0;
+}
+
+.sec-div input{
+    margin-right: 10px;
+}
+
+.project-details-section{
+    display: grid;
+    grid-template-columns: auto auto;
+    width: 40%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #ACCBE1;
+    border-radius: 15px;
+    box-shadow: 0px 1.5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.project-details-section > span, .project-details-section > input{
+    margin-bottom: 10px;
+}
+
+#projectDetailsSec #dropDetails{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#projectDetailsSec #dropDetails div{
+    display: grid;
+    grid-template-columns: 50% 50%;
+}
+
+.project-details-section .label{
+    display: none;
+}
+
+.weather{
+    background-color: #ACCBE1;
+    width: 50%;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: auto auto;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 1.5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.weather input, .weather span{
+    margin: 5px;
+}
+
+.weather input{
+    width: 3em;
+}
+
+.weather input[type="number"]{
+    height: 10px;
+}
+
+/* table */
+th{
+    background-color: #637081;
+    color: white;
+}
+
+.estimate-result-table, .activities-table, .manpower-equiment-table, .repair-maintainace-table{
+    margin: 0 auto;
+}
+
+.activities-table, .estimate-result-table, .manpower{
+    width: 80%;
+}
+
+.activities-table .duty-hour{
+    display: flex;
+}
+
+.activities-table .duty-hour input{
+    width: 50px;
+    margin: 0 5px;
+}
+
+.activities-table table{
+    width: 85%;
+    margin: 0 auto;
+}
+
+.activities-table th{
+    font-size: 13px;
+}
+
+.activities-table input{
+    width: 95%;
+}
+
+.trash-icon{
+    color : #E63946;
+}
+
+.manpower{
+    width: 80%;
+    margin: 0 auto;
+    overflow: scroll;
+}
+
+.manpower .manpower-equiment-table{
+    width: 100%;
+}
+
+.manpower-equiment-table input{
+    width: 96%;
+}
+
+td, th{
+    padding: 15px;
+}
+
+th{
+    text-align: center;
+}
+
+tbody tr:nth-child(even){
+    background-color: #9cc3df;
+}
+
+tbody tr:nth-child(odd){
+   background-color: rgb(178, 213, 226);
+}
+
+tbody tr button{
+    width: 100%;
+    border: none;
+    padding: 5px;
+}
+
+.add-btn button{
+    background-color: rgb(110, 110, 110);
+    color: white;
+    border-radius: 5px;
+    font-size: 20px;
+    padding: 0 5px;
+}
+
+.add-btn button:hover{
+    background-color: #52AA5E;
+}
+
+.toggle-table{
+    display: none;
+}
+
+.estimate-result-table input{
+    width: 97%;
+}
+
+@media screen and (max-width: 2010px){
+    h3:before, h3:after{
+        width: 600px;
+    } 
+}
+
+@media screen and (max-width: 1100px){
+    .activities-table{
+        width: 600px;
+        overflow: auto;
+    }
+
+}
+
+@media screen and (max-width: 1080px) {
+    .project-status-section{
+        width: 60%;
+    }
+
+    .activities-table input{
+        width: 100px;
+    }
+
+    h3{
+        width: 100%;
+        border-radius: unset;
+    }
+
+    h3:before, h3:after{
+        content: none;
+    } 
+
+    .project-details-section{
+        width: 60%;
+    }
+
+    .manpower{
+        width: 80%;
+    }
+}
+
+@media screen and (max-width: 860px){
+    .project-status-section{
+        width: 70%;
+    }
+
+    .manpower{
+        width: 80%;
+    }
+
+    h3{
+        width: 100%;
+        border-radius: unset;
+    }
+
+    h3:before, h3:after{
+        content: none;
+    }    
+}
+
+@media screen and (max-width: 780px){
+    .project-details-section{
+        width: 70%;
+    }
+
+    .activities-table{
+        width: 90%;
+    }
+
+    .first-div input[type="text"]{
+        margin-right: 15px;
+        width: 150px;
+    }
+
+    .manpower-equiment-table input{
+        width: 70px;
+    }
+}
+
+@media screen and (max-width: 660px){
+    .project-status-section{
+        width: 80%;
+    }
+
+    span, td{
+        font-size: 15px;
+    }
+
+    .project-details-section{
+        width: 90%;
+    }
+}
+
+@media screen and (max-width: 600px){
+    .activities-table input{
+        width: 150px;
+    }
+
+    .repair-maintainace-table input[type="text"]{
+        width: 100px;
+    }
+}
+
+@media screen and (max-width: 500px){
+    span, tr td, label{
+        font-size: 13px;
+    }
+}
+
+@media screen and (max-width: 480px){
+    h3{
+        font-size: 15px;
+    }
+
+    th{
+        font-size: 13px;
+    }
+
+    span{
+        font-size: 12px;
+    }
+
+    label{
+        font-size: 12px;
+    }
+
+    .first-div input{
+        height: 10px;
+    }
+
+    .project-details-section{
+        width: 70%;
+        padding: 13px;
+        /* grid-template-columns: 100px 150px; */
+    }
+
+    .project-details-section input{
+        height: 5px;
+    }
+
+    .estimate-result-table th, 
+    .estimate-result-table td, 
+    .manpower-equiment-table td, 
+    .manpower-equiment-table th,
+    .repair-maintainace-table td,
+    .repair-maintainace-table th,
+    .activities-table td,
+    .activities-table th
+    {
+        padding: 5px;
+    }
+
+    .estimate-result-table input{
+        width: 40px;
+    }
+
+    .activities-table input{
+        width: 100px;
+    }
+}
+
+@media screen and (max-width: 420px){
+    .project-status-section{
+        width: 95%;
+    }
+
+    .project-status-section .first-div{
+        display: flex;
+        width: 100%;
+    }
+
+    .project-details-section{
+        width: 90%;
+    }
+
+    .project-details-section input{
+        width: 150px;
+    }
+
+    .first-div span:first-child{
+        display: block;
+        font-size: 13px;
+    }
+
+    .weather{
+        width: 80%;
+        padding: 10px;
+    }
+
+    .repair-maintainace-table input[type="text"]{
+        width: 80px;
+    }
+}
+
+
+
+
+

@@ -107,14 +107,15 @@ function assignIDForEachLine(opt){
 function chooseMachineInSelect(btn){
     machine_data = btn.value.split("|")
     list = document.getElementById("machineListForProjectStats")
-    console.log(machine_data)
-    list.innerHTML +=  `<tr>
-                            <td class="d-none"><input name="machine-ids" value="${machine_data[1].trim()}"></td>
-                            <td>${machine_data[0]}</td>
-                            <td>
-                                <button type="button" onclick="removeTdRow(this)" class="btn btn-danger"> Transfer / Move</button>
-                            </td>
-                        </tr>`
+    if(!Array.from(document.querySelectorAll('td')).map(td => td.textContent.trim()).includes(machine_data[0].trim())){
+        list.innerHTML +=  `<tr style='font-size:13px;'>
+                                <td class="d-none"><input name="machine-ids" value="${machine_data[1].trim()}"></td>
+                                <td class="added-machines">${machine_data[0].trim()}</td>
+                                <td>
+                                    <button type="button" onclick="removeTdRow(this)" class="btn btn-sm btn-danger"> Transfer / Move</button>
+                                </td>
+                            </tr>`
+    }
     btn.value = ""
 }
 
@@ -350,7 +351,7 @@ function edit_project_statistics(btn,idd,for_stats=true,for_pj_lst=false){
 }
 function checkEachMachineOrAll(btn){
     all_children_in_div = btn.parentElement.parentElement.children
-    action_of_form = btn.parentElement.parentElement
+    action_of_form = btn.parentElement.parentElement.parentElement
     if (btn.checked){
         all_children_in_div[3].classList.remove('d-none')
         for (let idx of [4,5,6]){
