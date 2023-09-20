@@ -906,11 +906,17 @@ html.under-construction {
 }
 
 .machine-name-container .machine-name-table{
-    max-height: 150px;
+    max-height: 300px;
     overflow: auto;
 }
 
 .machine-name-container .machine-name-table table thead{
     position: sticky;
     top: 0;
+}
+
+@media(max-width: 705px) {
+    .prj-statis .mechanni-table{
+        width: max-content;
+    }
 }

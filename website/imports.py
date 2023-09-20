@@ -68,6 +68,7 @@ def import_data(what,mgs=None):
         cur.execute("SELECT machine_name || ' | ' || id FROM fleet_vehicle;")
         data['Machine'] = cur.fetchall()
         name = 'Project Statistics Line'
+        print("nani")
 
     return render_template("import_data.html",data = data,name=name,mgs=mgs)
 

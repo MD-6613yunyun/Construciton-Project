@@ -192,3 +192,76 @@ function fillValue(tr){
 function roundToTwoDecimalPlaces(number) {
     return Math.round(number * 100) / 100;
 }
+
+function addInput(addBtn){
+    const getTbody = addBtn.parentElement.parentElement.parentElement;
+    const inputTr = document.createElement("tr");
+    if(addBtn.parentElement.classList.contains("men-power")){
+        addBtn.parentElement.innerHTML = `<button class="btn btn-md btn-danger text-white"  type="button" onclick="discardInp(this)">Discard<i class="fa-solid fa-xmark ms-2"></i></button>`
+        inputTr.innerHTML = `
+                            <td colspan="3" class="bg-secondary mechanicianInp">
+                                <div class="input-group px-5 z-0">
+                                    <input type="text" class="form-control w-50" placeholder="Enter Machine Name" list="machinelistOptions">
+                                    <input type="number" class="form-control" placeholder="Enter Mans Power">
+                                    <button type="button" class="btn btn-dark px-5 text-white" onclick="saveMachine(this)">Save</button>
+                                </div>
+                            </td>
+                            `;
+        getTbody.insertBefore(inputTr , getTbody.lastElementChild);
+    }else{
+        addBtn.parentElement.innerHTML = `<button class="btn btn-md btn-danger text-white"  type="button" onclick="discardInp(this)">Discard<i class="fa-solid fa-xmark ms-2"></i></button>`
+        inputTr.innerHTML = `
+                            <td colspan="3" class="bg-secondary meName">
+                                <div class="input-group px-5 z-0">
+                                    <input type="text" class="form-control w-50" data-bs-toggle="dropdown" placeholder="Enter Machine Name" list="machinelistOptions">
+                                    <button type="button" class="btn btn-dark px-5 text-white" onclick="saveMachine(this)">Save</button>
+                                </div>
+                            </td>
+                            `;
+        getTbody.insertBefore(inputTr , getTbody.lastElementChild);
+    }
+}
+
+function discardInp(discardBtn){
+    const getTbody = discardBtn.parentElement.parentElement.parentElement;
+    getTbody.children[getTbody.children.length - 2].remove();
+    discardBtn.parentElement.innerHTML = `<button class="btn btn-md btn-primary text-white"  type="button" onclick="addInput(this)">Add Machine<i class="fa-solid fa-plus ms-2"></i></button>`
+}
+
+function saveMachine(save){
+    const tbody = save.parentElement.parentElement.parentElement.parentElement;
+    const inputTr = save.parentElement.parentElement.parentElement;
+    const machineName = save.parentElement.children[0].value;
+    const manPower = save.parentElement.children[1].value;
+    if(inputTr.children[0].classList.contains("mechanicianInp")){
+        if(!machineName == "" && manPower > 0){
+                const newTr = document.createElement("tr");
+                newTr.className = "text-center fs-6";
+                newTr.innerHTML = `
+                                <td>${machineName}</td>
+                                <td>${manPower}</td>
+                                <td><button class="btn btn-sm btn-success me-2">Transfer</button><button class="btn btn-sm btn-danger">Remove</button></td>    
+                                `
+                tbody.insertBefore(newTr, inputTr);
+                save.parentElement.children[0].value = "";
+                save.parentElement.children[1].value = "";
+            }else{
+                alert("fill the machine name baby");
+            }
+    }else if(inputTr.children[0].classList.contains("meName")){
+        if(!machineName == ""){
+            const newTr = document.createElement("tr");
+            newTr.className = "text-center fs-6";
+            newTr.innerHTML = `
+                            <td>${machineName}</td>
+                            <td>Budozer</td>
+                            <td><button class="btn btn-sm btn-success me-2">Transfer</button><button class="btn btn-sm btn-danger">Remove</button></td>    
+                            `
+            tbody.insertBefore(newTr, inputTr);
+            save.parentElement.children[0].value = "";
+            save.parentElement.children[1].value = "";
+        }else{
+            alert("fill the machine name baby");
+        }
+    };
+}
