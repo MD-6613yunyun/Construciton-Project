@@ -29,17 +29,17 @@ h3{
     transform: translateY(-50%);
 }
 
-input{
+.body-for-income-expense-table input{
     border: none;
     border-radius: 10px;
     padding: 5px;
 }
 
-input:focus{
+.body-for-income-expense-table input:focus{
     outline: none;
 }
 
-input::placeholder{
+.body-for-income-expense-table input::placeholder{
     color: #c0c0c0ab;
 }
 
@@ -90,6 +90,11 @@ input::placeholder{
     margin-right: 20px;
 }
 
+.create-sec-div{
+    width: 100%;
+    text-align: center;
+}
+
 .sec-div{
     display: grid;
     grid-template-columns: auto auto;
@@ -97,11 +102,11 @@ input::placeholder{
     text-align: left;
 }
 
-.sec-div > *{
+.sec-div,.create-sec-div > *{
     margin: 10px 0;
 }
 
-.sec-div input{
+.sec-div,.create-sec-div input{
     margin-right: 10px;
 }
 
@@ -252,6 +257,73 @@ tbody tr button{
 
 .estimate-result-table input{
     width: 97%;
+}
+
+h1{
+    margin: 20px 0;
+}
+
+.cpu-table-sec{
+    width: 99%;
+    max-height: 75vh;
+    margin: 0 auto;
+    overflow: auto;
+}
+
+.cpu-table-sec table{
+    width: max-content;
+    margin: 0 auto;
+}
+
+.cpu-table-sec table thead th{
+    background-color: #2C41AD;
+    padding: 10px 10px;
+    color: white;
+    text-align: center;
+    border-bottom: 1px solid black;
+}
+
+.cpu-table-sec table thead th:nth-child(even){
+    border-left: 1px solid white;
+    border-right: 1px solid white;
+}
+
+.cpu-table-sec table tbody td{
+    text-align: center;
+    border-bottom: 1px solid black;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.cpu-table-sec table tr{
+    width: 100%;
+}
+
+.cpu-table-sec table tbody tr:nth-child(even){
+    background-color: #E2E8DD;
+}
+
+.cpu-table-sec table tbody tr:hover{
+    background-color: #a1aeec;
+}
+
+.edit-btn{
+    border: none;
+    background-color: #2C41AD;
+    color: white;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.edit-btn:hover{
+    background-color: steelblue;
+}
+
+.text-wrap{
+    max-width: 250px !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
 }
 
 @media screen and (max-width: 2010px){
@@ -447,8 +519,3 @@ tbody tr button{
         width: 80px;
     }
 }
-
-
-
-
-

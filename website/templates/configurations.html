@@ -45,9 +45,9 @@
             <div class="col">
                 <div class="flex-end">
                     <div class="btn-group" role="group" aria-label="Basic example">
-                    <button type="button" onclick="clickPagination(this,'pj','prev')" class="btn btn-secondary">Prev</button>
-                    <button type="button" class="btn btn-outline-dark" disabled> 1-81 / {{extra_datas[2]}}</button>
-                    <button type="button" onclick="clickPagination(this,'pj','next')" class="btn btn-secondary">Next</button>
+                        <button type="button" onclick="clickPagination(this,'pj','prev')" class="btn btn-secondary">Prev</button>
+                        <button type="button" class="btn btn-outline-dark" disabled> 1- {% if extra_datas[2] >= 81 %} 81 {% else %} {{extra_datas[2]}} {% endif %} / {{extra_datas[2]}}</button>
+                        <button type="button" onclick="clickPagination(this,'pj','next')" class="btn btn-secondary">Next</button>
                     </div>
                 </div>
             </div>
@@ -167,6 +167,32 @@
         </div>
         {% endfor %}
     </div>
+</div>
+
+{% elif extra_datas[0] == 'Project Statistics' %}
+
+<div class="m-5 mt-1 table-responsive machine-data-container">
+    <form id="hidden-project-stat-form" action="{{url_for('imports.import_data',what='project_stat_form')}}" method="post">
+        <input type="number" name="project_id" id="hidden-project-id" value="" hidden>
+    </form>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Project Name</th>
+                <th scope="col">Project Code</th>
+                <th scope="col">Supervisor</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+        {% for machine_data in datas %}
+        <tr  class="pj-stat-list-changeable" onclick="redirectToProjectStatForm('hidden-project-id','hidden-project-stat-form','{{machine_data[0]}}')">
+            <td>{{machine_data[1]}}</td>
+            <td>{{machine_data[2]}}</td>
+            <td>{{machine_data[3]}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% endif %}

@@ -5,98 +5,252 @@
     <script src="{{url_for('static',filename='scripts/site-imports.js')}}"></script>
 {% endblock %}
 {% block content %}
-<div class="body-for-income-expense-table">
-    <h3>Daily Cash In/Cash Out<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-    <form action="">
-        <!-- project status -->
-        <section class="project-status-section add-table">
-            <div class="first-div">
-                <span>Cash Type</span>
-                <label for="working">Income
-                    <input type="radio" value="incomes" name="work" id="working" autocomplete="off" required>
-                </label>
-                <label for="notWorking">Expense
-                    <input type="radio" value="expenses" name="work" id="notWorking" autocomplete="off" required>
-                </label>
+{% if template_type == 'Import' %}
+    <datalist id="projectData">
+        {% for data in project_datas %}
+            <option value="{{data[0]}}">
+        {% endfor %}
+    </datalist>
+    <div class="body-for-income-expense-table">
+        <h3>Daily Cash In/Cash Out<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <form action="{{url_for('imports.site_imports',typ='income-expense')}}" method="POST">
+            <!-- project status -->
+            <section class="project-status-section add-table">
+                <div class="first-div" >
+                    <span>Cash Type</span>
+                    <label for="income">Income
+                        <input type="radio"  value="incomes" name="work" id="income" autocomplete="off" required>
+                    </label>
+                    <label for="expense">Expense
+                        <input type="radio" value="expenses" name="work" id="expense" autocomplete="off" required>
+                    </label>
+                </div>
+                <div class="create-sec-div">
+                    <label for="import_date" style="margin-right: 10px;">Date</label>
+                    <input type="number" required value="" style="display: none;"  class="leePalKwar" name="pj_id">
+                    <input type="date" id="import_date" name="import_date" value="{{cur_date}}" required>
+                </div>
+            </section>
+            <!-- xxx -->
+            <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <section class="project-details-section add-table" id="projectDetailSec">
+                <span>Project Code</span>
+                <input type="text" autocomplete="off" list="projectData" onchange="projectFill(this)" required>
+
+                <label class="label">HO A/C Name</label>
+                <span id="hoAcName"></span>
+
+                <label class="label">Project Name</label>
+                <span id="prjName"></span>
+
+                <label class="label">Project Location</label>
+                <span id="prjLoca"></span>
+
+                <label class="label">Project Start Date</label>
+                <label id="prjDate"></label>
+
+                <label class="label">Supervisor</label>
+                <span id="sprVisor"></span>
+            </section> 
+            <!-- xxx -->
+            <h3>Activites<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <div class="activities-table add-table toggle-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Description</th>
+                            <th>Voucher No.</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Amount</th>
+                            <th>Remark</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="activitiesTable">
+                        <tr onchange="fillValue(this)">
+                            <td>1</td>
+                            <td><input type="text" name="description" autocomplete="off" required style="width: 150px;"></td>
+                            <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td>
+                            <td><input type="number" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="number" name="amt" autocomplete="off" required class="amt"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="text" name="remark" autocomplete="off"></td>
+                            <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                        </tr>
+                        <tr class="add-btn">
+                            <td onclick="newRow(this)" class="activityBtn"><button type="button">+</button></td>
+                            <td colspan="5" style="text-align: right;">Total</td>
+                            <td id="total" style="text-align: right;"></td>
+                        </tr>
+                        <tr onchange="fillValue(this)" class="d-none">
+                            <td id="no">1</td>
+                            <td><input type="text" name="description" autocomplete="off"  class="shouldRequired" style="width: 150px;"></td>
+                            <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td>
+                            <td><input type="number" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="number" name="amt" autocomplete="off"  class="amt shouldRequired"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="text" name="remark" autocomplete="off"></td>
+                            <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="sec-div">
-                <span>Import No</span>
-                <span>- DCR/2021/000001</span>
-                <span>Date</span>
-                <span>- <input type="date" required></span>
+            <div class="btn-bg">
+                <button class="submit-btn" type="submit">Submit</button>
             </div>
-        </section>
-        <!-- xxx -->
-        <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <section class="project-details-section add-table" id="projectDetailSec">
-            <span>Project Code</span>
-            <input type="text" autocomplete="off" list="prjCd" onchange="projectFill(this)" required>
-            <datalist id="prjCd">
-            </datalist>
-            <input id="hiddenId" type="hidden">
-            <label class="label">HO A/C Name</label>
-            <span id="hoAcName"></span>
-
-            <label class="label">Project Name</label>
-            <span id="prjName"></span>
-
-            <label class="label">Project Location</label>
-            <span id="prjLoca"></span>
-
-            <label class="label">Project Start Date</label>
-            <label id="prjDate"></label>
-
-            <label class="label">Supervisor</label>
-            <span id="sprVisor"></span>
-        </section> 
-        <!-- xxx -->
-        <h3>Activites<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <div class="activities-table add-table toggle-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Description</th>
-                        <th>Voucher No.</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        <th>Amount</th>
-                        <th>Remark</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="activitiesTable">
-                    <tr onchange="fillValue(this)">
-                        <td>1</td>
-                        <td><input type="text" autocomplete="off" required style="width: 150px;"></td>
-                        <td><input type="text" autocomplete="off" style="width: 70px;"></td>
-                        <td><input type="number" autocomplete="off" required class="quan"  style="text-align: right;width: 70px;"></td>
-                        <td><input type="number" autocomplete="off" required class="prc"  style="text-align: right;width: 70px;"></td>
-                        <td><input type="number" autocomplete="off" required class="amt"  style="text-align: right;width: 70px;"></td>
-                        <td><input type="text" autocomplete="off"></td>
-                        <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
-                    </tr>
-                    <tr class="add-btn">
-                        <td onclick="newRow(this)" class="activityBtn"><button type="button">+</button></td>
-                        <td colspan="5" style="text-align: right;">Total</td>
-                        <td id="total" style="text-align: right;"></td>
-                    </tr>
-                    <tr onchange="fillValue(this)" class="d-none">
-                        <td id="no">1</td>
-                        <td><input type="text" autocomplete="off" required style="width: 150px;"></td>
-                        <td><input type="text" autocomplete="off" style="width: 70px;"></td>
-                        <td><input type="number" autocomplete="off" required class="quan"  style="text-align: right;width: 70px;"></td>
-                        <td><input type="number" autocomplete="off" required class="prc"  style="text-align: right;width: 70px;"></td>
-                        <td><input type="number" autocomplete="off" required class="amt"  style="text-align: right;width: 70px;"></td>
-                        <td><input type="text" autocomplete="off"></td>
-                        <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="btn-bg">
-            <button class="submit-btn" type="submit">Submit</button>
-        </div>
+        </form>
+    </div>
+{% elif template_type == 'Report List' %}
+    <form id="hidden-income-expense-form" action="{{url_for('imports.import_data',what='income_expense_edit_form')}}" method="post">
+        <input type="number" name="income_expense_id" id="hidden-income-expense-id" value="" hidden>
     </form>
-</div>
+    <h1 class="text-center">Income Expense List</h1>
+    <div class="text-center m-3">
+        <div class="row">
+            <div class="col d-flex">
+                <form role="search">
+                    <div class="input-group">
+                        <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </div>
+                </form>
+                <button class="btn btn-success text-white ms-2"><i class="fa-solid fa-download"></i></button>
+                <a href="{{url_for('site_imports.income_expense',typ='create')}}"><button class="btn btn-danger text-white ms-2">Create</button></a>
+            </div>
+            <div class="col text-end">
+                <div class="btn-group" role="group" aria-label="Basic example">
+                    <button type="button" class="btn btn-secondary">Prev</button>
+                    <button type="button" class="btn btn-outline-dark" disabled> 1-81 / 14444</button>
+                    <button type="button" class="btn btn-secondary">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>  
+    <div class="cpu-table-sec">
+        <table style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Project Code</th>
+                    <th>Project Name</th>
+                    <th>No</th>
+                    <th>Cash Type</th>
+                    <th>Total Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in result %}
+                    <tr onclick="redirectToProjectStatForm('hidden-income-expense-id','hidden-income-expense-form','{{data[0]}}')">
+                        <td class="text-center">{{data[1]}}</td>
+                        <td>{{data[2]}}</td>
+                        <td class="text-start text-wrap" title="{{data[3]}}">{{data[3]}}</td>
+                        <td>{{data[4]}}</td>
+                        <td class="text-start">{{data[5]}}</td>
+                        <td class="text-end">{{data[6]}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% elif template_type == 'Edit List' %}
+    <div class="body-for-income-expense-table">
+        <h3>Daily Cash In/Cash Out<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <form action="{{url_for('imports.site_imports',typ='income-expense')}}" method="POST">
+            <!-- project status -->
+            <section class="project-status-section add-table">
+                <div class="first-div" >
+                    <span>Cash Type</span>
+                    <label for="income">Income
+                        <input type="radio"  {% if form_datas[0] %} checked {% endif %}  value="incomes" name="work" id="income" autocomplete="off" required>
+                    </label>
+                    <label for="expense">Expense
+                        <input type="radio" {% if not form_datas[0] %} checked {% endif %}  value="expenses" name="work" id="expense" autocomplete="off" required>
+                    </label>
+                </div>
+                <div class="sec-div">
+                    <span>Import No</span>
+                    <span id="for-income">- {{form_datas[1]}}</span>
+                    <span>Date</span>
+                    <input type="number" required value="" style="display: none;"  class="leePalKwar" name="pj_id">
+                    <span>- <input type="date" name="import_date" value="{{form_datas[2]}}" required></span>
+                </div>
+            </section>
+            <!-- xxx -->
+            <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <section class="project-status-section add-table">
+                <div class="sec-div">
+                    <span>Project Code</span>
+                    <span> - {{form_datas[3]}}</span>
+
+                    <span class="label">HO A/C Name</span>
+                    <span> - {{form_datas[4]}}</span>
+
+                    <span class="label">Project Name</span>
+                    <span> - {{form_datas[5]}}</span>
+
+                    <span class="label">Project Location</span>
+                    <span> - {{form_datas[6]}}</span>
+
+                    <span class="label">Project Start Date</span>
+                    <span> - {{form_datas[7]}}</span>
+
+                    <span class="label">Supervisor</span>
+                    <span> - {{form_datas[8]}}</span>
+                </div>
+            </section> 
+            <!-- xxx -->
+            <h3>Activites<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <div class="activities-table add-table toggle-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Description</th>
+                            <th>Voucher No.</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Amount</th>
+                            <th>Remark</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="activitiesTable">
+                        {% for line in line_datas %}
+                            <tr onchange="fillValue(this)">
+                                <td>1</td>
+                                <td><input type="text" name="description" value="{{line[2]}}" autocomplete="off" required style="width: 150px;"></td>
+                                <td><input type="text" name="invoice_no" value="{{line[3]}}"  autocomplete="off" style="width: 70px;"></td>
+                                <td><input type="number" name="qty" autocomplete="off"  value="{{line[4]}}" class="quan"  style="text-align: right;width: 70px;"></td>
+                                <td><input type="number" name="price" autocomplete="off"  value="{{line[5]}}" class="prc"  style="text-align: right;width: 70px;"></td>
+                                <td><input type="number" name="amt" autocomplete="off" value="{{line[6]}}" required class="amt"  style="text-align: right;width: 70px;"></td>
+                                <td><input type="text" name="remark" value="{{line[7]}}" autocomplete="off"></td>
+                                <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                            </tr>
+                        {% endfor %}
+                        <tr class="add-btn">
+                            <td onclick="newRow(this)" class="activityBtn"><button type="button">+</button></td>
+                            <td colspan="5" style="text-align: right;">Total</td>
+                            <td id="total" style="text-align: right;"></td>
+                        </tr>
+                        <tr onchange="fillValue(this)" class="d-none">
+                            <td id="no">1</td>
+                            <td><input type="text" name="description" autocomplete="off"  class="shouldRequired" style="width: 150px;"></td>
+                            <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td>
+                            <td><input type="number" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="number" name="amt" autocomplete="off"  class="amt shouldRequired"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="text" name="remark" autocomplete="off"></td>
+                            <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="btn-bg">
+                <button class="submit-btn" type="submit">Submit</button>
+            </div>
+        </form>
+    </div>
+{% endif %}
 {% endblock %}

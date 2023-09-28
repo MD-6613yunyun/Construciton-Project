@@ -13,11 +13,11 @@ function insert_data_and_return_back_button(btn){
 
 function giveProjectCodes(){
     let abovePj = document.getElementById("aboveProjectCodes")
-    abovePj.innerHTML = ""
-    if (abovePj){
+    if (abovePj && abovePj.innerHTML.trim() == ""){
         fetch("/get-pj-datas")
         .then(response => response.json())
         .then(result => {
+            abovePj.innerHTML = ""
             for (const dt of result){
                 abovePj.innerHTML += `<p class="m-1 ms-2" shopID="${dt[0]}" projectCode="${dt[2]}" onclick="assignShop(this)">${dt[1]} _&_ ${dt[2]}</p>`
             }
@@ -26,36 +26,56 @@ function giveProjectCodes(){
     }
 }
 
+function showModalAndGiveProjectCodes(opt='normal'){
+    giveProjectCodes()
+    if (opt == 'normal'){
+    let modalContainer = document.getElementById("monthlyReport")
+    modalContainer.getElementsByClassName("modal-title")[0].textContent = "Income Expense Report"
+    let checkerRadio = modalContainer.getElementsByClassName("form-check-input")[0]
+    checkerRadio.setAttribute("checked","")
+    checkEachMachineOrAll(checkerRadio)
+    checkerRadio.parentElement.classList.add("d-none")
+    modalContainer.querySelector("form").setAttribute("action","/duty/income-expense-report")
+    }else if (opt == 'remove-date'){
+        console.log("nani")
+        let modalContainer = document.getElementById("monthlyReport")
+        modalContainer.getElementsByClassName("modal-title")[0].textContent = "Project Choice for Daily Activity"
+        let checkerRadio = modalContainer.getElementsByClassName("form-check-input")[0]
+        checkerRadio.setAttribute("checked","")
+        checkEachMachineOrAll(checkerRadio)
+        checkerRadio.parentElement.nextElementSibling.classList.add("d-none")
+        checkerRadio.parentElement.classList.add("d-none")
+        modalContainer.querySelector("form").setAttribute("action","/site-imports/daily-activity/create")        
+    }
+}
+
 function checkSupervisor(){
     let modalBody = document.getElementById("inside-statistics-modal-body")
+    let codeName = document.getElementById("projectCode")
     modalBody.innerHTML = ""
-    let siteSupervisors = document.getElementsByClassName('site-supervisors')
-    let codeName = document.getElementById('exampleDataListCode')
-    if (!codeName.value.includes('|')){
-        modalBody.innerHTML += `<h4>Invalid Project Name / Code : <strong class='text-danger'> ${codeName.value}</strong></h4>`
-    } else{
-        let allSupervisors = ""
-        for (let supervisor of siteSupervisors){
-            allSupervisors += `${supervisor.value},`
-        }
-        if (allSupervisors.trim() != ","){
-            let closeBtn = document.getElementById("inModalStatisticsClose")
-            let submitBtn = document.getElementById("inModalStatistics");
-            fetch(`/duty/check-supervisior/${allSupervisors.slice(0,-1)}`)
-            .then(response => response.json())
-            .then(result => {
-                if (result.length != 0){
-                    for (let name of result){
-                        modalBody.innerHTML += `<h4>${name}</h4>`
-                    }
-                    modalBody.innerHTML += "Not exist in the supervisors.. Add those without consideration??"
-                }else{
-                    modalBody.innerHTML += 'Successful'
-                    submitBtn.click()
-                    closeBtn.click()
-                }
-            })
-        }
+    if (document.getElementById("project_id_for_stat").value.trim() == ""){
+        modalBody.innerHTML += `<h4>Invalid Project Name / Code : <strong class='text-danger'> ${codeName.value}</strong></h4>`        
+    }
+    else{
+        let closeBtn = document.getElementById("inModalStatisticsClose")
+        let submitBtn = document.getElementById("inModalStatistics");
+        let sup = document.getElementsByClassName("site-supervisors")[0].value.trim()
+        let acc = document.getElementsByClassName("hoAccount")[0].value.trim()
+        fetch(`/get-api/accountant-supervisor-check/${sup}~|~${acc}`)
+        .then(response => response.json())
+        .then(result => {
+            if (result[0] == null){
+                modalBody.innerHTML += `<h4>Invalid Supervisor ${sup}</h4>`
+            }else if (result[1] == null){
+                modalBody.innerHTML += `<h4>Invalid HO / ACC ${acc}</h4>` 
+            }else{
+                document.getElementById("site-supervisors-id").value = result[0][0]
+                document.getElementById("ho-account-id").value = result[1][0]
+                modalBody.innerHTML += "You are seeing this form becuase you haven't input required data.."
+                submitBtn.click()
+                closeBtn.click()
+            }
+        })
     }
 }
 
@@ -287,6 +307,7 @@ function getShops(inp){
         }
     }
 }
+
 
 
 
@@ -554,7 +575,196 @@ updateInputSize();
   // Add an event listener to update the size when the screen is resized
 window.addEventListener('resize', updateInputSize);
   
-/* responsive and media query */
+function addInput(addBtn,typ='add'){
+    var hiddenInp = addBtn.parentElement.parentElement.previousElementSibling
+    if (typ == 'add'){
+        addBtn.nextElementSibling.classList.remove("d-none") 
+        hiddenInp.classList.remove("d-none") 
+        addBtn.classList.add("d-none")        
+    }else{
+        addBtn.classList.add("d-none")  
+        hiddenInp.classList.add("d-none")
+        addBtn.previousElementSibling.classList.remove("d-none")         
+    }
+}
 
+function saveMachineToProjectStats(save){
+    const tbody = save.parentElement.parentElement.parentElement.parentElement;
+    const inputTr = save.parentElement.parentElement.parentElement;
+    const machineName = save.parentElement.children[0].value.replace("/","thisIsSlash").trim();
+    console.log(save.parentElement.children[1].value,typeof save.parentElement.children[1].value)
+    const manPower = save.parentElement.children[1].value.replace("e","").trim();
+    console.log(manPower)
+    if(inputTr.children[0].classList.contains("mechanicianInp")){
+        if(!machineName == "" && manPower > 0){
+            fetch(`/get-api/employee-group-check/${machineName}`)            
+            .then(response => response.json())
+            .then(result => {
+                if (result.length == 0){
+                    alert("Invalid Employee Grop Name")
+                }else{
+                    let has_error = false;
+                    let all_ids = document.querySelectorAll(".employee_group_id")
+                    if (all_ids){
+                        for (let eachID of all_ids){
+                            if (eachID.value == result[0][0]){
+                                alert("Employee Group is already existed in this project ... ")
+                                has_error = true
+                                break
+                            }   
+                        }
+                    }
+                    if (!has_error){
+                        const newTr = document.createElement("tr");
+                        newTr.className = "text-center fs-6";
+                        newTr.innerHTML = `
+                                        <td>${result[0][1]} <input type='number' class='employee_group_id' value='${result[0][0]}' hidden name='employee_group_id'/></td>
+                                        <td>${manPower} <input type='number' class='employee_power_id' value='${manPower}' hidden name='employee_power'/></td>
+                                        <td><button onclick='removeDataFromStats(this)' class="btn btn-sm btn-danger" type='button'>Remove</button></td>    
+                                        `
+                        tbody.insertBefore(newTr, inputTr);
+                        save.parentElement.children[0].value = "";
+                        save.parentElement.children[1].value = "";
+                    }                    
+                } 
+            })
+            .catch(err => console.log(err))
+        }else{
+            alert("Invalid Manpower Or Invalid Employee Type ...");
+        }
+    }else if(inputTr.children[0].classList.contains("meName")){
+        if (machineName == ""){
+            alert("Blank Machine Name")
+        }else{
+            fetch(`/get-api/machine-check/${machineName}`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.length == 0){
+                    alert("Invalid Machine Name or Machine is Already in Another Project ..")
+                }else{
+                    let has_error = false;
+                    let all_ids = document.querySelectorAll(".machine_id")
+                    if (all_ids){
+                        for (let eachID of all_ids){
+                            if (eachID.value == result[0][0]){
+                                alert("Machine is already existed in this project ... ")
+                                has_error = true
+                                break
+                            }   
+                        }
+                    }
+                    if (!has_error){
+                        const newTr = document.createElement("tr");
+                        newTr.className = "text-center fs-6";
+                        newTr.innerHTML = `
+                                        <td>${result[0][1]} <input type='number' class='machine_id' value='${result[0][0]}' hidden name='machine_id'/></td>
+                                        <td>${result[0][2]}</td>
+                                        <td><button class="btn btn-sm btn-success me-2" type='button'>Transfer</button><button class="btn btn-sm btn-danger" type='button' onclick='removeDataFromStats(this)'>Remove</button></td>    
+                                        `
+                        tbody.insertBefore(newTr, inputTr);
+                        save.parentElement.children[0].value = "";
+                        save.parentElement.children[1].value = "";
+                    }                    
+                } 
+            })
+            .catch(err => console.log(err))
+        }
+    };
+}
 
+function removeDataFromStats(btn){
+    btn.parentElement.parentElement.remove()
+}
 
+function checkProjectAndReplaceId(inp,idd){
+    let pj_code = inp.value.split("|")[0].replace("/","thisIsSlash").trim()
+    console.log(pj_code)
+    fetch(`/get-api/project-check-for-stats/${pj_code}`)
+    .then(response => response.json())
+    .then(result => {
+        let pj_id_holder = document.getElementById(idd)
+        console.log(result)
+        if (result.length == 0){
+            pj_id_holder.value = ""
+            pj_id_holder.setAttribute("required","")
+        }else{
+            pj_id_holder.value = result[0][0]
+            pj_id_holder.removeAttribute("required")                    
+        } 
+    })
+    .catch(err => console.log(err))
+}
+
+function redirectToProjectStatForm(inp_id,form_id,val){
+    document.getElementById(inp_id).value = val
+    document.getElementById(form_id).submit()
+}
+
+function editPrjStatis(editBtn){
+    const prjStatis = document.querySelector("#prjStatisEdit");
+    const getInp = prjStatis.querySelectorAll("input[disabled]");
+    const getBtn = prjStatis.querySelectorAll("button[disabled]")
+    const discardBtn = document.getElementById("prjDiscard");
+    const editSubmitPjStat = document.getElementById("edit-submit-btn-pj-stat")
+    for(let i = 1; i < getInp.length; i++){
+        if(getInp[i].disabled){
+            getInp[i].disabled = false;
+        }
+    }
+    for(let x = 0; x < getBtn.length; x++){
+        if(getBtn[x].disabled){
+            getBtn[x].disabled = false;
+        }
+    }
+    editBtn.classList.add("d-none");
+    discardBtn.classList.remove("d-none");
+    editSubmitPjStat.classList.remove("d-none")
+}
+
+function savePrjStatis(saveBtn){
+    location.reload();
+}
+
+function directlyremoveDataFromStats(api_id,btn){
+    let api_call = ""
+    if (btn.classList.contains("emp-data")){
+        api_call = 'delete-employee-group-history'
+    }else{
+        api_call = 'delete-machines-histrory'
+    }
+    fetch(`/get-api/${api_call}/${api_id}`)
+    .then(response => {
+        if (response.status == 200){
+            alert("Successful deleting..")
+            btn.parentElement.parentElement.remove()
+        }else{
+            alert("Unknow error occurred while deleting ..")
+        }
+    })
+}
+
+function replaceIdInTheTransferModal(hisId,machine_id){
+    document.getElementById("source-history-id").value = hisId
+    document.getElementById("source-machine-id").value = machine_id
+}
+
+function submitMachineTransferForStat(){
+    his_id = document.getElementById("source-history-id").value.trim()
+    project_id = document.getElementById("transfer_project_id_for_stat").value.trim()
+    start_time = document.getElementById("transfer_machine_stat").value.trim()
+    machine_id = document.getElementById("source-machine-id").value.trim()
+    if (his_id == '' || project_id == '' || start_time == '' || machine_id == ''){
+       alert("Incomplete Datas") 
+    }else{
+        fetch(`/get-api/transfer_machine_project/${his_id}~~${project_id}~~${start_time}~~${machine_id}`)
+        .then(response => {
+            if(response.status == 200){
+                console.log("Success")
+                document.getElementById("submitMachineTransferForStatCloseBtn").click()
+            }else{
+                alert("Unknown error occurred...")
+            }
+        })     
+    }
+
+}

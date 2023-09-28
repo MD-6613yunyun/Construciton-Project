@@ -28,17 +28,17 @@ h3{
     transform: translateY(-50%);
 }
 
-input{
+.body-for-daily-table input{
     border: none;
     border-radius: 10px;
     padding: 5px;
 }
 
-input:focus{
+.body-for-daily-table input:focus{
     outline: none;
 }
 
-input::placeholder{
+.body-for-daily-table input::placeholder{
     color: #c0c0c0ab;
 }
 
@@ -421,9 +421,3 @@ tbody tr button{
         width: 80px;
     }
 }
-
-
-
-
-
-

@@ -5,259 +5,330 @@
     <script src="{{url_for('static',filename='scripts/site-imports.js')}}"></script>
 {% endblock %}
 {% block content %}
-<div class="body-for-daily-table">
-    <h3>Daily Construction Activities<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-    <form action="">
-        <!-- project status -->
-        <section class="project-status-section add-table">
-            <div class="first-div">
-                <span>Project Status</span>
-                    <label for="working">Working
-                        <input type="radio" value="working" name="work" id="working" autocomplete="off" onchange="notWork(this)">
-                    </label>
-                    <label for="notWorking">Not Working
-                        <input type="radio" value="notWorking" name="work" id="notWorking" autocomplete="off" onchange="notWork(this)">
-                    </label>
-                    <input type="text" placeholder="reson for not working" autocomplete="off" id="notWorkingInput" required><br>
-            </div>
-            <div class="sec-div">
-                <span>Daily Report Number</span>
-                <span>- DCR/2021/000001</span>
-                <span>Date</span>
-                <span>- <input type="date"></span>
-            </div>
-        </section>
-        <!-- Datalist -->
-        <datalist id="projectCode">
-            <option value="MDMM-0010">
-            <option value="MDMM-0020">
-            <option value="MDMM-0030">
-            <option value="MDMM-0040">
-            <option value="MDMM-0050">
-            <option value="MDMM-0060">
-        </datalist>
-        <!-- xxx -->
-        <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <section class="project-details-section add-table" id="projectDetailSec">
-            <span>Project Code</span>
-            <input type="text" autocomplete="off" list="projectCode" onchange="projectFill(this)" required>
-            <label class="label">HO A/C Name</label>
-            <span id="hoAcName"></span>
 
-            <label class="label">Project Name</label>
-            <span id="prjName"></span>
+{% if template_type == 'create' %}
+    <datalist id="projectData">
+        {% for data in project_datas %}
+            <option value="{{data[0]}}">
+        {% endfor %}
+    </datalist>
+    <div class="body-for-daily-table">
+        <h3>Daily Construction Activities<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <form action="">
+            <!-- project status -->
+            <section class="project-status-section add-table">
+                <div class="first-div">
+                    <span>Project Status</span>
+                        <label for="working">Working
+                            <input type="radio" value="working" name="work" id="working" autocomplete="off" onchange="notWork(this)">
+                        </label>
+                        <label for="notWorking">Not Working
+                            <input type="radio" value="notWorking" name="work" id="notWorking" autocomplete="off" onchange="notWork(this)">
+                        </label>
+                        <input type="text" placeholder="reson for not working" name="reason-for-not-working" autocomplete="off" id="notWorkingInput" required><br>
+                </div>
+                <div class="sec-div">
+                    <!-- <span>Daily Report Number</span>
+                    <span>- DCR/2021/000001</span> -->
+                    <span>Date</span>
+                    <span>- <input type="date" value="{{cur_date}}" name="set_date"></span>
+                </div>
+            </section>
+            <!-- xxx -->
+            <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <section class="project-details-section add-table" id="projectDetailSec">
+                <span>Project Code</span>
+                <input type="number" required value="" style="display: none;"  class="leePalKwar daily-activity" name="pj_id">
+                <input type="text" autocomplete="off" list="projectData" onchange="projectFill(this)" required>
+                <label class="label">HO A/C Name</label>
+                <span id="hoAcName"></span>
 
-            <label class="label">Project Location</label>
-            <span id="prjLoca"></span>
+                <label class="label">Project Name</label>
+                <span id="prjName"></span>
 
-            <label class="label">Project Start Date</label>
-            <label id="prjDate"></label>
+                <label class="label">Project Location</label>
+                <span id="prjLoca"></span>
 
-            <label class="label">Supervisor</label>
-            <span id="sprVisor"></span>
-        </section>
-        <!-- xxx -->
-        <!-- Affects of Weather On Project -->
-        <h3>Weather<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <section class="weather add-table toggle-table" id="weather" onchange="selection()">
-            <span>No Affects All Day</span>
-            <input type="checkbox" autocomplete="off" required id="noAff">
-            <span>Affected % of Work Day</span>
-            <input type="number" placeholder="%" autocomplete="off" required id="affPer">
-            <span>Affected All Day</span>
-            <input type="checkbox" autocomplete="off" required id="affAll">
-        </section>
-                    
-        <!-- xxx -->
-        <h3>Estimate & Result<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <table class="estimate-result-table add-table toggle-table">
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th>Estimate</th>
-                    <th>Finished</th>
-                    <th>Balance</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Day</td>
-                    <td>75</td>
-                    <td>3</td>
-                    <td>45</td>
-                </tr>
-                <tr>
-                    <td>Feet</td>
-                    <td>4545.6</td>
-                    <td><input type="number" step=".01" autocomplete="off" required></td>
-                    <td>4297.5</td>
-                </tr>
-                <tr>
-                    <td>Sud</td>
-                    <td>34500</td>
-                    <td><input type="number" step=".01" autocomplete="off" required></td>
-                    <td>443</td>
-                </tr>
-                <tr>
-                    <td>Hours</td>
-                    <td>34500</td>
-                    <td>20</td>
-                    <td>443</td>
-                </tr>
-                <tr>
-                    <td>Disel(Liter)</td>
-                    <td>34500</td>
-                    <td>30Liter</td>
-                    <td>443</td>
-                </tr>
-                <tr>
-                    <td>Expense(Amount)</td>
-                    <td>34500</td>
-                    <td>1234</td>
-                    <td>443</td>
-                </tr>
-            </tbody>
-        </table>
-        <!-- xxx -->
-        <h3>Activites<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <div class="activities-table add-table toggle-table">
-            <table>
+                <label class="label">Project Start Date</label>
+                <label id="prjDate"></label>
+
+                <label class="label">Supervisor</label>
+                <span id="sprVisor"></span>
+            </section>
+            <!-- xxx -->
+            <!-- Affects of Weather On Project -->
+            <h3>Weather<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <section class="weather add-table toggle-table" id="weather" onchange="selection()">
+                <span>No Affects All Day</span>
+                <input type="checkbox" autocomplete="off" required id="noAff">
+                <span>Affected % of Work Day</span>
+                <input type="number" placeholder="%" autocomplete="off" required id="affPer">
+                <span>Affected All Day</span>
+                <input type="checkbox" autocomplete="off" required id="affAll">
+                <input type="number" id="wealtherAff" name="wealtherAff">
+            </section>
+                        
+            <!-- xxx -->
+            <h3>Estimate & Result<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <table class="estimate-result-table add-table toggle-table">
                 <thead>
                     <tr>
-                        <th>No</th>
-                        <th>Machine</th>
-                        <th>Job Type</th>
-                        <th>Capacity</th>
-                        <th>Duty Hour</th>
-                        <th>Liter</th>
                         <th>Description</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="activitiesTable">
-                    <tr>
-                        <td>1</td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" autocomplete="off" required>:<input type="number" placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
-                        <td><input type="number" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
-                    </tr>
-                    <tr class="add-btn">
-                        <td onclick="newRow(this)" class="activityBtn"><button type="button">+</button></td>
-                    </tr>
-                    <tr class="d-none">
-                        <td>1</td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" autocomplete="off" required>:<input type="number" placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
-                        <td><input type="number" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <!-- xxx -->
-        <h3>Manpower & Equipment<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <div class="manpower add-table toggle-table">
-            <table id="acc-table" class="manpower-equiment-table">
-                <thead>
-                    <tr>
-                        <th colspan="3">Manpower</th>
-                        <th colspan="3">Equipment</th>
+                        <th>Estimate</th>
+                        <th>Finished</th>
+                        <th>Balance</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Desgnation</td>
-                        <td>Number</td>
-                        <td>Present</td>
-                        <td>Machine Type</td>
-                        <td>Number</td>
-                        <td>Present</td>
-                    </tr>
-                    <tr>
-                        <td>Engineer</td>
-                        <td>1</td>
-                        <td><input onkeyup="checkInpNumber(this,0,1)" type="number" autocomplete="off" required></td>
-                        <td>12Wheels</td>
-                        <td>5</td>
-                        <td><input onkeyup="checkInpNumber(this,0,5)" type="number" autocomplete="off" required></td>
-                    </tr>
-                    <tr>
-                        <td>Checker</td>
-                        <td>20</td>
-                        <td><input type="number" autocomplete="off" required></td>
-                        <td>10Wheels</td>
-                        <td>10</td>
-                        <td><input type="number" autocomplete="off" required></td>
-                    </tr>
-                    <tr>
-                        <td>Driver</td>
+                        <td>Day</td>
+                        <td>75</td>
                         <td>3</td>
-                        <td><input type="number" autocomplete="off" required></td>
-                        <td>BH</td>
-                        <td>10</td>
-                        <td><input type="number" autocomplete="off" required></td>
+                        <td>45</td>
                     </tr>
                     <tr>
-                        <td>Operator</td>
+                        <td>Feet</td>
+                        <td>4545.6</td>
+                        <td><input type="number" name="completeFeet" step=".01" autocomplete="off" required></td>
+                        <td>4297.5</td>
+                    </tr>
+                    <tr>
+                        <td>Sud</td>
+                        <td>34500</td>
+                        <td><input type="number" name="completeSud" step=".01" autocomplete="off" required></td>
+                        <td>443</td>
+                    </tr>
+                    <tr>
+                        <td>Hours</td>
+                        <td>34500</td>
                         <td>20</td>
-                        <td><input type="number" autocomplete="off" required></td>
-                        <td>Dozer</td>
-                        <td>10</td>
-                        <td><input type="number" autocomplete="off" required></td>
+                        <td>443</td>
                     </tr>
                     <tr>
-                        <td>Total</td>
-                        <td>27</td>
-                        <td></td>
-                        <td>Total</td>
-                        <td>23</td>
-                        <td></td>
+                        <td>Disel(Liter)</td>
+                        <td>34500</td>
+                        <td>30Liter</td>
+                        <td>443</td>
+                    </tr>
+                    <tr>
+                        <td>Expense(Amount)</td>
+                        <td>34500</td>
+                        <td>1234</td>
+                        <td>443</td>
                     </tr>
                 </tbody>
             </table>
+            <!-- xxx -->
+            <h3>Activites<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <div class="activities-table add-table toggle-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Machine</th>
+                            <th>Job Type</th>
+                            <th>Job Function</th>
+                            <th>Duty Hour</th>
+                            <th>Liter</th>
+                            <th>Description</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="activitiesTable">
+                        <tr>
+                            <td>1</td>
+                            <td><input type="text" autocomplete="off" required></td>
+                            <td><input type="text" autocomplete="off" required></td>
+                            <td><input type="text" autocomplete="off" required></td>
+                            <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" autocomplete="off" required>:<input type="number" placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
+                            <td><input type="number" autocomplete="off" required></td>
+                            <td><input type="text" autocomplete="off" required></td>
+                            <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                        </tr>
+                        <tr class="add-btn">
+                            <td onclick="newRow(this)" class="activityBtn"><button type="button">+</button></td>
+                        </tr>
+                        <tr class="d-none">
+                            <td>1</td>
+                            <td><input type="text" autocomplete="off" required></td>
+                            <td><input type="text" autocomplete="off" required></td>
+                            <td><input type="text" autocomplete="off" required></td>
+                            <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" autocomplete="off" required>:<input type="number" placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
+                            <td><input type="number" autocomplete="off" required></td>
+                            <td><input type="text" autocomplete="off" required></td>
+                            <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- xxx -->
+            <h3>Manpower & Equipment<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <div class="manpower add-table toggle-table">
+                <table id="acc-table" class="manpower-equiment-table">
+                    <thead>
+                        <tr>
+                            <th colspan="3">Manpower</th>
+                            <th colspan="3">Equipment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Desgnation</td>
+                            <td>Number</td>
+                            <td>Present</td>
+                            <td>Machine Type</td>
+                            <td>Number</td>
+                            <td>Present</td>
+                        </tr>
+                        <tr>
+                            <td>Engineer</td>
+                            <td>1</td>
+                            <td><input onkeyup="checkInpNumber(this,0,1)" type="number" autocomplete="off" required></td>
+                            <td>12Wheels</td>
+                            <td>5</td>
+                            <td><input onkeyup="checkInpNumber(this,0,5)" type="number" autocomplete="off" required></td>
+                        </tr>
+                        <tr>
+                            <td>Checker</td>
+                            <td>20</td>
+                            <td><input type="number" autocomplete="off" required></td>
+                            <td>10Wheels</td>
+                            <td>10</td>
+                            <td><input type="number" autocomplete="off" required></td>
+                        </tr>
+                        <tr>
+                            <td>Driver</td>
+                            <td>3</td>
+                            <td><input type="number" autocomplete="off" required></td>
+                            <td>BH</td>
+                            <td>10</td>
+                            <td><input type="number" autocomplete="off" required></td>
+                        </tr>
+                        <tr>
+                            <td>Operator</td>
+                            <td>20</td>
+                            <td><input type="number" autocomplete="off" required></td>
+                            <td>Dozer</td>
+                            <td>10</td>
+                            <td><input type="number" autocomplete="off" required></td>
+                        </tr>
+                        <tr>
+                            <td>Total</td>
+                            <td>27</td>
+                            <td></td>
+                            <td>Total</td>
+                            <td>23</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- repair & maintainance -->
+            <h3>Repair & Maintainance<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <table class="repair-maintainace-table add-table toggle-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Machine Name</th>
+                        <th>Description</th>
+                        <th>Accident</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody  id="repairTable">
+                    <tr>
+                        <td>1</td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="checkbox"></td>
+                        <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                    </tr>
+                    <tr class="add-btn">
+                        <td onclick="newRow(this)" class="repairBtn"><button type="button">+</button></td>
+                    </tr>
+                    <tr class="d-none">
+                        <td>1</td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="checkbox"></td>
+                        <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="btn-bg">
+                <button class="submit-btn" type="submit">Submit</button>
+            </div>
+        </form>
+    </div>
+{% elif template_type == 'view' %}
+    <h1 class="text-center">Daily Activity List</h1>
+    <div class="text-center m-3">
+        <div class="row">
+            <div class="col d-flex">
+                <form role="search">
+                    <div class="input-group">
+                        <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </div>
+                </form>
+                <button class="btn btn-secondary text-white ms-2"><i class="fa-solid fa-download"></i></button>
+                <button onclick="showModalAndGiveProjectCodes('remove-date')" data-bs-toggle="modal" data-bs-target="#monthlyReport" class="btn btn-success remove-date text-white ms-2">Create</button>
+            </div>
+            <div class="col text-end">
+                <div class="btn-group" role="group" aria-label="Basic example">
+                    <button type="button" class="btn btn-primary">Prev</button>
+                    <button type="button" class="btn btn-outline-dark" disabled> 1-81 / 14444</button>
+                    <button type="button" class="btn btn-primary">Next</button>
+                </div>
+            </div>
         </div>
-        <!-- repair & maintainance -->
-        <h3>Repair & Maintainance<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <table class="repair-maintainace-table add-table toggle-table">
+    </div>  
+    <div class="cpu-table-sec">
+        <table>
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Machine Name</th>
-                    <th>Description</th>
+                    <th>Date</th>
+                    <th>Project Code</th>
+                    <th>Project Name</th>
+                    <th>Daily Report Number</th>
+                    <th>Project Status</th>
+                    <th>Reason</th>
+                    <th>Weather%</th>
+                    <th>Feet</th>
+                    <th>Sud</th>
+                    <th>Hours</th>
+                    <th>Use Diesel</th>
+                    <th>Manpower</th>
+                    <th>Equipment</th>
+                    <th>R & M</th>
                     <th>Accident</th>
-                    <th></th>
                 </tr>
             </thead>
-            <tbody  id="repairTable">
+            <tbody>
                 <tr>
-                    <td>1</td>
-                    <td><input type="text"></td>
-                    <td><input type="text"></td>
-                    <td><input type="checkbox"></td>
-                    <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
-                </tr>
-                <tr class="add-btn">
-                    <td onclick="newRow(this)" class="repairBtn"><button type="button">+</button></td>
-                </tr>
-                <tr class="d-none">
-                    <td>1</td>
-                    <td><input type="text"></td>
-                    <td><input type="text"></td>
-                    <td><input type="checkbox"></td>
-                    <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                    <td class="text-end">1/9/2023</td>
+                    <td class="text-start">PTG-22-23-005</td>
+                    <td class="text-wrap text-start"
+                        title="AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar"
+                    >AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar
+                    </td>
+                    <td class="text-start">DCA/23/09/00001</td>
+                    <td class="text-start">Working</td>
+                    <td class="text-start">Aung La</td>
+                    <td class="text-end">80%</td>
+                    <td class="text-end">10</td>
+                    <td class="text-end">10</td>
+                    <td class="text-end">50:00</td>
+                    <td class="text-end">100</td>
+                    <td class="text-end">5</td>
+                    <td class="text-end">10</td>
+                    <td class="text-end">3</td>
+                    <td><span class="bg-danger text-light rounded-5 py-1 px-2">False</span></td>
                 </tr>
             </tbody>
         </table>
-        <div class="btn-bg">
-            <button class="submit-btn" type="submit">Submit</button>
-        </div>
-    </form>
-</div>
+    </div>
+{% elif template_type == 'edit' %}
+
+{% endif %}
 {% endblock %}

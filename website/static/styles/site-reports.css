@@ -1,0 +1,79 @@
+#inExReport{
+    background-color: radial-gradient(bottom to top,#2C41AD,#7187f7);
+}
+
+ul{
+    list-style: none;
+    display: grid;
+    grid-template-columns: auto auto auto auto auto auto;
+    font-size: 15px;
+    margin: 0;
+}
+
+#detialHead{
+    background-color: #92AFD7;
+    color: white;
+    text-align: center;
+    position: sticky;
+    top:0;
+}
+
+#inExReport .inExRow{
+    background: linear-gradient(360deg,#2C41AD,  #617bff);
+    box-shadow: inset 0px 2px 5px 2px rgba(0, 0, 0, 0.5);
+    color: white;
+    cursor: pointer;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgb(0, 0, 0) ;
+}
+
+#inExReport .inExRow .dropBox{
+    width: 99%;
+    margin: 0 auto;
+    max-height: 0;
+    overflow: auto;
+}
+
+#inExReport .inExRow table{
+    width: 100%;
+    background-color: white;
+    color: black;
+    text-align: center;
+    cursor: pointer;
+}
+
+#inExReport .inExRow table th{
+    background-color: #2C41AD;
+}
+
+#inExReport .inExRow li{
+    padding: 5px;
+    text-align: center;
+}
+
+#tbody tr{
+    border-bottom: 1px solid #dfdfdf;
+}
+
+.second-header-income-expense{
+    margin-top: -10px;
+    margin-bottom: -10px;
+}
+
+@media(max-width: 570px){
+    h1{
+        font-size: 20px;
+    }
+
+    h3{
+        font-size: 15px;
+    }
+
+    #inExReport .inExRow li b{
+        font-size: 13px !important;
+    }
+
+    #inExReport .dropBox{
+        font-size: 10px;
+    }
+}

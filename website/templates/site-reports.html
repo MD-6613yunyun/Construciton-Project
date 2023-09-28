@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %} Data Reports {% endblock %}
+{% block styles %}
+    <link href="{{url_for('static',filename='styles/site-reports.css')}}" rel="stylesheet"/>
+    <script src="{{url_for('static',filename='scripts/site-reports.js')}}"></script>
+{% endblock %}
+{% block content %}
+<h3 class="text-center mt-2">Income Expense Report</h3>
+<hr/><h4 class="text-center second-header-income-expense">{{extra_datas[1]}}({{extra_datas[0]}})</h4><hr/>
+<button type="button" class="btn btn-sm btn-success m-1 d-inline" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+<p>From - <strong> {{extra_datas[2]}} </strong> To - <strong> {{extra_datas[3]}} </strong></p>
+<div id="inExReport">
+    <div class="inExRow " onclick="showDrop(this)">
+        <ul id="totalRow">
+            <li class="fs-3"><b>စုစုပေါင်း</b></li>
+            <li>လက်ကျန်ငွေ<br><b class="fs-5">{{extra_datas[4][0]}}</b></li>
+            <li>အဝင်<br><b class="fs-5">{{extra_datas[4][1]}}</b></li>
+            <li>အထွက်<br><b class="fs-5">{{extra_datas[4][2]}}</b></li>
+            <li>လက်ကျန်<br><b class="fs-5">{{extra_datas[4][3]}}</b></li>
+            {% if result_datas|length != 0 %}
+            <li class="fs-3"><i class="fa-solid fa-caret-right mt-3"></i></li>
+            {% endif %}
+        </ul>
+        {% if result_datas|length != 0 %}
+            <div class="dropBox">
+                <table>
+                    <tr>
+                        <thead id="detialHead">
+                            <th class="py-2" style="width: 10%">နေ့စွဲ</th>
+                            <th style="width: 30%">အကြောင်းအရာ</th>
+                            <th style="width: 15%">ဘောင်ချာ</th>
+                            <th style="width: 10%">အဝင်</th>
+                            <th style="width: 10%">အထွက်</th>
+                            <th style="width: 10%">လက်ကျန်</th>
+                            <th style="width: 20%">မှတ်ချက်</th>
+                        </thead>
+                        <tbody id="tbody">
+                            <tr style="background-color: #c1c1c1;">
+                                <td class="py-2">{{result_datas[0][0]}}</td>
+                                <td class="text-start">Opening Balance</td>
+                                <td class="py-2"></td>
+                                <td class="text-end"></td>
+                                <td class="text-end"></td>
+                                <td class="text-end">{{extra_datas[4][0]}}</td>
+                                <td class="ps-2 text-start"></td>
+                            </tr>
+                            {% for result_data in result_datas %}
+                            <tr>
+                                <td class="text-center">{{result_data[0]}}</td>
+                                <td class="text-start">{{result_data[1]}}</td>
+                                <td class="">{{result_data[2]}}</td>
+                                <td class="text-end">{{result_data[3]}}</td>
+                                <td class="text-end">{{result_data[4]}}</td>
+                                <td class="text-end">{{result_data[5]}}</td>
+                                <td class="ps-2 text-start">{{result_data[6]}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </tr>
+                </table>
+            </div>
+        {% endif%}
+    </div>
+</div>
+{% endblock %}

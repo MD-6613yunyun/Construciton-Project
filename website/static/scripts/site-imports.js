@@ -45,6 +45,8 @@ const data = [
 ]
 
 function projectFill(iptCode){
+            let pjCode = iptCode.value.split("|")[0].trim()
+            iptCode.value = pjCode
             const hoAcName = document.getElementById("hoAcName");
             const prjName = document.getElementById("prjName");
             const prjLocation = document.getElementById("prjLoca");
@@ -56,17 +58,33 @@ function projectFill(iptCode){
             prjLocation.innerText = ``;
             prjDate.innerText = ``;
             superVisor.innerText = ``;
-            for(let j = 0; j < labels.length; j++){
-                labels[j].style.display = "block";
-            }
-            for(let i = 0; i < data.length ; i++){
-                if(iptCode.value === data[i].projectCode){
-                    hoAcName.innerText = `- ${data[i].hoName}`;
-                    prjName.innerText = `- ${data[i].projectName}`;
-                    prjLocation.innerText = `- ${data[i].projectLocation}`;
-                    prjDate.innerText = `- ${data[i].projectStartDate}`;
-                    superVisor.innerText = `- ${data[i].supervisor}`;
-                }
+            pjCode = pjCode.replace("/","thisIsSlash").trim()
+            if (pjCode != ""){
+                fetch(`/get-api/project-stat/${pjCode}`)
+                .then(response => response.json())
+                .then(result => {
+                    var pjIdInp = document.getElementsByClassName("leePalKwar")[0]
+                    if (result.length != 0){
+                        for(let j = 0; j < labels.length; j++){
+                            labels[j].style.display = "block";
+                        }
+                        hoAcName.innerText = `- ${result[0][1]}`;
+                        prjName.innerText = `- ${result[0][2]}`;
+                        prjLocation.innerText = `- ${result[0][3]}`;
+                        prjDate.innerText = `- ${result[0][4]}`;
+                        superVisor.innerText = `- ${result[0][5]}`;
+                        pjIdInp.value = result[0][0]
+                        pjIdInp.removeAttribute("required") 
+                    }
+                    else{
+                        for(let j = 0; j < labels.length; j++){
+                            labels[j].style.display = "none";
+                        }
+                        pjIdInp.value = ""
+                        pjIdInp.setAttribute("required","")
+                    }
+                })
+                .catch(err => console.log(err))
             }
 }
 
@@ -121,6 +139,7 @@ function selection(){
     const noAff = document.getElementById("noAff");
     const affPer = document.getElementById("affPer");
     const affAll = document.getElementById("affAll");
+    const wealtherAff = document.getElementById("wealtherAff");
     noAff.disabled = false;
     affPer.disabled = false;
     affAll.disabled = false;
@@ -132,14 +151,17 @@ function selection(){
     if(noAff.checked){
         affPer.disabled = true;
         affAll.disabled = true;
+        wealtherAff.value = 0
     }
-    if(!affPer.value == ""){
+    if(affPer.value != ""){
         noAff.disabled = true;
         affAll.disabled = true;
+        wealtherAff.value = affPer.value
     }
     if(affAll.checked){
         noAff.disabled = true;
         affPer.disabled = true;
+        wealtherAff.value = 100
     }
 };
 
@@ -151,11 +173,22 @@ function checkInpNumber(inp,min,max){
 
 
 function newRow(btn){
-    cloneRow = btn.parentElement.nextElementSibling.cloneNode(true)
-    cloneRow.children[0].textContent = btn.parentElement.parentElement.children.length - 1
-    cloneRow.classList.remove("d-none")
-    let tableContainer =  btn.parentElement.parentElement
-    tableContainer.insertBefore(cloneRow,tableContainer.rows[tableContainer.rows.length - 2])
+    const inputsInTd =  btn.parentElement.previousElementSibling.querySelectorAll("input[required]")
+    console.log(inputsInTd)
+    let allowedNewRow = true
+    for (inp of inputsInTd){
+        if (inp.value.trim() == ""){
+            allowedNewRow = false
+        }
+    }
+    if (allowedNewRow){
+        let cloneRow = btn.parentElement.nextElementSibling.cloneNode(true)
+        cloneRow.querySelectorAll("input.shouldRequired").forEach(input => input.setAttribute('required', 'true'))
+        cloneRow.children[0].textContent = btn.parentElement.parentElement.children.length - 1
+        cloneRow.classList.remove("d-none")
+        let tableContainer =  btn.parentElement.parentElement
+        tableContainer.insertBefore(cloneRow,tableContainer.rows[tableContainer.rows.length - 2])
+    }
 }
 
 function deleteRow(trashIcon){

@@ -71,6 +71,21 @@ def show_transactions(what,mgs=None):
             cur.execute("SELECT count(*) FROM expense_prepaid;")
             total = cur.fetchall()[0][0]
             name = "Expenses Query"
+        elif what == 'income-expense':
+            cur.execute(""" 
+                SELECT form.set_date,form.income_expense_no,pj.code,pj.name,
+                CASE WHEN form.income_status = 't' THEN 'Income' ELSE 'Expense' END,
+                line.description,line.invoice_no,line.qty,line.price,line.amt,line.remark 
+                FROM income_expense_line line 
+                LEFT JOIN income_expense form 
+                ON line.income_expense_id  = form.id
+                LEFT JOIN analytic_project_code pj
+                ON pj.id = form.project_id
+                ORDER BY form.project_id,form.set_date DESC;""")
+            datas = cur.fetchall()
+            cur.execute("SELECT count(id) FROM income_expense_line;")
+            total = cur.fetchall()[0][0]
+            name = "Income Expense Query"
         elif what == 'service':
             datas = []
             name = "Service Query"
@@ -84,18 +99,19 @@ def configurations(what,mgs=None):
     conn = db_connect()
     cur = conn.cursor()
 
-    machine_name_wildcard = pj_name_wildcard = ""
+    machine_name_wildcard = pj_name_wildcard = sup_name_wildcard = "" 
     extra_datas = ["",False,0]
 
     if request.method == 'POST':
         machine_name = request.form.get('name-search')
-        print(machine_name)
         pj_name = request.form.get('project-search')
+        sup_name = request.form.get('supervisor-search')
 
         machine_name_wildcard = machine_name.strip() if machine_name else ""
         pj_name_wildcard = pj_name.strip() if pj_name else ""
+        sup_name_wildcard = sup_name.strip() if sup_name else ""
 
-        if machine_name_wildcard != "" or pj_name_wildcard != "":
+        if machine_name_wildcard != "" or pj_name_wildcard != "" or sup_name_wildcard != "":
             extra_datas[1] = True
 
     if what == 'machine':
@@ -121,8 +137,8 @@ def configurations(what,mgs=None):
                     LEFT JOIN res_company bi
                     ON pj.business_unit_id = bi.id
                     WHERE code ILIKE %s OR pj.name ILIKE %s
-                    ORDER BY CASE WHEN pj.name = %s THEN 0 ELSE 1 END
-                    LIMIT 81;""",('%'+pj_name_wildcard+'%','%'+pj_name_wildcard+'%',pj_name_wildcard))
+                    ORDER BY CASE WHEN pj.name = %s THEN 0 WHEN pj.code = %s THEN 0 ELSE 1 END
+                    LIMIT 81;""",('%'+pj_name_wildcard+'%','%'+pj_name_wildcard+'%',pj_name_wildcard,pj_name_wildcard))
         data = cur.fetchall()
         cur.execute("""SELECT count(id) FROM analytic_project_code;""")
         extra_datas[2] = cur.fetchall()[0][0]
@@ -153,7 +169,20 @@ def configurations(what,mgs=None):
         cur.execute("SELECT id,name FROM vehicle_owner")
         datas = cur.fetchall()
         data["Owner"] = datas
-    
+
+    elif what == 'project-stat':
+        cur.execute(""" SELECT pj.id , pj.name , pj.code , emp.name FROM project_statistics stat 
+                    INNER JOIN analytic_project_code pj ON stat.project_id = pj.id 
+                    INNER JOIN employee emp ON emp.id = stat.supervisor_id
+                    WHERE pj.code ILIKE %s OR pj.name ILIKE %s OR emp.name ILIKE %s
+                    ORDER BY CASE WHEN pj.name = %s THEN 0 WHEN pj.code = %s THEN 0 WHEN emp.name = %s  THEN 0 ELSE 1 END
+                    LIMIT 81;""",('%'+pj_name_wildcard+'%','%'+pj_name_wildcard+'%','%'+sup_name_wildcard+'%',pj_name_wildcard,pj_name_wildcard,sup_name_wildcard))
+        
+        data = cur.fetchall()
+        cur.execute("""SELECT count(id) FROM project_statistics;""")
+        extra_datas[2] = cur.fetchall()[0][0]
+        extra_datas[0] = "Project Statistics"
+
     cur.close()
     conn.close()
 
@@ -510,3 +539,88 @@ def offset_display(for_what,ofset):
             str(d[20])) for d in result_datas
             ]
     return jsonify(result_datas)
+
+
+@views.route("/get-api/<for_what>/<data>")
+def call_api(for_what,data:str):
+    conn = db_connect()
+    cur = conn.cursor()
+    data = data.replace("thisIsSlash","/")
+    if for_what == 'project-stat':
+        cur.execute("""  
+        SELECT
+            pj.id,emp.name,pj.name,stat.location,stat.pj_start_date,sup.name
+        FROM project_statistics AS stat
+            INNER JOIN analytic_project_code AS pj
+            ON stat.project_id = pj.id
+            INNER JOIN employee AS emp
+            ON stat.ho_acc_id = emp.id
+            INNER JOIN employee AS sup
+            ON stat.supervisor_id = sup.id 
+        WHERE pj.code = %s or pj.name = %s;""",(data,data))
+    elif for_what == 'project-check-for-stats':
+        cur.execute("SELECT pj.id FROM analytic_project_code AS pj LEFT JOIN project_statistics AS stat ON pj.id = stat.project_id WHERE stat.project_id is NULL AND (name = %s or code = %s) LIMIT 1;",(data,data))
+    elif for_what == 'machine-check':
+        cur.execute(""" WITH LatestStartTime AS (
+                            SELECT
+                                machine_id,
+                                MAX(start_time) AS latest_start_time
+                            FROM
+                                machines_history
+                            WHERE
+                                start_time IS NOT NULL
+                            GROUP BY
+                                machine_id
+                            )
+                        SELECT
+                            car.id AS machine_id,
+                            car.machine_name,
+                            tp.name AS machine_type
+                        FROM
+                            fleet_vehicle AS car
+                        LEFT JOIN
+                            LatestStartTime AS latest_start
+                        ON car.id = latest_start.machine_id
+                        LEFT JOIN
+                            machines_history AS history
+                        ON car.id = history.machine_id
+                        LEFT JOIN
+                            machine_type AS tp
+                            ON car.machine_type_id = tp.id
+                        WHERE (
+                            (history.start_time IS NULL AND history.end_time IS NULL)
+                        OR
+                            (history.start_time = latest_start.latest_start_time AND history.end_time IS NOT NULL) )
+                        AND car.machine_name = %s LIMIT 1;""",(data,))
+    elif for_what == 'employee-group-check':
+        cur.execute("SELECT id,name FROM employee_group WHERE name = %s;",(data,))
+    elif for_what == 'accountant-supervisor-check':
+        sup , acc = data.split("~|~")
+        result = []
+        cur.execute("SELECT emp.id FROM employee emp INNER JOIN employee_group emp_gp ON emp.employee_group_id = emp_gp.id WHERE emp_gp.name = 'SUPERVISOR' AND LOWER(emp.name) = %s LIMIT 1;",(sup.lower(),))
+        result.append(cur.fetchone())
+        cur.execute("SELECT emp.id FROM employee emp INNER JOIN employee_group emp_gp ON emp.employee_group_id = emp_gp.id WHERE emp_gp.name = 'ACCOUNTANT' AND LOWER(emp.name) = %s LIMIT 1;",(acc.lower(),))
+        result.append(cur.fetchone())
+        return jsonify(result)
+    elif for_what == 'delete-machines-histrory':
+        cur.execute("DELETE FROM machines_history WHERE id = %s RETURNING id;",(data,))
+        conn.commit()
+    elif for_what == 'delete-employee-group-history':
+        cur.execute("DELETE FROM employee_group_project WHERE id = %s RETURNING id;",(data,))
+        conn.commit()
+    elif for_what == 'transfer-machine-to-another-project':
+        cur.execute("UPDATE machines_history SET end_time = now() WHERE id = %s;")
+        cur.execute("INSERT INTO machines_history (project_id,machine_id,start_time) VALUES (%s,%s,%s);",())
+    elif for_what == 'transfer_machine_project':
+        his_id , project_id , start_time , machine_id = data.split("~~")
+        try:
+            cur.execute("UPDATE machines_history SET end_time = %s WHERE id = %s;",(start_time,his_id))
+            cur.execute("INSERT INTO machines_history (project_id,start_time,machine_id) VALUES (%s,%s,%s);",(project_id,start_time,machine_id))
+            conn.commit()
+        except IntegrityError as err:
+            print(err)
+        return ""
+    result = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify(result)

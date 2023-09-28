@@ -7,25 +7,6 @@ from psycopg2 import IntegrityError
 
 reports = Blueprint('reports',__name__)
 
-@reports.route("/monthly/<mgs>")
-@reports.route("/monthly")
-def monthly_duty_report(mgs=None):
-    role = request.cookies.get('role')
-    if not role:
-        return redirect(url_for('views.home'))
-    else:
-        if int(role) not in (2,3,4):
-            return render_template('access_error.html')
-    conn = db_connect()
-    cur = conn.cursor()
-
-    cur.execute("SELECT id ,name , code FROM analytic_project_code")
-    pj_datas = cur.fetchall()
-
-    cur.close()
-    conn.close()
-    return render_template("monthly_duty.html",pj_datas = pj_datas,message=mgs)
-
 @reports.route("/check-supervisior/<name>")
 def check_supervisior(name:str):
     conn = db_connect()
@@ -308,7 +289,7 @@ def get_monthly_duty():
                                             END,"""
             table_fields_one_query += field
         if pj_id == "" or date_duty == "" or pj_name == "":
-            return redirect(url_for('reports.monthly_duty_report',mgs=f"Incomplete Field For Project Name - Project Code."))
+            return redirect(url_for('views.home',mgs=f"Incomplete Field For Project Name - Project Code."))
         query = f""" SELECT MIN(DISTINCT(duty_date)),MAX(DISTINCT(duty_date)) 
                         FROM duty_odoo_report WHERE project_id = {pj_id}
                         AND EXTRACT(YEAR FROM duty_date) = {yer} AND EXTRACT(MONTH FROM duty_date) = {mnt}; """
@@ -458,7 +439,7 @@ def get_monthly_duty():
             final_dct[dt] = [rmv_no,rmv_next]
             idx_for_wd += 1
     else:
-        return redirect(url_for('reports.monthly_duty_report'))
+        return redirect(url_for('views.home'))
     return render_template("monthly_duty.html",all_classes = all_classes,h_datas = [pj_name,dt_text,pj_code],final_dct=final_dct,message=None,flt=flt,show_all = show_all)
 
 @reports.route("/report-by-each-machine",methods=['GET','POST'])
@@ -474,7 +455,7 @@ def report_by_each_machine():
     print(pj_id)
     yer , mon , sth = map(int,start_dt.split("-"))
     if pj_id == "" or start_dt == "" or end_dt == "" or pj_name == "":
-        return redirect(url_for('reports.monthly_duty_report',mgs=f"Incomplete Field For Project Name - Project Code."))
+        return redirect(url_for('views.home',mgs=f"Incomplete Field For Project Name - Project Code."))
     cur.execute("""SELECT MIN(DISTINCT(duty_date)),MAX(DISTINCT(duty_date)) 
                         FROM duty_odoo_report WHERE project_id = %s
                         AND duty_date >= %s AND duty_date <= %s;""",(pj_id,start_dt,end_dt))
@@ -551,9 +532,90 @@ def report_by_each_machine():
     vehicles_dct[temp_machine_name][1].append(sum(vehicles_dct[temp_machine_name][1]))
     return render_template('machine_by_each_duty.html',vehicles_dct=vehicles_dct,date_diff = [int(start_dt_contain.split('-')[2]),int(end_dt_contain.split('-')[2]),(int(end_dt_contain.split('-')[2])-int(start_dt_contain.split('-')[2]))+1,start_dt_contain.split("-")[0] + '/' + start_dt_contain.split("-")[1]],pj_datas=[pj_name,pj_code])
 
+@reports.route('/income-expense',methods=['GET','POST'])
+def income_expense_report():
+    conn = db_connect()
+    cur = conn.cursor()
+    cur.execute(""" 
+        SELECT form.set_date,form.income_expense_no,pj.code,pj.name,
+        CASE WHEN form.income_status = 't' THEN 'Income' ELSE 'Expense' END,
+        line.description,line.invoice_no,line.qty,line.price,line.amt,line.remark 
+        FROM income_expense_line line 
+        LEFT JOIN income_expense form 
+        ON line.income_expense_id  = form.id
+        LEFT JOIN analytic_project_code pj
+        ON pj.id = form.project_id
+        ORDER BY form.project_id,form.set_date DESC;""")
+    income_expense_lines = cur.fetchall()
+    extra_datas = []
+    cur.execute("SELECT count(id) FROM income_expense_line;")
+    extra_datas.append(cur.fetchone())
+    return render_template("income_expense.html",template_type = 'Report List',income_expense_lines = income_expense_lines,extra_datas=extra_datas)
+
+@reports.route("/income-expense-report",methods=['GET','POST'])
+def income_expense_report_view():
+    conn = db_connect()
+    cur = conn.cursor()
+    pj_name, pj_code = request.form.get("pj_name").split('_&_')
+    pj_id = request.form.get("pj_id")
+    start_dt = request.form.get('start_date_for_each')
+    end_dt = request.form.get('end_date_for_each')
+    print(pj_name,pj_code,start_dt,end_dt)
+    if pj_id == "" or start_dt == "" or end_dt == "" or pj_name == "":
+        return redirect(url_for('views.home',mgs=f"Incomplete Field For Project Name - Project Code."))
+    extra_datas = [pj_name,pj_code,start_dt,end_dt]
+    cur.execute(""" 
+                    WITH PrevData AS (
+                        SELECT
+                        SUM(CASE WHEN form.income_status = 't' THEN line.amt ELSE 0.0 END) - SUM(CASE WHEN form.income_status = 'f' THEN line.amt ELSE 0.0 END) AS opening_balance
+                        FROM income_expense_line line
+                        INNER JOIN income_expense form
+                        ON line.income_expense_id = form.id
+                        WHERE form.set_date < %s AND form.project_id = %s
+                    )
+                    SELECT  COALESCE(PrevData.opening_balance,0.0),COALESCE(NowData.income,0.0),COALESCE(NowData.expense,0.0), COALESCE(( COALESCE(PrevData.opening_balance,0.0) + COALESCE(NowData.income,0.0) ) - COALESCE(NowData.expense,0.0),0.0) AS Balance
+                        FROM (
+                            SELECT
+                                SUM(CASE WHEN form.income_status = 't' THEN line.amt ELSE 0.0 END) AS income,
+                                SUM(CASE WHEN form.income_status = 'f' THEN line.amt ELSE 0.0 END) AS expense
+                            FROM income_expense_line line
+                            INNER JOIN income_expense form
+                            ON line.income_expense_id = form.id
+                            WHERE form.project_id = %s AND form.set_date BETWEEN %s AND %s
+                            ) AS NowData
+                        CROSS JOIN PrevData;
+                    """,(start_dt,pj_id,pj_id,start_dt,end_dt))
+    extra_datas.append(cur.fetchone())
+    result_datas = []
+    if extra_datas[1] != Decimal('0.0') and extra_datas[2] != Decimal('0.0'):
+        cur.execute(""" SELECT
+                            form.set_date AS date,
+                            line.description,
+                            line.invoice_no,
+                            CASE WHEN form.income_status = 't' THEN line.amt ELSE 0.0 END AS income ,
+                            CASE WHEN form.income_status = 'f' THEN line.amt ELSE 0.0 END AS expense,
+                            0.0 AS balance,
+                            line.remark
+                        FROM
+                            income_expense_line AS line
+                        INNER JOIN 
+                            income_expense AS form
+                        ON form.id = line.income_expense_id
+                        WHERE form.project_id = %s AND form.set_date BETWEEN %s AND %s
+                        ORDER BY date;""",(pj_id,start_dt,end_dt))
+        result_datas = cur.fetchall()
+        opening_balance = extra_datas[4][0]
+        for i, datas in enumerate(result_datas):
+            datas = list(datas)
+            datas[5] = (opening_balance + datas[3]) - datas[4]
+            opening_balance = datas[5]
+            result_datas[i] = tuple(datas)
+    return render_template("site-reports.html",result_datas=result_datas,extra_datas=extra_datas)
 
 # SELECT report.project_id AS p_id,SUM(totaluse_fuel) AS a_fuel,
 # SUM(ROUND(EXTRACT(HOUR FROM total_hr) + EXTRACT(MINUTE FROM total_hr) / 60.0, 2)) AS balance_duty
 # FROM duty_odoo_report report
 # WHERE report.project_id = 191
 # GROUP BY report.project_id 
+
+'Duty Import Person','	Site Supervisor','	Project Code	','Date	','Type','	Machine Main Type','	Machine Sub Type','	Machine Capacity','	MB Machine Type','	Machine	Operator','	Project Name','	Owner	','Morning Start	','Morning End	','Afternoon Start','	Afternoon End','	Evening Start	','Evening End	','Running Hour','	Walk Hours','	General Hours','	Total Hours	','Service Meter','	Initial Fuel(Mark)	','Filling Fuel(Liter)','	Filling Fuel(Mark)','	Use Fuel(Mark)','	Balance Fuel(Mark)','	Increase Fuel(Mark)	','Mark Per Liter	','Total Use Fuel(Liter)','	1Hr Fuel Consumption','	Rate Per Duty','	Rate Per Hours','	Fuel Price','	Duty Amount	','Fuel Amount	','Total Amount','	Way','	Completion(Feets)','	Completion(Sud)','	Remark','	Report Remark','	Job	No:','	Status'
