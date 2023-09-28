@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap');
 @import url(https://fonts.googleapis.com/css?family=Audiowide:400,700&subset=latin,latin-ext);
+body{
+    *{
+        box-sizing: border-box;
+    }
+}
+
 /* CSS Button */
 .button-83 {
     appearance: button;
@@ -569,6 +575,24 @@ color: white;
     cursor: pointer;
 }
 
+.home-page #cmpyBanner{
+    display: none;
+}
+
+#respnUserName{
+    display: none;
+}
+
+@media(max-width: 770px){    
+    .home-page #cmpyBanner{
+        display: block;
+    }
+
+    #respnUserName{
+        display: inline;
+    }
+}
+
 /* Responsive Sector */
 @media screen and (max-width: 767px) {
     /* Your CSS rules for small phones go here */
@@ -581,6 +605,7 @@ color: white;
     .home-page{
         height: 50vh;
     }
+
     .groupby-report{
         margin-left: 20px;
     }
@@ -915,8 +940,21 @@ html.under-construction {
     top: 0;
 }
 
+#machineListForProjectStats{
+    position: relative;
+}
+
+#machineListForProjectStats .stick{
+    position: sticky;
+    bottom: 45px;
+}
+
 @media(max-width: 705px) {
     .prj-statis .mechanni-table{
         width: max-content;
+    }
+
+    .prj-statis form label{
+        font-size: 10px;
     }
 }

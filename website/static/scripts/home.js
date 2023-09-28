@@ -556,5 +556,3 @@ window.addEventListener('resize', updateInputSize);
   
 /* responsive and media query */
 
-
-

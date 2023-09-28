@@ -110,8 +110,9 @@
     </div>
 </div>
 
+<!-- import form -->
 {% elif name == 'Project Statistics Line' %}
-
+<!-- 
 <div class="m-3 prj-statis">
     <div class="card card-body shadow-sm" style="background-color: #3E517A;">
         <form class="row gx-3 gy-2 align-items-center m-2" action="/import/upload" method="POST">
@@ -140,7 +141,7 @@
                 <div class="row table-div">
                     <div class="mt-3 added machine-name-table col-md-12">
                             <table class="table table-sm table-striped mechanni-table" >
-                                <thead>
+                                <thead style="position: sticky;top: 0;z-index: 5;">
                                     <tr class="fs-6 text-dark py-2 text-center">
                                         <th class="bg-warning">Machine Name</th>
                                         <th class="bg-warning">Type</th>
@@ -153,8 +154,11 @@
                                         <td>Budozor</td>
                                         <td><button class="btn btn-sm btn-success me-2">Transfer</button><button class="btn btn-sm btn-danger">Remove</button></td>
                                     </tr>
-                                    <tr  style="position: sticky;bottom: 0;">
-                                        <td class="text-center" colspan="3"><button class="btn btn-md btn-primary text-white"  type="button" onclick="addInput(this)">Add Machine<i class="fa-solid fa-plus ms-2"></i></button></td>
+                                    <tr style="position: sticky;bottom: 0;">
+                                        <td class="text-center" colspan="3">
+                                            <button class="btn btn-md btn-primary text-white addMachine"  type="button" onclick="addInput(this)">Add Machine<i class="fa-solid fa-plus ms-2"></i></button>
+                                            <button class="btn btn-md btn-primary text-white searchMachine"  type="button" onclick="addInput(this)">Search<i class="fa-solid fa-magnifying-glass ms-2"></i></button>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table> 
@@ -166,7 +170,7 @@
                     </div>
                     <div class="mt-3 added machine-name-table col-md-12">
                         <table class="table table-sm table-striped mechanni-table">
-                                <thead>
+                                <thead style="position: sticky;top: 0;z-index: 5;">
                                     <tr class="fs-6 text-dark py-2 text-center">
                                         <th class="bg-warning">Mechanician</th>
                                         <th class="bg-warning">Men Power</th>
@@ -175,19 +179,16 @@
                                 </thead>
                                 <tbody id="machineListForProjectStats">
                                     <tr class="text-center fs-6">
-                                        <td class="overflow-auto">2B/9382 (NO.209) (3200 GL) (10 WHEELS) Daewoo</td>
+                                        <td>2B/9382 (NO.209) (3200 GL) (10 WHEELS) Daewoo</td>
                                         <td>10</td>
                                         <td><button class="btn btn-sm btn-success me-2">Transfer</button><button class="btn btn-sm btn-danger">Remove</button></td>
                                     </tr>
                                     <tr  style="position: sticky;bottom: 0;">
-                                        <td class="text-center men-power" colspan="3"><button class="btn btn-md btn-primary text-white"  type="button" onclick="addInput(this)">Add Machine<i class="fa-solid fa-plus ms-2"></i></button></td>
+                                        <td class="text-center men-power" colspan="3">
+                                            <button class="btn btn-md btn-primary text-white addMachine"  type="button" onclick="addInput(this)">Add Machine<i class="fa-solid fa-plus ms-2"></i></button>
+                                            <button class="btn btn-md btn-primary text-white searchMachine"  type="button" onclick="addInput(this)">Search<i class="fa-solid fa-magnifying-glass ms-2"></i></button>
+                                        </td>
                                     </tr>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#">Action</a></li>
-                                        <li><a class="dropdown-item" href="#">Another action</a></li>
-                                        <li><a class="dropdown-item" href="#">Something else here</a></li>
-                                        <li><a class="dropdown-item" href="#">Separated link</a></li>
-                                    </ul>
                                 </tbody>
                         </table> 
                         <datalist id="machinelistOptions" style="height: 100px;">
@@ -198,7 +199,7 @@
                     </div>
                 </div>
     
-                <!-- Modal -->
+                Modal
                 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -215,34 +216,185 @@
                     </div>
                 </div>
             </div>
+               
+            <div class="machine-name-containerg">
+                <div class="col button-div mt-1 justify-content-center d-flex">
+                    Button trigger modal
+                    <button type="button" onclick="checkSupervisor()" class="btn btn-success w-25 shadow-sm" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                        Submit
+                    </button>                
+                </div>            
+            </div>
+        </form>
+    </div>
+</div> -->
 
-            <!-- <div class="machine-name-container"> -->
-                <!-- <div class="col mt-3">
-                    <input class="form-control rounded-end" list="machinelistOptions" onchange="chooseMachineInSelect(this)" placeholder="စက်ကားများ" autocomplete="off">
-                    <datalist id="machinelistOptions" style="height: 100px;">
-                        {% for dta in  data['Machine'] %}
-                            <option value="{{dta[0]}}">
-                        {% endfor %}
-                    </datalist>
-                </div> -->
-                <!-- <div class="col rounded table-responsive mt-3 added machine-name-table"> -->
-                    <!-- <table class="table rounded table-bordered text-center align-middle">
-                        <thead class="table-dark">
-                            <tr style='font-size:13px;'>
-                                <th>Machine Name</th>
-                                <th>Machine Name</th>
-                                <th> # </th>
-                            </tr>
-                        </thead>
-                        <tbody id="machineListForProjectStats"></tbody>
-                    </table>   -->
-                <!-- </div> -->
-            <!-- </div> -->
+<!-- edit form -->
+<div class="m-3 prj-statis" id="prjStatis">
+    <button class="btn text-white py-0 mb-2 bg-secondary" onclick="editPrjStatis(this)" id="prjEdit">Edit</button>
+    <button class="btn text-white py-0 mb-2 bg-danger d-none" onclick="savePrjStatis(this)" id="prjDiscard">Discard</button>
+    <div class="card card-body shadow-sm" style="background-color: #3E517A;">
+        <form class="row gx-3 gy-2 align-items-center m-2" action="/import/upload" method="POST">
+            <input type="text" hidden name="db" value="fleet_vehicle">
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">ဆိုဒ် ကုဒ် / ဆိုဒ်အမည် </label>
+                <input class="form-control" list="datalistOptions" name="code" id="exampleDataListCode" required autocomplete="off" disabled>
+                <datalist id="datalistOptions" style="height: 100px;">
+                    {% for dta in  data['Project Code'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">ဆိုဒ် တည်နေရာ</label>
+                <input type="text" name="location" class="form-control" required autocomplete="off" disabled>
+            </div>
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">ဆိုဒ် စတင်ရက်</label>
+                <input type="date"  name="pj-start-date" class="form-control" required autocomplete="off" disabled>
+            </div>
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">တာဝန်ခံ</label>
+                <input type="text" name="supervisior" class="form-control site-supervisors" required autocomplete="off" disabled>
+            </div>
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">ပမာဏပေ</label>
+                <input type="number"  name="feet" class="form-control" required autocomplete="off" disabled>
+            </div>
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">ပမာဏကျင်း</label>
+                <input type="number" name="will-sud" class="form-control" required autocomplete="off" disabled>
+            </div>
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">ဆောင်ရွက်မည့်ကျင်း</label>
+                <input type="number" name="sud" class="form-control" required autocomplete="off" disabled>
+            </div>
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">Estimate Duty</label>
+                <input type="number" step=".01" name="duty" class="form-control" required autocomplete="off" disabled>
+            </div>
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">Estimate Fuel</label>
+                <input type="number" step=".01" name="fuel" class="form-control" required autocomplete="off" disabled>
+            </div>
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">Estimate Expenses</label>
+                <input type="number" step=".01" name="expense" class="form-control" required autocomplete="off" disabled>
+            </div>
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">Estimate Day</label>
+                <input type="number" step=".01" name="estimate_day" class="form-control" required autocomplete="off" disabled>
+            </div>
+            <div class="col-sm-3">
+                <label class="mb-1 text-white">ရုံးစရင်းကိုင်</label>
+                <input type="text" name="hoAccountname" class="form-control" required autocomplete="off" disabled>
+            </div>
 
+            <div class="machine-name-container">
+                <div class="row table-div">
+                    <div class="mt-3 added machine-name-table col-md-12">
+                            <table class="table table-sm table-striped mechanni-table">
+                                <thead style="position: sticky;top: 0;z-index: 5;">
+                                    <tr class="fs-6 text-dark py-2 text-center">
+                                        <th class="bg-warning">Machine Name</th>
+                                        <th class="bg-warning">Type</th>
+                                        <th class="bg-warning"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="machineListForProjectStats">
+                                    <tr class="text-center fs-6">
+                                        <td class="overflow-auto">2B/9382 (NO.209) (3200 GL) (10 WHEELS) Daewoo</td>
+                                        <td>Budozor</td>
+                                        <td><button disabled class="btn btn-sm btn-success me-2" data-bs-toggle="modal" data-bs-target="#transferModal" type="button">Transfer</button><button disabled class="btn btn-sm btn-danger">Remove</button></td>
+                                    </tr>
+                                    <tr style="position: sticky;bottom: 0;">
+                                        <td class="text-center" colspan="3">
+                                            <button disabled class="btn btn-md btn-primary text-white addMachine"  type="button" onclick="addInput(this)">Add Machine<i class="fa-solid fa-plus ms-2"></i></button>
+                                            <button disabled class="btn btn-md btn-primary text-white searchMachine"  type="button" onclick="addInput(this)">Search<i class="fa-solid fa-magnifying-glass ms-2"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <!-- transfer dropbox -->                            
+                            <div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Tranfer Machine</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body text-center d-flex flex-column">
+                                        <label for="">Project Code</label>
+                                        <input type="text" class="" list="machinelistOptions">
+                                        <label for="">Trasfer Date</label>
+                                        <input type="date" class="">
+                                    </div>
+                                    <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-success">Transfer</button>
+                                    </div>
+                                </div>
+                                </div>
+                            </div> 
+                        <datalist id="machinelistOptions" style="height: 100px;">
+                            {% for dta in  data['Machine'] %}
+                                <option value="{{dta[0]}}">
+                            {% endfor %}
+                        </datalist> 
+                    </div>
+                    <div class="mt-3 added machine-name-table col-md-12">
+                        <table class="table table-sm table-striped mechanni-table">
+                                <thead style="position: sticky;top: 0;z-index: 5;">
+                                    <tr class="fs-6 text-dark py-2 text-center">
+                                        <th class="bg-warning">Mechanician</th>
+                                        <th class="bg-warning">Men Power</th>
+                                        <th class="bg-warning"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="machineListForProjectStats">
+                                    <tr class="text-center fs-6">
+                                        <td>2B/9382 (NO.209) (3200 GL) (10 WHEELS) Daewoo</td>
+                                        <td>10</td>
+                                        <td><button disabled class="btn btn-sm btn-success me-2"  data-bs-toggle="modal" data-bs-target="#transferModal" type="button">Transfer</button><button disabled class="btn btn-sm btn-danger">Remove</button></td>
+                                    </tr>
+                                    <tr  style="position: sticky;bottom: 0;">
+                                        <td class="text-center men-power" colspan="3">
+                                            <button disabled class="btn btn-md btn-primary text-white addMachine"  type="button" onclick="addInput(this)">Add Machine<i class="fa-solid fa-plus ms-2"></i></button>
+                                            <button disabled class="btn btn-md btn-primary text-white searchMachine"  type="button" onclick="addInput(this)">Search<i class="fa-solid fa-magnifying-glass ms-2"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                        </table> 
+                        <datalist id="machinelistOptions" style="height: 100px;">
+                            {% for dta in  data['Machine'] %}
+                                <option value="{{dta[0]}}">
+                            {% endfor %}
+                        </datalist> 
+                    </div>
+                </div>
+    
+                <!-- Modal --> 
+                <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="staticBackdropLabel">Check the data carefully!</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div id="inside-statistics-modal-body" class="modal-body"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" id="inModalStatisticsClose" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" id="inModalStatistics" class="btn btn-primary">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+               
             <div class="machine-name-containerg">
                 <div class="col button-div mt-1 justify-content-center d-flex">
                     <!-- Button trigger modal -->
-                    <button type="button" onclick="checkSupervisor()" class="btn btn-success w-25 shadow-sm" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                    <button disabled type="button" onclick="checkSupervisor()" class="btn btn-success w-25 shadow-sm" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                         Submit
                     </button>                
                 </div>            

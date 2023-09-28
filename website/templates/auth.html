@@ -14,6 +14,9 @@
             <img src="{{url_for('static',filename='images/SOFTWARELOGO.png')}}"/>
         </div>
         <div class="right-side">
+            <div class="repologodiv">
+                <img src="{{url_for('static',filename='images/SOFTWARELOGO.png')}}" id="responImg"/>
+            </div>
             {% if typ == 'log' %}
             <form action="{{url_for('auth.authenticate',typ='log')}}" method="post">
                 <div class="inputContainer">
@@ -40,22 +43,22 @@
                     <strong class="text-danger fw-bolder">{{mgs}}</strong>
                     {% endif %}
                     <div>
-                        <label for="userName">Username</label>
-                        <input type="text" autocomplete="off" name="username" class="userNameInput" required/>
+                        <!-- <label for="userName">Username</label> -->
+                        <input type="text" placeholder="Username" autocomplete="off" name="username" class="userNameInput" required/>
                     </div>
                     <div>
-                        <label for="userName">Email</label>
-                        <input type="email" autocomplete="off" name="email" class="userNameInput" required/>
+                        <!-- <label for="userName">Email</label> -->
+                        <input type="email" placeholder="Email" autocomplete="off" name="email" class="userNameInput" required/>
                     </div>
                     <div>
-                        <label for="userName">Password</label>
-                        <input type="password" name="password" class="passwordInput" required/>
+                        <!-- <label for="userName">Password</label> -->
+                        <input type="password" placeholder="Password" name="password" class="passwordInput" required/>
                     </div>
                     <div>
-                        <label for="userName">Confirm Password</label>
-                        <input type="password" name="confirmPassword" class="passwordInput" required/>
+                        <!-- <label for="userName">Confirm Password</label> -->
+                        <input type="password" placeholder="ConfirmPassword" name="confirmPassword" class="passwordInput" required/>
                     </div>
-                    <button>Sign Up</button>
+                    <button id="signUpBtn">Sign Up</button>
                 </div>
                 <div class="signup-forget"><a href="{{url_for('auth.authenticate',typ='log')}}">Login</a> | <a href="{{url_for('auth.authenticate',typ='forget')}}">Forget Password?</a></div>
             </form>

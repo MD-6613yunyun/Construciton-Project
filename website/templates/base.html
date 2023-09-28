@@ -14,7 +14,73 @@
     <title> CPU | {% block title %}{% endblock %}</title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg" style="background-color: rgb(44, 65, 173);position: sticky;top: 0;z-index: 100;">
+
+    <!-- nav bar start -->
+    <nav class="navbar navbar-expand-lg" style="background-color: #2C41AD; box-shadow: 1px 0px 15px .5px rgba(0, 0, 0, 1);position: sticky;top: 0;z-index: 5;">
+        <a href="/" class="navbar-brand ms-3">
+            <img src="../static/images/logo_mdmm.png" 
+            width="50px" alt="sitelogo" class="bg-light">
+        </a>
+
+        <button type="button" class="navbar-toggler me-3 bg-white" data-bs-toggle="collapse" data-bs-target="#nav"><i class="navbar-toggler-icon"></i></button>
+    
+        <div id="nav" class="navbar-collapse collapse justify-content-between">
+            <ul class="navbar-nav px-3">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Transactions</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{url_for('views.show_transactions',what='duty')}}" >Duty</a></li>
+                        <li><a class="dropdown-item" href="{{url_for('views.show_transactions',what='expense')}}">Expense</a></li>
+                        <li><a class="dropdown-item" href="{{url_for('views.show_transactions',what='sale')}}">Sales</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown ">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Configurations</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{url_for('views.configurations',what='machine')}}">Machines</a></li>
+                        <li><a class="dropdown-item" href="{{url_for('views.configurations',what='project')}}">Projects</a></li>
+                        <li><a class="dropdown-item" href="{{url_for('views.configurations',what='details')}}">Details</a></li>                        
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Imports</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{url_for('imports.import_data',what='machine')}}">Machine</a></li>
+                        <li><a class="dropdown-item" href="{{url_for('imports.import_data',what='project')}}">Project</a></li>
+                        <li><a class="dropdown-item" href="{{url_for('imports.import_data',what='project_stat')}}">Project Statistics</a></li>                        
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Sites Imports</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{url_for('imports.daily_activities_report')}}">Daily Activities</a></li>
+                        <li><a class="dropdown-item" href="{{url_for('imports.income_expense_report')}}">Incomes & Expenses</a></li>                       
+                    </ul>
+                </li>
+                <li class="nav-item dropdown ">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Reports</a>
+                    <ul class="dropdown-menu">
+                        <li><a type="button" onclick="giveProjectCodes()" class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#monthlyReport" >Monthly</a></li>
+                        <li><a class="dropdown-item" href="{{url_for('reports.summary_duty_report')}}">Summary</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="">Not Considered..</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <form class="d-flex justify-content-center p-2" role="search"  action="{{url_for('auth.logout')}}">
+                <input value="Nani" hidden>
+                {% if request.cookies.get('username') %}
+                <span class="navbar-text text-white font-monospace me-3">
+                    Hello {{request.cookies.get('username')}} !!
+                </span>
+                {% endif %}
+                <button class="btn btn-danger" type="submit">Log Out</button>
+            </form>
+        </div>
+    </nav>
+    <!-- nav-bar-end -->
+
+    <!-- <nav class="navbar navbar-expand-lg fixed-top" style="background-color: rgb(44, 65, 173);">
         <div class="container-fluid">
             <a class="navbar-brand text-white fw-bolder" href="/">MDMM</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,11 +136,11 @@
                     Hello {{request.cookies.get('username')}} !!
                 </span>
                 {% endif %}
-                <button class="btn btn-outline-primary" type="submit">Log Out</button>
+                <button class="btn btn-outline-light" type="submit">Log Out</button>
             </form>
             </div>
         </div>
-    </nav>
+    </nav> -->
 
     <!-- Modal for monthly report -->
     <div class="modal fade" id="monthlyReport" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">

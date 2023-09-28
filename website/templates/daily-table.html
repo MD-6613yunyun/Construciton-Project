@@ -5,26 +5,29 @@
     <script src="{{url_for('static',filename='scripts/site-imports.js')}}"></script>
 {% endblock %}
 {% block content %}
+<h1 class="text-center">Edit Daily Activity List</h1>
+<button id="editBtn" class="border-0" onclick="editDaily(this)" style="margin-left: 10%;background-color: #3E517A;color: white;border-radius: 5px;">Edit</button>
+<button id="discardBtn" class="border-0 bg-danger d-none" onclick="discard(this)" style="margin-left: 10%;color: white;border-radius: 5px;">Discard</button>
 <div class="body-for-daily-table">
-    <h3>Daily Construction Activities<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
     <form action="">
         <!-- project status -->
+        <h3>Daily Construction Activities<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
         <section class="project-status-section add-table">
             <div class="first-div">
                 <span>Project Status</span>
                     <label for="working">Working
-                        <input type="radio" value="working" name="work" id="working" autocomplete="off" onchange="notWork(this)">
+                        <input type="radio" disabled value="working" name="work" id="working" autocomplete="off" onchange="notWork(this)">
                     </label>
                     <label for="notWorking">Not Working
-                        <input type="radio" value="notWorking" name="work" id="notWorking" autocomplete="off" onchange="notWork(this)">
+                        <input type="radio" disabled value="notWorking" name="work" id="notWorking" autocomplete="off" onchange="notWork(this)">
                     </label>
-                    <input type="text" placeholder="reson for not working" autocomplete="off" id="notWorkingInput" required><br>
+                    <input disabled type="text" placeholder="reson for not working" autocomplete="off" id="notWorkingInput" required><br>
             </div>
             <div class="sec-div">
                 <span>Daily Report Number</span>
                 <span>- DCR/2021/000001</span>
                 <span>Date</span>
-                <span>- <input type="date"></span>
+                <span>- <input disabled type="date"></span>
             </div>
         </section>
         <!-- Datalist -->
@@ -40,7 +43,7 @@
         <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
         <section class="project-details-section add-table" id="projectDetailSec">
             <span>Project Code</span>
-            <input type="text" autocomplete="off" list="projectCode" onchange="projectFill(this)" required>
+            <input disabled type="text" autocomplete="off" list="projectCode" onchange="projectFill(this)" required>
             <label class="label">HO A/C Name</label>
             <span id="hoAcName"></span>
 
@@ -61,11 +64,11 @@
         <h3>Weather<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
         <section class="weather add-table toggle-table" id="weather" onchange="selection()">
             <span>No Affects All Day</span>
-            <input type="checkbox" autocomplete="off" required id="noAff">
+            <input disabled type="checkbox" autocomplete="off" required id="noAff">
             <span>Affected % of Work Day</span>
-            <input type="number" placeholder="%" autocomplete="off" required id="affPer">
+            <input disabled type="number" placeholder="%" autocomplete="off" required id="affPer">
             <span>Affected All Day</span>
-            <input type="checkbox" autocomplete="off" required id="affAll">
+            <input disabled type="checkbox" autocomplete="off" required id="affAll">
         </section>
                     
         <!-- xxx -->
@@ -89,13 +92,13 @@
                 <tr>
                     <td>Feet</td>
                     <td>4545.6</td>
-                    <td><input type="number" step=".01" autocomplete="off" required></td>
+                    <td><input disabled type="number" step=".01" autocomplete="off" required></td>
                     <td>4297.5</td>
                 </tr>
                 <tr>
                     <td>Sud</td>
                     <td>34500</td>
-                    <td><input type="number" step=".01" autocomplete="off" required></td>
+                    <td><input disabled type="number" step=".01" autocomplete="off" required></td>
                     <td>443</td>
                 </tr>
                 <tr>
@@ -137,12 +140,12 @@
                 <tbody id="activitiesTable">
                     <tr>
                         <td>1</td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" autocomplete="off" required>:<input type="number" placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
-                        <td><input type="number" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
+                        <td><input disabled type="text" autocomplete="off" required></td>
+                        <td><input disabled type="text" autocomplete="off" required></td>
+                        <td><input disabled type="text" autocomplete="off" required></td>
+                        <td class="duty-hour"><input disabled type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" autocomplete="off" required>:<input type="number" disabled placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
+                        <td><input disabled type="number" autocomplete="off" required></td>
+                        <td><input disabled type="text" autocomplete="off" required></td>
                         <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
                     </tr>
                     <tr class="add-btn">
@@ -150,12 +153,12 @@
                     </tr>
                     <tr class="d-none">
                         <td>1</td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
-                        <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" autocomplete="off" required>:<input type="number" placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
-                        <td><input type="number" autocomplete="off" required></td>
-                        <td><input type="text" autocomplete="off" required></td>
+                        <td><input disabled type="text" autocomplete="off" required></td>
+                        <td><input disabled type="text" autocomplete="off" required></td>
+                        <td><input disabled type="text" autocomplete="off" required></td>
+                        <td class="duty-hour"><input disabled type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" autocomplete="off" required>:<input type="number" placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
+                        <td><input disabled type="number" autocomplete="off" required></td>
+                        <td><input disabled type="text" autocomplete="off" required></td>
                         <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
                     </tr>
                 </tbody>
@@ -183,34 +186,34 @@
                     <tr>
                         <td>Engineer</td>
                         <td>1</td>
-                        <td><input onkeyup="checkInpNumber(this,0,1)" type="number" autocomplete="off" required></td>
+                        <td><input disabled onkeyup="checkInpNumber(this,0,1)" type="number" autocomplete="off" required></td>
                         <td>12Wheels</td>
                         <td>5</td>
-                        <td><input onkeyup="checkInpNumber(this,0,5)" type="number" autocomplete="off" required></td>
+                        <td><input disabled onkeyup="checkInpNumber(this,0,5)" type="number" autocomplete="off" required></td>
                     </tr>
                     <tr>
                         <td>Checker</td>
                         <td>20</td>
-                        <td><input type="number" autocomplete="off" required></td>
+                        <td><input disabled type="number" autocomplete="off" required></td>
                         <td>10Wheels</td>
                         <td>10</td>
-                        <td><input type="number" autocomplete="off" required></td>
+                        <td><input disabled type="number" autocomplete="off" required></td>
                     </tr>
                     <tr>
                         <td>Driver</td>
                         <td>3</td>
-                        <td><input type="number" autocomplete="off" required></td>
+                        <td><input disabled type="number" autocomplete="off" required></td>
                         <td>BH</td>
                         <td>10</td>
-                        <td><input type="number" autocomplete="off" required></td>
+                        <td><input disabled type="number" autocomplete="off" required></td>
                     </tr>
                     <tr>
                         <td>Operator</td>
                         <td>20</td>
-                        <td><input type="number" autocomplete="off" required></td>
+                        <td><input disabled type="number" autocomplete="off" required></td>
                         <td>Dozer</td>
                         <td>10</td>
-                        <td><input type="number" autocomplete="off" required></td>
+                        <td><input disabled type="number" autocomplete="off" required></td>
                     </tr>
                     <tr>
                         <td>Total</td>
@@ -238,9 +241,9 @@
             <tbody  id="repairTable">
                 <tr>
                     <td>1</td>
-                    <td><input type="text"></td>
-                    <td><input type="text"></td>
-                    <td><input type="checkbox"></td>
+                    <td><input disabled type="text"></td>
+                    <td><input disabled type="text"></td>
+                    <td><input disabled type="checkbox"></td>
                     <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
                 </tr>
                 <tr class="add-btn">
@@ -248,15 +251,15 @@
                 </tr>
                 <tr class="d-none">
                     <td>1</td>
-                    <td><input type="text"></td>
-                    <td><input type="text"></td>
-                    <td><input type="checkbox"></td>
+                    <td><input disabled type="text"></td>
+                    <td><input disabled type="text"></td>
+                    <td><input disabled type="checkbox"></td>
                     <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
                 </tr>
             </tbody>
         </table>
         <div class="btn-bg">
-            <button class="submit-btn" type="submit">Submit</button>
+            <button class="submit-btn" type="submit" onclick="saveDaily(this)">Save</button>
         </div>
     </form>
 </div>

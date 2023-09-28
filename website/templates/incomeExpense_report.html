@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" integrity="sha512-uKQ39gEGiyUJl4AI6L+ekBdGKpGw4xJ55+xyJG7YFlJokPNYegn9KwQ3P8A7aFQAUtUsAQHep+d/lrGqrbPIDQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <title>Income Expense Report</title>
+    <style>
+        #inExReport{
+            background-color: radial-gradient(bottom to top,#2C41AD,#7187f7);
+        }
+
+        ul{
+            list-style: none;
+            display: grid;
+            grid-template-columns: auto auto auto auto auto auto;
+            font-size: 15px;
+            margin: 0;
+        }
+
+        #detialHead{
+            background-color: #92AFD7;
+            color: white;
+            text-align: center;
+            position: sticky;
+            top:0;
+        }
+
+        #inExReport .inExRow{
+            background: linear-gradient(360deg,#2C41AD,  #617bff);
+            box-shadow: inset 0px 2px 5px 2px rgba(0, 0, 0, 0.5);
+            color: white;
+            cursor: pointer;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgb(0, 0, 0) ;
+        }
+
+        #inExReport .inExRow .dropBox{
+            width: 99%;
+            margin: 0 auto;
+            max-height: 0;
+            overflow: auto;
+        }
+
+        #inExReport .inExRow table{
+            width: 100%;
+            background-color: white;
+            color: black;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        #inExReport .inExRow table th{
+            background-color: #2C41AD;
+        }
+
+        #inExReport .inExRow li{
+            padding: 5px;
+            text-align: center;
+        }
+
+        #tbody tr{
+            border-bottom: 1px solid #dfdfdf;
+        }
+
+        #tbody tr td{
+            /* background-color: #C1C1C1; */
+            /* border-right: 1px solid #c1c1c1; */
+        }
+
+        @media(max-width: 570px){
+            h1{
+                font-size: 20px;
+            }
+
+            h3{
+                font-size: 15px;
+            }
+
+            #inExReport .inExRow li b{
+                font-size: 13px !important;
+            }
+
+            #inExReport .dropBox{
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="text-center my-4">Income Expense Report</h1>
+    <h3 class="text-center border">PTG-21-22-003 PTGERfre  (01-09-23 to 05-09-23)</h3>
+    <button type="button" class="btn btn-sm btn-success m-1" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+    <div id="inExReport">
+        <div class="inExRow " onclick="showDrop(this)">
+            <ul id="totalRow">
+                <li class="fs-3"><b>စုစုပေါင်း</b></li>
+                <li>လက်ကျန်ငွေ<br><b class="fs-5">20000</b></li>
+                <li>အဝင်<br><b class="fs-5">30000</b></li>
+                <li>အထွက်<br><b class="fs-5">20000</b></li>
+                <li>လက်ကျန်<br><b class="fs-5">30000</b></li>
+                <li class="fs-3"><i class="fa-solid fa-caret-right"></i></li>
+            </ul>
+            <div class="dropBox">
+                <table>
+                    <tr>
+                        <thead id="detialHead">
+                            <th class="py-2" style="width: 10%">နေ့စွဲ</th>
+                            <th style="width: 30%">အကြောင်းအရာ</th>
+                            <th style="width: 15%">ဘောင်ချာ</th>
+                            <th style="width: 10%">အဝင်</th>
+                            <th style="width: 10%">အထွက်</th>
+                            <th style="width: 10%">လက်ကျန်</th>
+                            <th style="width: 20%">မှတ်ချက်</th>
+                        </thead>
+                        <tbody id="tbody">
+                            <tr style="background-color: #c1c1c1;">
+                                <td class="py-2">12-04-2000</td>
+                                <td class="text-start">Opening Balance</td>
+                                <td class="py-2"></td>
+                                <td class="text-end"></td>
+                                <td class="text-end"></td>
+                                <td class="text-end">8000</td>
+                                <td class="ps-2 text-start"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">12-04-2000</td>
+                                <td class="text-start">HahAhaHa</td>
+                                <td class="">VC-001230</td>
+                                <td class="text-end">10000</td>
+                                <td class="text-end">10000</td>
+                                <td class="text-end">8000</td>
+                                <td class="ps-2 text-start">-Br br nyar nyar</td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">12-04-2000</td>
+                                <td class="text-start">HahAhaHa</td>
+                                <td class="">VC-001230</td>
+                                <td class="text-end">10000</td>
+                                <td class="text-end">10000</td>
+                                <td class="text-end">8000</td>
+                                <td class="ps-2 text-start">-Br br nyar nyar</td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">12-04-2000</td>
+                                <td class="text-start">HahAhaHa</td>
+                                <td class="">VC-001230</td>
+                                <td class="text-end">10000</td>
+                                <td class="text-end">10000</td>
+                                <td class="text-end">8000</td>
+                                <td class="ps-2 text-start">-Br br nyar nyar</td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">12-04-2000</td>
+                                <td class="text-start">HahAhaHa</td>
+                                <td class="">VC-001230</td>
+                                <td class="text-end">10000</td>
+                                <td class="text-end">10000</td>
+                                <td class="text-end">8000</td>
+                                <td class="ps-2 text-start">-Br br nyar nyar</td>
+                            </tr>
+                        </tbody>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        function showDrop(selectRow){
+            const dropIcn = selectRow.children[0].children[5].children[0];
+            if(selectRow.children[1].style.maxHeight == 0){
+                selectRow.children[1].style.maxHeight = "60vh";
+                dropIcn.style.transform = "rotate(90deg)";
+            }else{
+                selectRow.children[1].style.maxHeight = null;
+                dropIcn.style.transform = "rotate(360deg)";
+            }
+        }
+
+        const tbody = document.getElementById("tbody");
+        const totalRow = document.getElementById("totalRow");
+        // add comma to စုစုပေါင်း
+        totalRow.children[1].children[1].innerText = parseInt(totalRow.children[1].children[1].innerText).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        totalRow.children[2].children[1].innerText = parseInt(totalRow.children[2].children[1].innerText).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        totalRow.children[3].children[1].innerText = parseInt(totalRow.children[3].children[1].innerText).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        totalRow.children[4].children[1].innerText = parseInt(totalRow.children[4].children[1].innerText).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        // add comma in table values
+        for(let i = 0;i < tbody.children.length; i++){
+         if(tbody.children[i].children[3].innerText){
+                tbody.children[i].children[3].innerText = parseInt(tbody.children[i].children[3].innerText).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+            if(tbody.children[i].children[4].innerText){
+                
+            }
+            tbody.children[i].children[5].innerText = parseInt(tbody.children[i].children[5].innerText).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        }
+</script>
+</body>
+</html>
