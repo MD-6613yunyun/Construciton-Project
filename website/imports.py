@@ -63,9 +63,9 @@ def import_data(what,mgs=None):
         data["Project Type"] = cur.fetchall()
         name = 'Project Line'
     elif what == 'project_stat':
-        cur.execute("SELECT name || ' | ' || code FROM analytic_project_code AS pj LEFT JOIN project_statistics AS stat ON pj.id = stat.project_id WHERE stat.project_id is NULL;")
+        cur.execute("SELECT code || ' | ' || name FROM analytic_project_code AS pj LEFT JOIN project_statistics AS stat ON pj.id = stat.project_id WHERE stat.project_id is NULL;")
         data['Project Code'] = cur.fetchall()
-        cur.execute("SELECT machine_name FROM fleet_vehicle;")
+        cur.execute("SELECT machine_name FROM fleet_vehicle WHERE id NOT IN (SELECT id FROM machines_history WHERE end_time is NULL);")
         data['Machine'] = cur.fetchall()
         cur.execute("SELECT name FROM employee_group;")
         data['group'] = cur.fetchall()
@@ -91,9 +91,11 @@ def import_data(what,mgs=None):
                             emp INNER JOIN employee_group emp_gp ON emp_gp.id = emp.employee_group_id 
                             WHERE emp.project_id = %s;""",(pj_id,))
                 emp_datas = cur.fetchall()
-                cur.execute("SELECT name || ' | ' || code FROM analytic_project_code AS pj LEFT JOIN project_statistics AS stat ON pj.id = stat.project_id WHERE stat.project_id is NULL;")
+                cur.execute("SELECT code || ' | ' || name FROM analytic_project_code AS pj LEFT JOIN project_statistics AS stat ON pj.id = stat.project_id WHERE stat.project_id is NULL;")
                 data['Project Code'] = cur.fetchall()
-                cur.execute("SELECT machine_name FROM fleet_vehicle;")
+                cur.execute("SELECT code || ' | ' || name FROM analytic_project_code;")
+                data['All Project Code'] = cur.fetchall()
+                cur.execute("SELECT machine_name FROM fleet_vehicle WHERE id NOT IN (SELECT id FROM machines_history WHERE end_time is NULL);")
                 data['Machine'] = cur.fetchall()
                 cur.execute("SELECT name FROM employee_group;")
                 data['group'] = cur.fetchall()

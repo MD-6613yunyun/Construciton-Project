@@ -560,6 +560,8 @@ def call_api(for_what,data:str):
         WHERE pj.code = %s or pj.name = %s;""",(data,data))
     elif for_what == 'project-check-for-stats':
         cur.execute("SELECT pj.id FROM analytic_project_code AS pj LEFT JOIN project_statistics AS stat ON pj.id = stat.project_id WHERE stat.project_id is NULL AND (name = %s or code = %s) LIMIT 1;",(data,data))
+    elif for_what == 'project-check-for-transfer-stats':
+        cur.execute("SELECT id FROM analytic_project_code WHERE code = %s or name = %s;",(data,data))
     elif for_what == 'machine-check':
         cur.execute(""" WITH LatestStartTime AS (
                             SELECT

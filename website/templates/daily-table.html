@@ -37,23 +37,24 @@
             <!-- xxx -->
             <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
             <section class="project-details-section add-table" id="projectDetailSec">
-                <span>Project Code</span>
-                <input type="number" required value="" style="display: none;"  class="leePalKwar daily-activity" name="pj_id">
-                <input type="text" autocomplete="off" list="projectData" onchange="projectFill(this)" required>
-                <label class="label">HO A/C Name</label>
-                <span id="hoAcName"></span>
 
-                <label class="label">Project Name</label>
-                <span id="prjName"></span>
+                <label class="label" style="display: block;">Project Code</label>
+                <span id="hoAcName">- {{form_datas[0]}}</span>
 
-                <label class="label">Project Location</label>
-                <span id="prjLoca"></span>
+                <label class="label" style="display: block;">HO A/C Name</label>
+                <span id="hoAcName">- {{form_datas[1]}}</span>
 
-                <label class="label">Project Start Date</label>
-                <label id="prjDate"></label>
+                <label class="label" style="display: block;">Project Name</label>
+                <span id="prjName">- {{form_datas[2]}}</span>
 
-                <label class="label">Supervisor</label>
-                <span id="sprVisor"></span>
+                <label class="label" style="display: block;">Project Location</label>
+                <span id="prjLoca">- {{form_datas[3]}}</span>
+
+                <label class="label" style="display: block;">Project Start Date</label>
+                <label id="prjDate">- {{form_datas[4]}}</label>
+
+                <label class="label" style="display: block;">Supervisor</label>
+                <span id="sprVisor">- {{form_datas[5]}}</span>
             </section>
             <!-- xxx -->
             <!-- Affects of Weather On Project -->
@@ -82,39 +83,39 @@
                 <tbody>
                     <tr>
                         <td>Day</td>
-                        <td>75</td>
-                        <td>3</td>
-                        <td>45</td>
+                        <td>{{form_datas[6]}}</td>
+                        <td>0</td>
+                        <td>{{form_datas[6]}}</td>
                     </tr>
                     <tr>
                         <td>Feet</td>
-                        <td>4545.6</td>
+                        <td>{{form_datas[7]}}</td>
                         <td><input type="number" name="completeFeet" step=".01" autocomplete="off" required></td>
-                        <td>4297.5</td>
+                        <td>{{form_datas[7]}}</td>
                     </tr>
                     <tr>
                         <td>Sud</td>
-                        <td>34500</td>
+                        <td>{{form_datas[8]}}</td>
                         <td><input type="number" name="completeSud" step=".01" autocomplete="off" required></td>
-                        <td>443</td>
+                        <td>{{form_datas[8]}}</td>
                     </tr>
                     <tr>
                         <td>Hours</td>
-                        <td>34500</td>
-                        <td>20</td>
-                        <td>443</td>
+                        <td>{{form_datas[9]}}</td>
+                        <td>0</td>
+                        <td>{{form_datas[9]}}</td>
                     </tr>
                     <tr>
                         <td>Disel(Liter)</td>
-                        <td>34500</td>
-                        <td>30Liter</td>
-                        <td>443</td>
+                        <td>{{form_datas[10]}}</td>
+                        <td>0</td>
+                        <td>{{form_datas[10]}}</td>
                     </tr>
                     <tr>
                         <td>Expense(Amount)</td>
-                        <td>34500</td>
-                        <td>1234</td>
-                        <td>443</td>
+                        <td>{{form_datas[11]}}</td>
+                        <td>0</td>
+                        <td>{{form_datas[11]}}</td>
                     </tr>
                 </tbody>
             </table>

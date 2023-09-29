@@ -24,7 +24,6 @@ ul{
     color: white;
     cursor: pointer;
     padding-bottom: 5px;
-    border-bottom: 1px solid rgb(0, 0, 0) ;
 }
 
 #inExReport .inExRow .dropBox{
@@ -60,7 +59,7 @@ ul{
     margin-bottom: -10px;
 }
 
-@media(max-width: 570px){
+@media(max-width: 660px){
     h1{
         font-size: 20px;
     }
@@ -76,4 +75,58 @@ ul{
     #inExReport .dropBox{
         font-size: 10px;
     }
+
+    #tbody .date{
+        font-size: 10px;
+    }
 }
+
+@media(max-width: 400px){
+    h1{
+        font-size: 10px;
+    }
+
+    h3{
+        font-size: 20px;
+    }
+
+    h4{
+        font-size: 15px;
+    }
+
+    h5{
+        font-size: 15px;
+    }
+
+    #inExReport .dropBox{
+        font-size: 8px;
+    }
+
+    #tbody .date{
+        font-size: 8px;
+    }
+
+    #totalRow ul{
+        font-size: 10px;
+    }
+
+    #inExReport .inExRow li{
+        padding: 0;
+        font-size: 10px;
+        margin-top: 10px;
+    }
+
+    #inExReport{
+        background-color: radial-gradient(bottom to top,#2C41AD,#7187f7);
+        /* display: flex;
+        width: 100%;
+        background-color: red; */
+    }
+
+    #inExReport .inExRow{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+}
+

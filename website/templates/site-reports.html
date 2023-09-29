@@ -7,8 +7,8 @@
 {% block content %}
 <h3 class="text-center mt-2">Income Expense Report</h3>
 <hr/><h4 class="text-center second-header-income-expense">{{extra_datas[1]}}({{extra_datas[0]}})</h4><hr/>
+<h5 class="text-center">From - <strong> {{extra_datas[2]}} </strong> To - <strong> {{extra_datas[3]}} </strong></h5>
 <button type="button" class="btn btn-sm btn-success m-1 d-inline" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
-<p>From - <strong> {{extra_datas[2]}} </strong> To - <strong> {{extra_datas[3]}} </strong></p>
 <div id="inExReport">
     <div class="inExRow " onclick="showDrop(this)">
         <ul id="totalRow">
@@ -18,7 +18,7 @@
             <li>အထွက်<br><b class="fs-5">{{extra_datas[4][2]}}</b></li>
             <li>လက်ကျန်<br><b class="fs-5">{{extra_datas[4][3]}}</b></li>
             {% if result_datas|length != 0 %}
-            <li class="fs-3"><i class="fa-solid fa-caret-right mt-3"></i></li>
+            <li class="fs-3"><i class="fa-solid fa-caret-right"></i></li>
             {% endif %}
         </ul>
         {% if result_datas|length != 0 %}
@@ -26,8 +26,8 @@
                 <table>
                     <tr>
                         <thead id="detialHead">
-                            <th class="py-2" style="width: 10%">နေ့စွဲ</th>
-                            <th style="width: 30%">အကြောင်းအရာ</th>
+                            <th class="py-2" style="width: 15%">နေ့စွဲ</th>
+                            <th style="width: 25%">အကြောင်းအရာ</th>
                             <th style="width: 15%">ဘောင်ချာ</th>
                             <th style="width: 10%">အဝင်</th>
                             <th style="width: 10%">အထွက်</th>

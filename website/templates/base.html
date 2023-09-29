@@ -14,15 +14,17 @@
     <title> CPU | {% block title %}{% endblock %}</title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg" style="background-color: rgb(44, 65, 173);position: sticky;top: 0;z-index: 100;">
+    <nav class="navbar navbar-expand-lg" style="background-color: #2C41AD; box-shadow: 1px 0px 15px .5px rgba(0, 0, 0, 1);position: sticky;top: 0;z-index: 5;">
         <div class="container-fluid">
-            <a class="navbar-brand text-white fw-bolder" href="/">MDMM</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarScroll">
-                <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
-                    <li class="nav-item dropdown ">
+            <a href="/" class="navbar-brand ms-3">
+                <img src="../static/images/logo_mdmm.png" 
+                width="50px" alt="sitelogo" class="bg-light">
+            </a>
+            <button type="button" class="navbar-toggler me-3 bg-white" data-bs-toggle="collapse" data-bs-target="#nav"><i class="navbar-toggler-icon"></i></button>
+
+            <div id="nav" class="navbar-collapse collapse justify-content-between">
+                <ul class="navbar-nav px-3">
+                    <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Transactions</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{url_for('views.show_transactions',what='duty')}}" >Duty</a></li>
@@ -65,14 +67,14 @@
                         </ul>
                     </li>
                 </ul>
-            <form class="d-flex" role="search"  action="{{url_for('auth.logout')}}">
+            <form class="d-flex justify-content-center p-2" role="search"  action="{{url_for('auth.logout')}}">
                 <input value="Nani" hidden>
                 {% if request.cookies.get('username') %}
                 <span class="navbar-text text-white font-monospace me-3">
                     Hello {{request.cookies.get('username')}} !!
                 </span>
                 {% endif %}
-                <button class="btn btn-outline-primary" type="submit">Log Out</button>
+                <button class="btn btn-danger" type="submit">Log Out</button>
             </form>
             </div>
         </div>
@@ -111,10 +113,14 @@
                                 <input class="form-check-input ms-3" type="checkbox" name="radioOPtionsCheck" value="class" id="flexRadioGroup1" onchange="checkEachMachineOrAll(this)">
                             </div>
                             <div class="text-center mb-3 d-none">
-                                <label for="start text-center">Start Date : </label>
-                                <input type="date" id="start" name="start_date_for_each" min="2020-01-01" max="2030-12-31" value="2023-05-11">
-                                <label for="start text-center">End   Date : </label>
-                                <input type="date" id="start" name="end_date_for_each" min="2020-01-01" max="2030-12-31" onchange="check_or_trace_start_date(this)" value="2023-05-11">
+                                <div class="mb-2">
+                                    <label for="start text-center">Start Date : </label>
+                                    <input type="date" id="start" name="start_date_for_each" min="2020-01-01" max="2030-12-31" value="2023-05-11">
+                                </div>
+                                <div>
+                                    <label for="start text-center">End   Date : </label>
+                                    <input type="date" id="start" name="end_date_for_each" min="2020-01-01" max="2030-12-31" onchange="check_or_trace_start_date(this)" value="2023-05-11">
+                                </div>
                             </div>
                             <div class="text-center mb-3">
                                 <label for="start text-center">Month of Report : </label>

@@ -268,7 +268,7 @@
                 <input type="number" hidden value="" id="source-history-id" name="source-history-id"/>
                 <input type="number" hidden value="" id="source-machine-id" name="source-machine-id"/>
                 <label for="">Project Code</label>
-                <input type="text" required onchange="checkProjectAndReplaceId(this,'transfer_project_id_for_stat')"   list="datalistOptions">
+                <input type="text" required onchange="checkProjectAndReplaceId(this,'transfer_project_id_for_stat')"   list="alldatalistOptions">
                 <input type="number" hidden id="transfer_project_id_for_stat" name="transfer_project_id_for_stat" value=""/>
                 <label for="">Trasfer Time</label>
                 <input type="datetime-local" id="transfer_machine_stat" name="transfer_machine_stat" class="">
@@ -292,6 +292,11 @@
                 <input class="form-control" disabled value="{{stat_datas[0]}}" onchange="checkProjectAndReplaceId(this,'project_id_for_stat')" list="datalistOptions" name="code" id="projectCode"  required autocomplete="off">
                 <datalist id="datalistOptions" style="height: 100px;">
                     {% for dta in  data['Project Code'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %}
+                </datalist>
+                <datalist id="alldatalistOptions" style="height: 100px;">
+                    {% for dta in  data['All Project Code'] %}
                         <option value="{{dta[0]}}">
                     {% endfor %}
                 </datalist>

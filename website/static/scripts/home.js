@@ -679,7 +679,11 @@ function removeDataFromStats(btn){
 function checkProjectAndReplaceId(inp,idd){
     let pj_code = inp.value.split("|")[0].replace("/","thisIsSlash").trim()
     console.log(pj_code)
-    fetch(`/get-api/project-check-for-stats/${pj_code}`)
+    let url_route = 'project-check-for-stats'
+    if (idd = 'transfer_project_id_for_stat'){
+        url_route = 'project-check-for-transfer-stats'
+    }
+    fetch(`/get-api/${url_route}/${pj_code}`)
     .then(response => response.json())
     .then(result => {
         let pj_id_holder = document.getElementById(idd)
@@ -753,6 +757,7 @@ function submitMachineTransferForStat(){
     project_id = document.getElementById("transfer_project_id_for_stat").value.trim()
     start_time = document.getElementById("transfer_machine_stat").value.trim()
     machine_id = document.getElementById("source-machine-id").value.trim()
+    console.log(his_id,project_id,start_time,machine_id)
     if (his_id == '' || project_id == '' || start_time == '' || machine_id == ''){
        alert("Incomplete Datas") 
     }else{

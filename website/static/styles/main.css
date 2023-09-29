@@ -569,6 +569,24 @@ color: white;
     cursor: pointer;
 }
 
+.home-page #cmpyBanner{
+    display: none;
+}
+
+#respnUserName{
+    display: none;
+}
+
+@media(max-width: 770px){    
+    .home-page #cmpyBanner{
+        display: block;
+    }
+
+    #respnUserName{
+        display: inline;
+    }
+}
+
 /* Responsive Sector */
 @media screen and (max-width: 767px) {
     /* Your CSS rules for small phones go here */

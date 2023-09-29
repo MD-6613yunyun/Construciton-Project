@@ -42,7 +42,7 @@ def daily_activity(typ):
     cur = conn.cursor()
     if typ == 'create' and request.method == 'POST':
         pj_id = request.form.get("pj_id")
-        cur.execute(""" SELECT pj.code,emp_one.name,pj.name,stat.location,stat.pj_start_date,emp_two.name,estimate_day,estimate_feet,estimate_sud,estimate_fuel,estimate_expense
+        cur.execute(""" SELECT pj.code,emp_one.name,pj.name,stat.location,stat.pj_start_date,emp_two.name,estimate_day,estimate_feet,estimate_sud,estimate_duty,estimate_fuel,estimate_expense
                         FROM  analytic_project_code pj
                         LEFT JOIN project_statistics stat
                         ON pj.id = stat.project_id
@@ -52,13 +52,14 @@ def daily_activity(typ):
                         ON emp_two.id = stat.supervisor_id
                         WHERE pj.id = %s;""",(pj_id,))
         form_datas = cur.fetchone()
+        print(form_datas)
         cur.execute("SELECT CURRENT_DATE;")
         cur_date = cur.fetchone()[0]
         cur.execute("SELECT code || ' | ' || name FROM analytic_project_code WHERE id IN (SELECT project_id FROM project_statistics);")
         project_datas = cur.fetchall()
         cur.close()
         conn.close()
-        return render_template("daily-table.html",cur_date = cur_date,project_datas = project_datas,template_type = 'create')
+        return render_template("daily-table.html",cur_date = cur_date,form_datas = form_datas,template_type = 'create')
     else:
         result = []
         cur.execute("SELECT code || ' | ' || name FROM analytic_project_code WHERE id IN (SELECT project_id FROM project_statistics);")
