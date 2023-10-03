@@ -45,6 +45,7 @@ def create_app():
     from .imports import imports
     from .auth import auth
     from .site_imports import site_imports
+    from .dashboard import dash
 
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth,url_prefix='/auth')
@@ -52,6 +53,7 @@ def create_app():
     app.register_blueprint(exports,url_prefix='/export')
     app.register_blueprint(imports,url_prefix='/import')
     app.register_blueprint(site_imports,url_prefix='/site-imports')
+    app.register_blueprint(dash,url_prefix='/dash')
 
     @app.errorhandler(404)
     def page_not_found(e):

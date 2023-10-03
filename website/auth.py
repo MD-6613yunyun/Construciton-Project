@@ -79,3 +79,60 @@ def checkforget(name,email):
         return [1]
     else:
         return [0]
+    
+@auth.route("/admin",methods=['GET','POST'])
+def admin_panel():
+    conn = db_connect()
+    cur = conn.cursor()
+    if request.method == 'POST':
+        user_id = request.form.get("income_expense_id")
+        cur.execute("SELECT users.id,users.name,users.mail,access.name FROM user_auth AS users LEFT JOIN user_access access ON users.user_access_id = access.id WHERE users.id = %s;",(user_id,))
+        user_data = cur.fetchone()
+        cur.execute("SELECT id,code,name FROM analytic_project_code")
+        pj_datas = cur.fetchall()
+        cur.execute("SELECT id,name FROM user_access;")
+        access_datas = cur.fetchall()
+        cur.execute("SELECT pj.id,pj.name,pj.code FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+        owned_pj_datas = cur.fetchall()
+        return render_template('admin_panel.html',not_tree=True,user_data=user_data,pj_datas=pj_datas,access_datas=access_datas,owned_pj_datas=owned_pj_datas)
+    else:
+        cur.execute("SELECT id,name,mail FROM user_auth ORDER BY name LIMIT 81;")
+        all_users = cur.fetchall()
+        cur.execute("SELECT count(*) FROM user_auth;")
+        all_users_count = cur.fetchone()[0]
+    
+    return render_template("admin_panel.html",all_users=all_users,total=all_users_count)
+
+@auth.route("/add-remove-projects/<typ>",methods=['POST'])
+def add_remove_pj(typ):
+    if request.method == 'POST':
+        conn = db_connect()
+        cur = conn.cursor()
+        project_ids = request.form.getlist("projects")
+        user_id = request.form.get("user_id")
+        if typ == 'add':
+            for data in project_ids:
+                cur.execute("INSERT INTO project_user_access(user_id,project_id) VALUES(%s,%s);",(user_id,data))
+        elif typ == 'remove':
+            cur.execute("DELETE FROM project_user_access WHERE user_id = %s AND project_id IN %s;",(user_id,tuple(project_ids)))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return redirect(url_for('auth.admin_panel'))
+
+@auth.route("/change-user-access",methods=['POST'])
+def change_user_access():
+    if request.method == 'POST':
+        conn = db_connect()
+        cur = conn.cursor()
+        user_id = request.form.get("user_id")
+        access_id = request.form.get("access_id")
+        cur.execute("UPDATE user_auth SET user_access_id = %s WHERE id = %s;",(access_id,user_id))
+        conn.commit()
+        cur.close()
+        conn.close()
+        @after_this_request
+        def after_index(response):
+            response.set_cookie("role",str(access_id),expires=datetime.now() + timedelta(seconds=10))
+            return response
+        return redirect(url_for('auth.admin_panel'))

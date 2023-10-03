@@ -8,7 +8,15 @@
 <h3 class="text-center mt-2">Income Expense Report</h3>
 <hr/><h4 class="text-center second-header-income-expense">{{extra_datas[1]}}({{extra_datas[0]}})</h4><hr/>
 <h5 class="text-center">From - <strong> {{extra_datas[2]}} </strong> To - <strong> {{extra_datas[3]}} </strong></h5>
-<button type="button" class="btn btn-sm btn-success m-1 d-inline" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+<form action="/duty/income-expense-report" class="monthlyformInModal" method="POST">
+    <input hidden type="text" value="{{extra_datas[0]}}_&_{{extra_datas[1]}}" name="pj_name">
+    <input hidden="number" value="{{extra_datas[5]}}" name="pj_id">
+    <input hidden="date" value="{{extra_datas[2]}}" name="start_date_for_each">
+    <input hidden type="date" value="{{extra_datas[3]}}"  name="end_date_for_each">
+    <input hidden type="text" value="" name="for_what_type" id="for_what_type">
+    <button type="submit" class="btn btn-sm btn-success m-1 d-inline" onclick="{document.getElementById('for_what_type').value = 'excel'}"><i class="fas fa-print"></i> Excel Print</button>
+    <button type="submit" class="btn btn-sm btn-outline-dark m-1 d-inline" onclick="{document.getElementById('for_what_type').value = 'pdf'}"><i class="fas fa-print"></i> PDF Print</button>
+</form>
 <div id="inExReport">
     <div class="inExRow " onclick="showDrop(this)">
         <ul id="totalRow">

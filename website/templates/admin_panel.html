@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %} Admin Panel {% endblock %}
+
+{% block content %}
+
+{% if not_tree %}
+
+<h1 class="text-center py-3 adminControl">Admin Control Panel</h1>
+    <div class="card mb-3 row">
+        <div class="card-header col-12 text-white" style="background-color: #2C41AD;">
+            User Details
+        </div>
+        <div class="d-flex justify-content-between p-3" id="detailCard">
+            <div class="col-8">
+                <p class="card-text m-0 text-primary">Username</p>
+                <h5 class="card-title">{{user_data[1]}}</h5>
+                <p class="card-text m-0 text-primary">Email</p>
+                <h5 class="card-title">{{user_data[2]}}</h5>
+                <p class="card-text m-0 text-primary">User Role</p>
+                <h5 class="card-title" id="userRoleShow">{{user_data[3]}}</h5>
+            </div>
+            <div class="col-4">
+                <p class="card-text m-0 text-primary">Projects List</p>
+                <div style="height: 150px;overflow: auto;" id="detailPrjList">
+                    {% for data in owned_pj_datas %}
+                        <h5 class="card-title">{{data[2]}} ( {{data[1]}} )</h5>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="input-group mb-3">
+            <form action="{{url_for('auth.add_remove_pj',typ='add')}}" method="post">
+                <input hidden type="number" id="user_id" name="user_id" value="{{user_data[0]}}"/>
+                <input type="search" id="inputForProjectInMonthly" size="22" autocomplete="off" style="margin-left: 10px;" onkeyup="getShopsSelect(this)"/>
+                <div style="max-height: 150px;overflow-y: auto;display: none;" id="aboveProjectCodesForExport">
+                    <select name="projects" id="projects" multiple>
+                        {% for data in pj_datas %}
+                            <option value="{{data[0]}}">{{data[1]}} | {{data[2]}}</option>
+                        {% endfor %}
+                    </select>
+                </div> 
+                <button type="submit">Add Projects</button>
+            </form>
+        </div>  
+        <div class="input-group mb-3">
+            <form action="{{url_for('auth.add_remove_pj',typ='remove')}}" method="post">
+                <input hidden type="number" id="user_id" name="user_id" value="{{user_data[0]}}"/>
+                <input type="search" id="inputForProjectInMonthly" size="22" autocomplete="off" style="margin-left: 10px;" onkeyup="getShopsSelect(this)"/>
+                <div style="max-height: 150px;overflow-y: auto;display: none;" id="aboveProjectCodesForExport">
+                    <select name="projects" id="projects" multiple>
+                        {% for data in owned_pj_datas %}
+                            <option value="{{data[0]}}">{{data[1]}} | {{data[2]}}</option>
+                        {% endfor %}
+                    </select>
+                </div> 
+                <button type="submit">Remove Projects</button>
+            </form>
+        </div> 
+        <div class="input-group mb-3">
+            <form action="{{url_for('auth.change_user_access')}}" method="post">
+                <input hidden type="number" id="user_id" name="user_id" value="{{user_data[0]}}"/>
+                <select class="form-select" name="access_id" id="inputGroupSelect02">
+                    {% for data in access_datas %}
+                        <option value="{{data[0]}}">{{data[1]}}</option>
+                    {% endfor %}
+                </select>
+                <button class="input-group-text btn btn-primary text-white" type="submit" for="inputGroupSelect02" >Change User Role</button>
+            </form>
+        </div>           
+    </div>
+</div>
+{% else %}
+<form id="hidden-income-expense-form" action="{{url_for('auth.admin_panel')}}" method="post">
+    <input type="number" name="income_expense_id" id="hidden-income-expense-id" value="" hidden>
+</form>
+<h1 class="text-center m-2">Authenticated Users</h1>
+<div class="text-center m-3">
+    <div class="row">
+        <div class="col-md-6 d-flex align-items-center">
+            <form role="search">
+                <div class="input-group">
+                    <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                </div>
+            </form>
+            <button data-bs-toggle="modal" data-bs-target="#exportStaticBackdrop" onclick="setDbAndGiveProjectCodes('Income Expense Query')" class="btn btn-secondary text-white mx-2"><i class="fa-solid fa-download"></i></button>
+            <button class="btn btn-success" onclick="showTruckAnimation()">Create</button>
+        </div>
+        <div class="col-md-6 col-sm-12 text-end mt-2">
+            <div class="btn-group" role="group" aria-label="Basic example">
+                <button type="button" onclick="clickPagination(this,'Income Expense Query','prev')" class="btn btn-primary">Prev</button>
+                <button type="button" class="btn btn-outline-dark" disabled=""> 1- {% if total >= 81 %} 81 {% else %} {{total}} {% endif %} / {{total}}</button>
+                <button type="button" onclick="clickPagination(this,'Income Expense Query','next')" class="btn btn-primary">Next</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="cpu-table-sec">
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in all_users %}
+            <tr onclick="redirectToProjectStatForm('hidden-income-expense-id','hidden-income-expense-form','{{user[0]}}')">
+                <td>{{user[1]}}</td>
+                <td> {{user[2]}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endif %}
+{% endblock %}

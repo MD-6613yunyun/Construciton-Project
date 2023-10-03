@@ -7,31 +7,41 @@
 {% block content %}
 
 {% if template_type == 'create' %}
-    <datalist id="projectData">
-        {% for data in project_datas %}
-            <option value="{{data[0]}}">
+    <datalist id="machineData">
+        {% for data in machine_datas %}
+            <option value="{{data[0]}}" getId="{{data[1]}}">
+        {% endfor %}
+    </datalist>
+    <datalist id="jobTypeData">
+        {% for data in activity_jobs[0] %}
+            <option value="{{data[0]}}" getId="{{data[1]}}">
+        {% endfor %}
+    </datalist>
+    <datalist id="jobFunctionData">
+        {% for data in activity_jobs[1] %}
+            <option value="{{data[0]}}" getId="{{data[1]}}">
         {% endfor %}
     </datalist>
     <div class="body-for-daily-table">
         <h3>Daily Construction Activities<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <form action="">
+        <form action="{{url_for('imports.site_imports',typ='daily-activity')}}" method="post">
             <!-- project status -->
             <section class="project-status-section add-table">
                 <div class="first-div">
                     <span>Project Status</span>
                         <label for="working">Working
-                            <input type="radio" value="working" name="work" id="working" autocomplete="off" onchange="notWork(this)">
+                            <input checked type="radio" value="working" name="work" id="working" autocomplete="off" onchange="notWork(this)">
                         </label>
                         <label for="notWorking">Not Working
                             <input type="radio" value="notWorking" name="work" id="notWorking" autocomplete="off" onchange="notWork(this)">
                         </label>
-                        <input type="text" placeholder="reson for not working" name="reason-for-not-working" autocomplete="off" id="notWorkingInput" required><br>
+                        <input type="text" placeholder="reson for not working" name="reason-for-not-working" autocomplete="off" id="notWorkingInput"><br>
                 </div>
                 <div class="sec-div">
                     <!-- <span>Daily Report Number</span>
                     <span>- DCR/2021/000001</span> -->
                     <span>Date</span>
-                    <span>- <input type="date" value="{{cur_date}}" name="set_date"></span>
+                    <span>- <input type="date" value="{{extra_datas[0]}}" name="set_date"></span>
                 </div>
             </section>
             <!-- xxx -->
@@ -41,8 +51,8 @@
                 <label class="label" style="display: block;">Project Code</label>
                 <span id="hoAcName">- {{form_datas[0]}}</span>
 
-                <label class="label" style="display: block;">HO A/C Name</label>
-                <span id="hoAcName">- {{form_datas[1]}}</span>
+                <!-- <label class="label" style="display: block;">HO A/C Name</label>
+                <span id="hoAcName">- {{form_datas[1]}}</span> -->
 
                 <label class="label" style="display: block;">Project Name</label>
                 <span id="prjName">- {{form_datas[2]}}</span>
@@ -55,6 +65,8 @@
 
                 <label class="label" style="display: block;">Supervisor</label>
                 <span id="sprVisor">- {{form_datas[5]}}</span>
+
+                <input type="number"  value="{{form_datas[12]}}" style="display: none;"  class="leePalKwar" name="pj_id">
             </section>
             <!-- xxx -->
             <!-- Affects of Weather On Project -->
@@ -66,7 +78,7 @@
                 <input type="number" placeholder="%" autocomplete="off" required id="affPer">
                 <span>Affected All Day</span>
                 <input type="checkbox" autocomplete="off" required id="affAll">
-                <input type="number" id="wealtherAff" name="wealtherAff">
+                <input type="number" required hidden id="wealtherAff" name="wealtherAff">
             </section>
                         
             <!-- xxx -->
@@ -90,32 +102,36 @@
                     <tr>
                         <td>Feet</td>
                         <td>{{form_datas[7]}}</td>
-                        <td><input type="number" name="completeFeet" step=".01" autocomplete="off" required></td>
-                        <td>{{form_datas[7]}}</td>
+                        <td class="d-none">{{history_datas[0]}}</td>
+                        <td><input type="number" name="completeFeet" onchange="calculateInlineValue(this)" step=".01" autocomplete="off" required></td>
+                        <td>{{form_datas[7] - history_datas[0]}}</td>
                     </tr>
                     <tr>
                         <td>Sud</td>
                         <td>{{form_datas[8]}}</td>
-                        <td><input type="number" name="completeSud" step=".01" autocomplete="off" required></td>
-                        <td>{{form_datas[8]}}</td>
+                        <td class="d-none">{{history_datas[1]}}</td>
+                        <td><input type="number" name="completeSud" onchange="calculateInlineValue(this)" step=".01" autocomplete="off" required></td>
+                        <td>{{form_datas[8] - history_datas[1]}}</td>
                     </tr>
                     <tr>
                         <td>Hours</td>
-                        <td>{{form_datas[9]}}</td>
-                        <td>0</td>
-                        <td>{{form_datas[9]}}</td>
+                        <td class="traceHour">{{form_datas[9]}}</td>
+                        <td class="d-none traceHour">{{history_datas[2]}}</td>                   
+                        <td class="traceHour">0</td>
+                        <td class="traceHour">{{form_datas[9]}}</td>
                     </tr>
                     <tr>
                         <td>Disel(Liter)</td>
-                        <td>{{form_datas[10]}}</td>
-                        <td>0</td>
-                        <td>{{form_datas[10]}}</td>
+                        <td class="traceFuel">{{form_datas[10]}}</td>
+                        <td class="d-none traceFuel">{{history_datas[3]}}</td>
+                        <td class="traceFuel">0</td>
+                        <td class="traceFuel">{{form_datas[10]}}</td>
                     </tr>
                     <tr>
                         <td>Expense(Amount)</td>
                         <td>{{form_datas[11]}}</td>
-                        <td>0</td>
-                        <td>{{form_datas[11]}}</td>
+                        <td>{{history_datas[4]}}</td>
+                        <td>{{form_datas[11] - history_datas[4]}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -138,26 +154,26 @@
                     <tbody id="activitiesTable">
                         <tr>
                             <td>1</td>
-                            <td><input type="text" autocomplete="off" required></td>
-                            <td><input type="text" autocomplete="off" required></td>
-                            <td><input type="text" autocomplete="off" required></td>
-                            <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" autocomplete="off" required>:<input type="number" placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
-                            <td><input type="number" autocomplete="off" required></td>
-                            <td><input type="text" autocomplete="off" required></td>
-                            <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                            <td><input type="text" class="notWorkInputActi" required name="machine_id" autocomplete="off" hidden><input type="text"  list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                            <td><input type="text" class="notWorkInputActi" required name="job_type_id" autocomplete="off" hidden><input type="text"  list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
+                            <td><input type="text" class="notWorkInputActi" required name="job_function_id" autocomplete="off" hidden><input type="text"  list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
+                            <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class="notWorkInputActi" required>:<input type="number" class="notWorkInputActi" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
+                            <td><input type="number" class="notWorkInputActi" name="used_fuel" autocomplete="off" required></td>
+                            <td><input type="text"  name="description" autocomplete="off"></td>
+                            <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
                         <tr class="add-btn">
-                            <td onclick="newRow(this)" class="activityBtn"><button type="button">+</button></td>
+                            <td class="activityBtn"><button onclick="newRow(this)"  type="button">+</button></td>
                         </tr>
                         <tr class="d-none">
                             <td>1</td>
-                            <td><input type="text" autocomplete="off" required></td>
-                            <td><input type="text" autocomplete="off" required></td>
-                            <td><input type="text" autocomplete="off" required></td>
-                            <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" autocomplete="off" required>:<input type="number" placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
-                            <td><input type="number" autocomplete="off" required></td>
-                            <td><input type="text" autocomplete="off" required></td>
-                            <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                            <td><input type="text" class="shouldRequired" name="machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                            <td><input type="text" class="shouldRequired" name="job_type_id" autocomplete="off" hidden><input type="text" list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
+                            <td><input type="text" class="shouldRequired" name="job_function_id" autocomplete="off" hidden><input type="text" list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
+                            <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class="shouldRequired">:<input type="number" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" class="shouldRequired"></td>
+                            <td><input type="number" name="used_fuel" autocomplete="off" class="shouldRequired"></td>
+                            <td><input type="text" name="description" autocomplete="off"></td>
+                            <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -181,46 +197,22 @@
                             <td>Number</td>
                             <td>Present</td>
                         </tr>
+                        {% for data in extra_datas[1] %}
                         <tr>
-                            <td>Engineer</td>
-                            <td>1</td>
-                            <td><input onkeyup="checkInpNumber(this,0,1)" type="number" autocomplete="off" required></td>
-                            <td>12Wheels</td>
-                            <td>5</td>
-                            <td><input onkeyup="checkInpNumber(this,0,5)" type="number" autocomplete="off" required></td>
+                            <td>{{data[0][0]}}</td>
+                            <td>{% if data[0][0] != '' %} {{data[0][1]}} {% endif %}</td>
+                            <td>
+                                <input onchange="checkInpNumber(this,0,'{{data[0][1]}}')" {% if data[0][0] == "" or data[0][0] == 'Total' %} hidden {% else %} name="manpower_amt" required {% endif %} type="number" autocomplete="off">
+                                <input type="number" value="{{data[0][2]}}" {% if data[0][2] != 0 %} name="manpower_id" {% endif %} hidden/>
+                            </td>
+                            <td>{{data[1][0]}}</td>
+                            <td>{% if data[1][0] != '' %} {{data[1][1]}} {% endif %}</td>
+                            <td>
+                                <input onchange="checkInpNumber(this,0,'{{data[1][1]}}')" type="number" {% if data[1][0] == "" or data[1][0] == 'Total' %} hidden {% else %} required name="type_amt" {% endif %} autocomplete="off">
+                                <input type="number" value="{{data[1][2]}}" {% if data[1][2] != 0 %} name="type_id" {% endif %}  hidden/>
+                            </td>
                         </tr>
-                        <tr>
-                            <td>Checker</td>
-                            <td>20</td>
-                            <td><input type="number" autocomplete="off" required></td>
-                            <td>10Wheels</td>
-                            <td>10</td>
-                            <td><input type="number" autocomplete="off" required></td>
-                        </tr>
-                        <tr>
-                            <td>Driver</td>
-                            <td>3</td>
-                            <td><input type="number" autocomplete="off" required></td>
-                            <td>BH</td>
-                            <td>10</td>
-                            <td><input type="number" autocomplete="off" required></td>
-                        </tr>
-                        <tr>
-                            <td>Operator</td>
-                            <td>20</td>
-                            <td><input type="number" autocomplete="off" required></td>
-                            <td>Dozer</td>
-                            <td>10</td>
-                            <td><input type="number" autocomplete="off" required></td>
-                        </tr>
-                        <tr>
-                            <td>Total</td>
-                            <td>27</td>
-                            <td></td>
-                            <td>Total</td>
-                            <td>23</td>
-                            <td></td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -239,20 +231,20 @@
                 <tbody  id="repairTable">
                     <tr>
                         <td>1</td>
-                        <td><input type="text"></td>
-                        <td><input type="text"></td>
-                        <td><input type="checkbox"></td>
-                        <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                        <td><input type="text" name="acc_machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                        <td><input type="text" autocomplete="off"  name="acc_description"></td>
+                        <td><input type="checkbox"   onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
+                        <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                     </tr>
                     <tr class="add-btn">
-                        <td onclick="newRow(this)" class="repairBtn"><button type="button">+</button></td>
+                        <td class="repairBtn"><button onclick="newRow(this)"  type="button">+</button></td>
                     </tr>
                     <tr class="d-none">
                         <td>1</td>
-                        <td><input type="text"></td>
-                        <td><input type="text"></td>
-                        <td><input type="checkbox"></td>
-                        <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                        <td><input type="text"  name="acc_machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                        <td><input type="text"  name="acc_description"></td>
+                        <td><input type="checkbox"  onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
+                        <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                     </tr>
                 </tbody>
             </table>
@@ -262,28 +254,33 @@
         </form>
     </div>
 {% elif template_type == 'view' %}
+
+    <form id="hidden-income-expense-form" action="{{url_for('imports.import_data',what='daily_activity_edit_form')}}" method="post">
+        <input type="number" name="income_expense_id" id="hidden-income-expense-id" value="" hidden>
+    </form>
     <h1 class="text-center">Daily Activity List</h1>
+    
     <div class="text-center m-3">
         <div class="row">
-            <div class="col d-flex">
+            <div class="col-md-6 d-flex align-items-center">
                 <form role="search">
                     <div class="input-group">
                         <input class="form-control" type="search" placeholder="Search" aria-label="Search">
                         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
                     </div>
                 </form>
-                <button class="btn btn-secondary text-white ms-2"><i class="fa-solid fa-download"></i></button>
-                <button onclick="showModalAndGiveProjectCodes('remove-date')" data-bs-toggle="modal" data-bs-target="#monthlyReport" class="btn btn-success remove-date text-white ms-2">Create</button>
+                <button class="btn btn-secondary text-white mx-2"><i class="fa-solid fa-download"></i></button>
+                <button id="chooseProjectBeforeCreateForm" onclick="showModalAndGiveProjectCodes('remove-date')" data-bs-toggle="modal" data-bs-target="#monthlyReport" class="btn btn-success text-white ms-2 daily-activity">ဖန်တီးပါ</button>
             </div>
-            <div class="col text-end">
+            <div class="col-md-6 col-sm-12 text-end mt-2">
                 <div class="btn-group" role="group" aria-label="Basic example">
-                    <button type="button" class="btn btn-primary">Prev</button>
-                    <button type="button" class="btn btn-outline-dark" disabled> 1-81 / 14444</button>
-                    <button type="button" class="btn btn-primary">Next</button>
+                    <button type="button" onclick="clickPagination(this,'pj','prev')" class="btn btn-primary">ရှေ့သို့</button>
+                    <button type="button" class="btn btn-outline-dark" disabled> 1- {% if extra_datas[0][0] >= 81 %} 81 {% else %} {{extra_datas[0][0]}} {% endif %} / {{extra_datas[0][0]}}</button>
+                    <button type="button" onclick="clickPagination(this,'pj','next')" class="btn btn-primary">နောက်သို့</button>
                 </div>
             </div>
         </div>
-    </div>  
+    </div>
     <div class="cpu-table-sec">
         <table>
             <thead>
@@ -306,30 +303,284 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="text-end">1/9/2023</td>
-                    <td class="text-start">PTG-22-23-005</td>
-                    <td class="text-wrap text-start"
-                        title="AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar"
-                    >AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar
+                {% for data in result %}
+                <tr onclick="redirectToProjectStatForm('hidden-income-expense-id','hidden-income-expense-form','{{data[0]}}')">
+                    <td class="text-end">{{data[1]}}</td>
+                    <td class="text-start">{{data[2]}}</td>
+                    <td class="text-wrap text-start" title="{{data[3]}}">{{data[3]}}</td>
+                    <td class="text-start">{{data[4]}}</td>
+                    <td class="text-start">{{data[5]}}</td>
+                    <td class="text-start">{{data[6]}}</td>
+                    <td class="text-end">{{data[7]}} % &nbsp;</td>
+                    <td class="text-end">{{data[8]}}</td>
+                    <td class="text-end">{{data[9]}}</td>
+                    <td class="text-end">{{data[10]}}</td>
+                    <td class="text-end">{{data[11]}}</td>
+                    <td class="text-end">{{data[12]}}</td>
+                    <td class="text-end">{{data[13]}}</td>
+                    <td class="text-end">{{data[14]}}</td>
+                    <td>
+                        {% if data[15] %}
+                            <span class="bg-danger text-light rounded-5 py-1 px-2">{{data[15]}}</span>
+                        {% else %}
+                            <span class="bg-success text-light rounded-5 py-1 px-2">{{data[15]}}</span>
+                        {% endif %}
                     </td>
-                    <td class="text-start">DCA/23/09/00001</td>
-                    <td class="text-start">Working</td>
-                    <td class="text-start">Aung La</td>
-                    <td class="text-end">80%</td>
-                    <td class="text-end">10</td>
-                    <td class="text-end">10</td>
-                    <td class="text-end">50:00</td>
-                    <td class="text-end">100</td>
-                    <td class="text-end">5</td>
-                    <td class="text-end">10</td>
-                    <td class="text-end">3</td>
-                    <td><span class="bg-danger text-light rounded-5 py-1 px-2">False</span></td>
                 </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
-{% elif template_type == 'edit' %}
+{% elif template_type == 'Edit List' %}
+    <datalist id="machineData">
+        {% for data in machine_datas %}
+            <option value="{{data[0]}}" getId="{{data[1]}}">
+        {% endfor %}
+    </datalist>
+    <datalist id="jobTypeData">
+        {% for data in activity_jobs[0] %}
+            <option value="{{data[0]}}" getId="{{data[1]}}">
+        {% endfor %}
+    </datalist>
+    <datalist id="jobFunctionData">
+        {% for data in activity_jobs[1] %}
+            <option value="{{data[0]}}" getId="{{data[1]}}">
+        {% endfor %}
+    </datalist>
+<div class="body-for-daily-table">
+    <h3>Daily Construction Activities<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+    <form action="{{url_for('imports.site_imports',typ='daily-activity')}}" method="post">
+        <!-- project status -->
+        <section class="project-status-section add-table">
+            <div class="first-div">
+                <span>Project Status</span>
+                    <label for="working">Working
+                        <input type="radio" {% if form_datas[15] %} checked {% endif %} value="working" name="work" id="working" autocomplete="off" onchange="notWork(this)">
+                    </label>
+                    <label for="notWorking">Not Working
+                        <input type="radio" {% if not form_datas[15] %} checked {% endif %}  value="notWorking" name="work" id="notWorking" autocomplete="off" onchange="notWork(this)">
+                    </label>
+                    <input type="text" {% if not form_datas[15] %} value="{{form_datas[16]}}" {% endif %} placeholder="reson for not working" name="reason-for-not-working" autocomplete="off" id="notWorkingInput"><br>
+            </div>
+            <div class="sec-div">
+                <span>Daily Report Number</span>
+                <span>- {{form_datas[13]}}</span>
+                <span>Date</span>
+                <span>- <input type="date" value="{{form_datas[14]}}" name="set_date"></span>
+            </div>
+        </section>
+        <!-- xxx -->
+        <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <section class="project-details-section add-table" id="projectDetailSec">
 
+            <label class="label" style="display: block;">Project Code</label>
+            <span id="hoAcName">- {{form_datas[0]}}</span>
+
+            <!-- <label class="label" style="display: block;">HO A/C Name</label>
+            <span id="hoAcName">- {{form_datas[1]}}</span> -->
+
+            <label class="label" style="display: block;">Project Name</label>
+            <span id="prjName">- {{form_datas[2]}}</span>
+
+            <label class="label" style="display: block;">Project Location</label>
+            <span id="prjLoca">- {{form_datas[3]}}</span>
+
+            <label class="label" style="display: block;">Project Start Date</label>
+            <label id="prjDate">- {{form_datas[4]}}</label>
+
+            <label class="label" style="display: block;">Supervisor</label>
+            <span id="sprVisor">- {{form_datas[5]}}</span>
+
+            <input type="number"  value="{{form_datas[12]}}" style="display: none;"  class="leePalKwar" name="pj_id">
+        </section>
+        <!-- xxx -->
+        <!-- Affects of Weather On Project -->
+        <h3>Weather<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <section class="weather add-table toggle-table" id="weather" onchange="selection()">
+            <span>No Affects All Day</span>
+            <input type="checkbox" autocomplete="off" {% if form_datas[17] == 0 %} checked {% else %} disabled {% endif %} required id="noAff">
+            <span>Affected % of Work Day</span>
+            <input type="number" placeholder="%" {% if form_datas[17] not in (0,100) %} value="{{form_datas[17]}}" {% else %} disabled {% endif %} autocomplete="off" required id="affPer">
+            <span>Affected All Day</span>
+            <input type="checkbox" {% if form_datas[17] == 100 %} checked {% else %} disabled {% endif %} autocomplete="off" required id="affAll">
+            <input type="number"  required hidden id="wealtherAff" value="{{form_datas[17]}}" name="wealtherAff">
+        </section>
+                    
+        <!-- xxx -->
+        <h3>Estimate & Result<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <table class="estimate-result-table add-table toggle-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Estimate</th>
+                    <th>Finished</th>
+                    <th>Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Day</td>
+                    <td>{{form_datas[6]}}</td>
+                    <td>0</td>
+                    <td>{{form_datas[6]}}</td>
+                </tr>
+                <tr>
+                    <td>Feet</td>
+                    <td>{{form_datas[7]}}</td>
+                    <td class="d-none">{{history_datas[0]}}</td>
+                    <td><input type="number" value="{{form_datas[18]}}" name="completeFeet" onchange="calculateInlineValue(this)" step=".01" autocomplete="off" required></td>
+                    <td>{{form_datas[7] - ( form_datas[18] + history_datas[1] )}}</td>
+                </tr>
+                <tr>
+                    <td>Sud</td>
+                    <td>{{form_datas[8]}}</td>
+                    <td class="d-none">{{history_datas[1]}}</td>
+                    <td><input type="number" value="{{form_datas[19]}}" name="completeSud" onchange="calculateInlineValue(this)" step=".01" autocomplete="off" required></td>
+                    <td>{{form_datas[8] - ( form_datas[19] + history_datas[1] )}}</td>
+                </tr>
+                <tr>
+                    <td>Hours</td>
+                    <td class="traceHour">{{form_datas[9]}}</td>
+                    <td class="d-none traceHour">{{history_datas[2]}}</td>                   
+                    <td class="traceHour">{{form_datas[20]}}</td>
+                    <td class="traceHour">{{form_datas[9] - form_datas[20]}}</td>
+                </tr>
+                <tr>
+                    <td>Disel(Liter)</td>
+                    <td class="traceFuel">{{form_datas[10]}}</td>
+                    <td class="d-none traceFuel">{{history_datas[3]}}</td>
+                    <td class="traceFuel">{{form_datas[21]}}</td>
+                    <td class="traceFuel">{{form_datas[10] - form_datas[21]}}</td>
+                </tr>
+                <tr>
+                    <td>Expense(Amount)</td>
+                    <td>{{form_datas[11]}}</td>
+                    <td>{{history_datas[4]}}</td>
+                    <td>{{form_datas[11] - history_datas[4]}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- xxx -->
+        <h3>Activites<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <div class="activities-table add-table toggle-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Machine</th>
+                        <th>Job Type</th>
+                        <th>Job Function</th>
+                        <th>Duty Hour</th>
+                        <th>Liter</th>
+                        <th>Description</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="activitiesTable">
+                    {% for line_data in line_datas[0] %}
+                    <tr>
+                        <td>1</td>
+                        <td><input type="text" value="{{line_data[1]}}" required name="machine_id" autocomplete="off" hidden><input type="text" value="{{line_data[2]}}" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                        <td><input type="text" value="{{line_data[3]}}" required name="job_type_id" autocomplete="off" hidden><input type="text" value="{{line_data[4]}}" list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
+                        <td><input type="text" value="{{line_data[5]}}" required name="job_function_id" autocomplete="off" hidden><input type="text"  value="{{line_data[6]}}" list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
+                        <td class="duty-hour"><input type="number" value="{{line_data[7]}}" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" required>:<input type="number" value="{{line_data[8]}}" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
+                        <td><input type="number" name="used_fuel" autocomplete="off" value="{{line_data[9]}}" required></td>
+                        <td><input type="text" name="description" value="{{line_data[10]}}" autocomplete="off"></td>
+                        <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="add-btn">
+                        <td class="activityBtn"><button onclick="newRow(this)"  type="button">+</button></td>
+                    </tr>
+                    <tr class="d-none">
+                        <td>1</td>
+                        <td><input type="text" class="shouldRequired" name="machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                        <td><input type="text" class="shouldRequired" name="job_type_id" autocomplete="off" hidden><input type="text" list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
+                        <td><input type="text" class="shouldRequired" name="job_function_id" autocomplete="off" hidden><input type="text" list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
+                        <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class="shouldRequired">:<input type="number" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" class="shouldRequired"></td>
+                        <td><input type="number" name="used_fuel" autocomplete="off" class="shouldRequired"></td>
+                        <td><input type="text" name="description" autocomplete="off"></td>
+                        <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- xxx -->
+        <h3>Manpower & Equipment<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <div class="manpower add-table toggle-table">
+            <table id="acc-table" class="manpower-equiment-table">
+                <thead>
+                    <tr>
+                        <th colspan="3">Manpower</th>
+                        <th colspan="3">Equipment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Designation</td>
+                        <td>Number</td>
+                        <td>Present</td>
+                        <td>Machine Type</td>
+                        <td>Number</td>
+                        <td>Present</td>
+                    </tr>
+                    {% for data in extra_datas[1] %}
+                    <tr>
+                        <td>{{data[0][0]}}</td>
+                        <td>{% if data[0][0] != '' %} {{data[0][1]}} {% endif %}</td>
+                        <td>
+                            <input onchange="checkInpNumber(this,0,'{{data[0][1]}}')" {% if data[0][0] == "" or data[0][0] == 'Total' %} hidden {% else %} name="manpower_amt" value="{{data[0][3]}}" required {% endif %} type="number" autocomplete="off">
+                            <input type="number" value="{{data[0][2]}}" {% if data[0][2] != 0 %} name="manpower_id" {% endif %} hidden/>
+                        </td>
+                        <td>{{data[1][0]}}</td>
+                        <td>{% if data[1][0] != '' %} {{data[1][1]}} {% endif %}</td>
+                        <td>
+                            <input onchange="checkInpNumber(this,0,'{{data[1][1]}}')" type="number" {% if data[1][0] == "" or data[1][0] == 'Total' %} hidden {% else %} required name="type_amt" value="{{data[1][3]}}" {% endif %} autocomplete="off">
+                            <input type="number" value="{{data[1][2]}}" {% if data[1][2] != 0 %} name="type_id" {% endif %}  hidden/>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- repair & maintainance -->
+        <h3>Repair & Maintainance<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <table class="repair-maintainace-table add-table toggle-table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Machine Name</th>
+                    <th>Description</th>
+                    <th>Accident</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody  id="repairTable">
+                {% for line_data in line_datas[1] %}
+                <tr>
+                    <td>1</td>
+                    <td><input type="text" required name="acc_machine_id" value="{{line_data[1]}}" autocomplete="off" hidden><input type="text" value="{{line_data[2]}}" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                    <td><input type="text" autocomplete="off" value="{{line_data[3]}}" required name="acc_description"></td>
+                    <td><input type="checkbox" {% if line_data[4] %} checked {% endif %} onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
+                    <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
+                </tr>
+                {% endfor %}
+                <tr class="add-btn">
+                    <td class="repairBtn"><button onclick="newRow(this)"  type="button">+</button></td>
+                </tr>
+                <tr class="d-none">
+                    <td>1</td>
+                    <td><input type="text" class="shouldRequired" name="acc_machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                    <td><input type="text" class="shouldRequired" name="acc_description"></td>
+                    <td><input type="checkbox" checked onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
+                    <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="btn-bg">
+            <button class="submit-btn" type="submit">Submit</button>
+        </div>
+    </form>
+</div>
 {% endif %}
 {% endblock %}

@@ -2,17 +2,17 @@
 {% block title %} Duty Query {% endblock %}
 {% block content %}
 
-{% if name != 'Income Expense Query' %}
+{% if name not in ('Income Expense Query','Machine Activities Query','Repair Activities Query') %}
     <h3 class="m-3 ms-5">Query Import</h3>
     <form method="POST" action="/upload-duty" enctype="multipart/form-data">
-        <div class="conatiner m-3 ms-5">
+        <div class="conatiner m-3">
             <div class="row">
-                <div class="col">
+                <div class="col-md-2 col-sm-3 mt-2">
                     <div class="form-group w-100">
                         <input type="file"  required class="form-control" name="upload_duty_data">
                     </div>
                 </div>
-                <div class="col">
+                <div class="col-md-2 col-sm-3 mt-2">
                     <select class="form-select form-select" name="selectedMonth"  required aria-label=".form-select-sm example">
                     <option value="1">January</option>
                     <option value="2">Feburary</option>
@@ -28,7 +28,7 @@
                     <option value="12">December</option>
                     </select>
                 </div>
-                <div class="col">
+                <div class="col-md-2 col-sm-3 mt-2">
                 <select class="form-select form-select" name="selectedYear"  required aria-label=".form-select-sm example">
                     <option value="2020">2020</option>
                     <option value="2021">2021</option>                
@@ -38,14 +38,14 @@
                     <option value="all">All</option>
                 </select>
                 </div>
-                <div class="col">
+                <div class="col-md-2 col-sm-3 mt-2">
                 <select class="form-select" name="selectedQuery" required>
                     <option value="Duty Query" {% if name == 'Duty Query'%}selected{% endif %} >Duty Query</option>
                     <option value="Expenses Query" {% if name == 'Expenses Query'%}selected{% endif %}>Expenses Query</option>
                     <option value="Services Query" {% if name == 'Services Query'%}selected{% endif %}>Services Query</option>
                 </select>
                 </div>
-                <div class="col">
+                <div class="col-md-2 col mt-2">
                     <button type="submit" onclick="showTruckAnimation()" class="btn btn-success btn-block">Upload Excel</button>
                 </div>
             </div>
@@ -58,78 +58,78 @@
 
     <div class="text-center m-3">
         <div class="row">
-            <div class="col d-flex">
+            <div class="col-md-6 d-flex align-items-center">
                 <form role="search">
                     <div class="input-group">
                         <input class="form-control" type="search" placeholder="Search" aria-label="Search">
                         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
                     </div>
                 </form>
-                <button class="btn btn-success text-white ms-2"><i class="fa-solid fa-download"></i></button>
+                <button  data-bs-toggle="modal" data-bs-target="#exportStaticBackdrop" onclick="setDbAndGiveProjectCodes('{{name}}')" class="btn btn-secondary text-white mx-2"><i class="fa-solid fa-download"></i></button>
+                <button class="btn btn-success" onclick="showTruckAnimation()">Create</button>
             </div>
-            <div class="col text-end">
+            <div class="col-md-6 col-sm-12 text-end mt-2">
                 <div class="btn-group" role="group" aria-label="Basic example">
-                    <button type="button" onclick="clickPagination(this,'pj','prev')" class="btn btn-secondary">Prev</button>
+                    <button type="button" onclick="clickPagination(this,'{{name}}','prev')" class="btn btn-primary">Prev</button>
                     <button type="button" class="btn btn-outline-dark" disabled> 1- {% if total >= 81 %} 81 {% else %} {{total}} {% endif %} / {{total}}</button>
-                    <button type="button" onclick="clickPagination(this,'pj','next')" class="btn btn-secondary">Next</button>
+                    <button type="button" onclick="clickPagination(this,'{{name}}','next')" class="btn btn-primary">Next</button>
                 </div>
             </div>
         </div>
     </div>  
 
     {% if name == 'Duty Query' %}
-        <div class="m-3 mt-1 table-responsive machine-data-container">
-            <table class="table table-hover">
-            <thead>
-                <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Pj.Code</th>
-                <th scope="col">Pj.Name</th>
-                <th scope="col">Machine</th>
-                <th scope="col">Operator</th>
-                <th scope="col">Morg.Start</th>
-                <th scope="col">Morg.End</th>
-                <th scope="col">Noon.Start</th>
-                <th scope="col">Noon.End</th>
-                <th scope="col">Evn.Start</th>
-                <th scope="col">Evn.End</th>
-                <th scope="col">Total Hr.</th>
-                <th scope="col">PayPerHour</th>
-                <th scope="col">Total Fuel</th>
-                <th scope="col">PayPer1Litre</th>
-                <th scope="col">Amt. for Duty</th>
-                <th scope="col">Amt. for Fuel</th>
-                <th scope="col">Total Amount</th>
-                <th scope="col">Way</th>
-                <th scope="col">Complete Feet</th>
-                <th scope="col">Complete Suds</th>
-                </tr>
-            </thead>
-            <tbody class="table-group-divider">
+        <div class="cpu-table-sec machine-data-container" style="height: 50vh;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Pj.Code</th>
+                        <th>Pj.Name</th>
+                        <th>Machine</th>
+                        <th>Operator</th>
+                        <th>Morg.Start</th>
+                        <th>Morg.End</th>
+                        <th>Noon.Start</th>
+                        <th>Noon.End</th>
+                        <th>Evn.Start</th>
+                        <th>Evn.End</th>
+                        <th>Total Hr.</th>
+                        <th>PayPerHour</th>
+                        <th>Total Fuel</th>
+                        <th>PayPer1Litre</th>
+                        <th>Amt. for Duty</th>
+                        <th>Amt. for Fuel</th>
+                        <th>Total Amount</th>
+                        <th>Way</th>
+                        <th>Complete Feet</th>
+                        <th>Complete Suds</th>
+                    </tr>
+                </thead>
+            <tbody>
                 {% for duty_data in datas %}
-                <tr class="duty-query-changeable">
-                    <td>{{duty_data[0]}}</td>
-                    <td>{{duty_data[1]}}</td>
-                    <td>{{duty_data[2]}}</td>
-                    <td>{{duty_data[3]}}</td>
-                    <td>{{duty_data[4]}}</td>
-                    <td>{{duty_data[5]}}</td>
-                    <td>{{duty_data[6]}}</td>
-                    <td>{{duty_data[7]}}</td>
-                    <th>{{duty_data[8]}}</th>
-                    <td>{{duty_data[9]}}</td>
-                    <td>{{duty_data[10]}}</td>
-                    <td>{{duty_data[11]}}</td>
-                    <td>{{duty_data[12]}}</td>
-                    <td>{{duty_data[13]}}</td>
-                    <td>{{duty_data[14]}}</td>
-                    <td>{{duty_data[15]}}</td>
-                    <th>{{duty_data[16]}}</th>
-                    <td>{{duty_data[17]}}</td>
-                    <td>{{duty_data[18]}}</td>
-                    <td>{{duty_data[19]}}</td>
-                    <td>{{duty_data[20]}}</td>
-                    <td>{{duty_data[21]}}</td>
+                <tr>
+                    <td class="text-start">{{duty_data[0]}}</td>
+                    <td class="text-start">{{duty_data[1]}}</td>
+                    <td class="text-start text-wrap" title="{{duty_data[2]}}">{{duty_data[2]}}</td>
+                    <td class="text-start text-wrap" title="{{duty_data[3]}}">{{duty_data[3]}}</td>
+                    <td class="text-start text-wrap" title="{{duty_data[4]}}">{{duty_data[4]}}</td>
+                    <td class="text-end">{{duty_data[5]}}</td>
+                    <td class="text-end">{{duty_data[6]}}</td>
+                    <td class="text-end">{{duty_data[7]}}</td>
+                    <td class="text-end">{{duty_data[8]}}</th>
+                    <td class="text-end">{{duty_data[9]}}</td>
+                    <td class="text-end">{{duty_data[10]}}</td>
+                    <td class="text-end">{{duty_data[11]}}</td>
+                    <td class="text-end">{{duty_data[12]}}</td>
+                    <td class="text-end">{{duty_data[13]}}</td>
+                    <td class="text-end">{{duty_data[14]}}</td>
+                    <td class="text-end">{{duty_data[15]}}</td>
+                    <td class="text-end">{{duty_data[16]}}</th>
+                    <td class="text-end">{{duty_data[17]}}</td>
+                    <td class="text-end">{{duty_data[18]}}</td>
+                    <td class="text-end">{{duty_data[19]}}</td>
+                    <td class="text-end">{{duty_data[20]}}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -138,25 +138,25 @@
 
     {% elif name == 'Expenses Query' %}
 
-        <div class="m-5 mt-1 table-responsive machine-data-container">
-            <table class="table table-hover">
+        <div class="cpu-table-sec machine-data-container" style="height: 50vh;">
+            <table>
                 <thead>
                     <tr>
-                    <th scope="col">Date</th>
-                    <th scope="col">Pj.code</th>
-                    <th scope="col">Pj.Name</th>
-                    <th scope="col">Unit</th>
-                    <th scope="col">Expense</th>
+                        <th>Date</th>
+                        <th>Pj.code</th>
+                        <th>Pj.Name</th>
+                        <th>Unit</th>
+                        <th>Expense</th>
                     </tr>
                 </thead>
-                <tbody class="table-group-divider">
+                <tbody>
                     {% for exp_data in datas %}
                     <tr id="{{exp_data[5]}}" class="expense-list-changeable">
-                        <td>{{exp_data[0]}}</td>
-                        <td>{{exp_data[1]}}</td>
-                        <td>{{exp_data[2]}}</td>
-                        <td>{{exp_data[3]}}</td>
-                        <td>{{exp_data[4]}}</td>
+                        <td class="text-start">{{exp_data[0]}}</td>
+                        <td class="text-start">{{exp_data[1]}}</td>
+                        <td class="text-start">{{exp_data[2]}}</td>
+                        <td class="text-start">{{exp_data[3]}}</td>
+                        <td class="text-end">{{exp_data[4]}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -184,26 +184,87 @@
                 <tbody>
                     {% for line in datas %}
                     <tr>
-                        <td>{{line[0]}}</td>
-                        <td>{{line[1]}}</td>
-                        <td>{{line[2]}}</td>
-                        <td>{{line[3]}}</td>
-                        <td>{{line[4]}}</td>
-                        <td>{{line[5]}}</td>
-                        <td>{{line[6]}}</td>
+                        <td class="text-start">{{line[0]}}</td>
+                        <td class="text-start">{{line[1]}}</td>
+                        <td class="text-start">{{line[2]}}</td>
+                        <td class="text-start">{{line[3]}}</td>
+                        <td class="text-start">{{line[4]}}</td>
+                        <td class="text-start">{{line[5]}}</td>
+                        <td class="text-start">{{line[6]}}</td>
                         <td class="text-end">{{line[7]}}</td>
                         <td class="text-end">{{line[8]}}</td>
                         <td class="text-end">{{line[9]}}</td>
-                        <td>{{line[10]}}</td>
+                        <td class="text-start">{{line[10]}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
-    {% elif name == 'Income Expense Query' %}
-
-    
+    {% elif name == 'Machine Activities Query' %}
+        <div class="cpu-table-sec">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Project Code</th>
+                        <th>Project Name</th>
+                        <th>No</th>
+                        <th>Machine</th>
+                        <th>Job Type</th>
+                        <th>Job Function</th>
+                        <th>Duty Hour</th>
+                        <th>Liter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in datas %}
+                        <tr>
+                            <td class="text-start">{{data[0]}}</td>
+                            <td class="text-start">{{data[1]}}</td>
+                            <td class="text-wrap" title="{{data[2]}}">{{data[2]}}</td>
+                            <td class="text-start">{{data[3]}}</td>
+                            <td class="text-start">{{data[4]}}</td>
+                            <td class="text-start">{{data[5]}}</td>
+                            <td class="text-end">{{data[6]}}</td>
+                            <td class="text-end">{{data[7]}}</td>
+                            <td class="text-end">{{data[8]}}</td>
+                            <td class="text-wrap" title="{{data[9]}}">{{data[9]}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% elif name == 'Repair Activities Query' %}
+        <div class="cpu-table-sec">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Project Code</th>
+                        <th>Project Name</th>
+                        <th>No</th>
+                        <th>Machine</th>
+                        <th>Description</th>
+                        <th>Accident</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in datas %}
+                        <tr>
+                            <td class="text-start">{{data[0]}}</td>
+                            <td class="text-start">{{data[1]}}</td>
+                            <td class="text-wrap text-start" title="{{data[2]}}">{{data[2]}}</td>
+                            <td class="text-start">{{data[3]}}</td>
+                            <td class="text-start">{{data[4]}}</td>
+                            <td class="text-wrap" title="{{data[5]}}">{{data[5]}}</td>
+                            <td><span class="bg-success text-light rounded-5 py-1 px-2">{{data[6]}}</span></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 </div>
 
 {% endif %}
@@ -229,7 +290,7 @@
     </div>
 </div>
 
-<div class="sending-container" style="display: none;">
+<div class="sending-container d-none">
     <div class="sending-box">
         <div class="border one"></div>
         <div class="border two"></div>

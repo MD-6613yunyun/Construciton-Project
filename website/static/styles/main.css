@@ -685,13 +685,15 @@ html.under-construction {
     margin:auto;
 }
 .sending-container::after {
-    content:'Importing';
+    content:'Data Processing..';
     color:#0d1f93;
     font-weight:700;
     position:absolute;
     bottom:-50px;
     left:-10px;
+    z-index: 100;
 }
+
 .sending-box {
     position:relative;
     height:50px;
@@ -862,13 +864,15 @@ html.under-construction {
 
 .cpu-table-sec{
     width: 99%;
-    max-height: 75vh;
+    max-height: 65vh;
     margin: 0 auto;
     overflow: auto;
 }
 
 .cpu-table-sec table{
     width: max-content;
+    min-width: 100%;
+    margin: 0 auto;
 }
 
 .cpu-table-sec table thead th{
@@ -878,6 +882,8 @@ html.under-construction {
     color: white;
     text-align: center;
     border-bottom: 1px solid black;
+    position: sticky;
+    top: 0;
 }
 
 .cpu-table-sec table thead th:nth-child(even){
@@ -888,7 +894,7 @@ html.under-construction {
 .cpu-table-sec table tbody td{
     text-align: center;
     border-bottom: 1px solid black;
-    padding: 0 10px;
+    padding: 5px 10px;
     cursor: pointer;
 }
 
@@ -904,8 +910,54 @@ html.under-construction {
     background-color: #a1aeec;
 }
 
+.text-wrap{
+    max-width: 250px !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+}
+
 @media(max-width: 705px){
     .prj-statis form label{
         font-size: 11px;
     }
+}
+
+/* dash */
+.cardscss{
+    display: grid;
+    grid-template-columns: 30% 30% 30%;
+    grid-gap: 30px;
+    justify-content: center;
+}
+
+@media(max-width: 1000px) {
+    .cardscss{
+        grid-template-columns: 45% 45%;
+    }
+}
+
+@media(max-width: 690px) {
+    .cardscss{
+        grid-template-columns: 90%;
+    }
+}
+
+.stack-top{
+  --d:5px; 
+  --w:150px;
+  --c:#0ead00;
+
+  opacity: 0.9;
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(29.29%, -100%) rotate(45deg); 
+  color: #fff;
+  text-align: center;
+  width: var(--w);
+  transform-origin: bottom left;
+  padding:5px 0 calc(var(--d) + 5px);
+  background:linear-gradient(rgba(0,0,0,0.6) 0 0) bottom/100% var(--d) no-repeat var(--c);
+  clip-path:polygon(0 100%,0 calc(100% - var(--d)),50% calc(100% - var(--d) - var(--w)/2),100% calc(100% - var(--d)),100% 100%,calc(100% - var(--d)) calc(100% - var(--d)), var(--d) calc(100% - var(--d)))
 }

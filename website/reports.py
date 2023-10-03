@@ -1,9 +1,29 @@
-from flask import Blueprint,render_template, request, redirect , url_for , jsonify
+from flask import Blueprint,render_template, request, redirect , url_for , jsonify,send_file
 from website import db_connect
 from datetime import datetime,timedelta
 import decimal
 from decimal import Decimal
 from psycopg2 import IntegrityError
+import subprocess
+import os
+import xlsxwriter
+from fpdf import FPDF
+
+# Get the base directory of your project
+base_directory = os.path.dirname(os.path.abspath(__file__))
+
+# Combine the base directory and relative path to get the full file path
+excel_path = os.path.join(base_directory, "static/downloadable_files/PartnerLedger.xlsx")
+pdf_path = os.path.join(base_directory, "static/downloadable_files/IncomeExpenseReport.pdf")
+output_path = os.path.join(base_directory, "static/php/output.txt")
+input_path = os.path.join(base_directory, "static/php/input.txt")
+
+# some php
+php_script = os.path.join(base_directory, "static/php/test_rabbit_text.php")
+php_exe = r'C:\xampp\php\php.exe'
+
+# font path
+zawgyi_font_path = os.path.join(base_directory,"static/fonts/Zawgyi.ttf")
 
 reports = Blueprint('reports',__name__)
 
@@ -35,15 +55,17 @@ def summary_duty_report(mgs=None):
         if pj_summary_name:
             cur.execute("""
                 WITH sum_dty AS (
-                    SELECT report.project_id AS p_id,ps.supervisior AS person,SUM(total_hr) AS a_duty,SUM(totaluse_fuel) AS a_fuel,
+                    SELECT report.project_id AS p_id,emp.name AS person,SUM(total_hr) AS a_duty,SUM(totaluse_fuel) AS a_fuel,
                     SUM(ROUND(EXTRACT(HOUR FROM total_hr) + EXTRACT(MINUTE FROM total_hr) / 60.0, 2)) AS balance_duty,
                     ps.estimate_feet AS e_feet,ps.will_sud AS e_sud_1,
                     ps.estimate_duty AS e_duty,ps.estimate_fuel AS e_fuel,ps.estimate_expense AS e_expense,ps.estimate_sud As e_sud
                     FROM duty_odoo_report report
                     LEFT JOIN project_statistics ps
                     ON report.project_id = ps.project_id
+                    LEFT JOIN employee emp
+                    ON emp.id = ps.supervisor_id
                     WHERE report.project_id = %s
-                    GROUP BY ps.estimate_feet,ps.will_sud,ps.estimate_sud,ps.estimate_duty,ps.estimate_fuel,ps.estimate_expense,report.project_id,ps.supervisior )
+                    GROUP BY ps.estimate_feet,ps.will_sud,ps.estimate_sud,ps.estimate_duty,ps.estimate_fuel,ps.estimate_expense,report.project_id,emp.name )
                 SELECT pj.name,pj.code,person,e_feet,e_sud_1,e_sud,e_duty,balance_duty,e_duty-balance_duty,e_fuel,ROUND(a_fuel/4.54,2) AS a_fuel_gl,e_fuel-ROUND(a_fuel/4.54,2),e_expense,e_sud,SUM(pd.work_done),e_sud - SUM(pd.work_done) AS balance_sud,pj.finished_state
                     FROM project_each_day_work_done pd
                     INNER JOIN sum_dty 
@@ -533,7 +555,7 @@ def report_by_each_machine():
     return render_template('machine_by_each_duty.html',vehicles_dct=vehicles_dct,date_diff = [int(start_dt_contain.split('-')[2]),int(end_dt_contain.split('-')[2]),(int(end_dt_contain.split('-')[2])-int(start_dt_contain.split('-')[2]))+1,start_dt_contain.split("-")[0] + '/' + start_dt_contain.split("-")[1]],pj_datas=[pj_name,pj_code])
 
 @reports.route('/income-expense',methods=['GET','POST'])
-def income_expense_report():
+def income_expense_tree_view():
     conn = db_connect()
     cur = conn.cursor()
     cur.execute(""" 
@@ -560,7 +582,8 @@ def income_expense_report_view():
     pj_id = request.form.get("pj_id")
     start_dt = request.form.get('start_date_for_each')
     end_dt = request.form.get('end_date_for_each')
-    print(pj_name,pj_code,start_dt,end_dt)
+    for_what_type = request.form.get("for_what_type")
+    print(pj_name,pj_code,pj_id,start_dt,end_dt,for_what_type)
     if pj_id == "" or start_dt == "" or end_dt == "" or pj_name == "":
         return redirect(url_for('views.home',mgs=f"Incomplete Field For Project Name - Project Code."))
     extra_datas = [pj_name,pj_code,start_dt,end_dt]
@@ -610,6 +633,133 @@ def income_expense_report_view():
             datas[5] = (opening_balance + datas[3]) - datas[4]
             opening_balance = datas[5]
             result_datas[i] = tuple(datas)
+        extra_datas.append(pj_id)
+    if for_what_type == 'pdf' or for_what_type == 'excel':
+        print(result_datas,extra_datas)
+        date_temps = []
+        table_header = ['နေ့စွဲ','အကြောင်းအရာ','ဘောင်ချာ','အဝင်','အထွက်','လက်ကျန်','မှတ်ချက်']
+        pdf_result_datas = []
+        left_balance_temp = 0
+        total_income_for_day = Decimal('0.0')
+        total_expense_for_day = Decimal('0.0')
+        for data in result_datas:
+            data = list(data)
+            data[0] = data[0].strftime("%Y-%m-%d")
+            if data[0] not in date_temps:
+                if len(date_temps) == 0:
+                    pdf_result_datas.append([data[0],'ရုံးလက်ကျန်ငွေ','','','',extra_datas[4][0],''])
+                else:
+                    pdf_result_datas.append(['','','',total_income_for_day,total_expense_for_day,left_balance_temp,''])
+                    pdf_result_datas.append([data[0],'ရုံးလက်ကျန်ငွေ','','','',left_balance_temp,''])
+                    total_income_for_day = Decimal('0.0')
+                    total_expense_for_day = Decimal('0.0')
+                date_temps.append(data[0])
+            pdf_result_datas.append(data)
+            total_income_for_day += data[3]
+            total_expense_for_day += data[4]
+            left_balance_temp = data[5]
+        pdf_result_datas.append(['','','',total_income_for_day,total_expense_for_day,left_balance_temp,''])
+        if for_what_type == 'pdf':
+            tr_rows = ""
+            for data in pdf_result_datas:
+                if isinstance(data[3],str):
+                    tr_rows += """             
+                        <tr>
+                            <td >{}</td>
+                            <td >{}</td>
+                            <td >{}</td>
+                            <td align="right">{}</td>
+                            <td align="right">{}</td>
+                            <td align="right">{:,}</td>
+                            <td >{}</td>
+                        </tr> """.format(data[0],data[1],data[2],data[3],data[4],data[5],data[6])
+                else:
+                    tr_rows += """             
+                        <tr>
+                            <td >{}</td>
+                            <td >{}</td>
+                            <td >{}</td>
+                            <td align="right">{:,}</td>
+                            <td align="right">{:,}</td>
+                            <td align="right">{:,}</td>
+                            <td >{}</td>
+                        </tr> """.format(data[0],data[1],data[2],data[3],data[4],data[5],data[6])                   
+            html_data = f""" 
+                    <p align='center' line-height='0.2'>{pj_name}</p>
+                    <p align='center' line-height='0.2'>{pj_code}</p>
+                    <p align='center' line-height='0.5'>{start_dt} - {end_dt}</p>
+                    <div>
+                        <table border="black">
+                            <thead>
+                                <tr>
+                                    <th>နေ့စွဲ</th>
+                                    <th>အကြောင်းအရာ</th>
+                                    <th>ဘောင်ချာ အမှတ်</th>
+                                    <th>အဝင်</th>
+                                    <th>အထွက်</th>
+                                    <th>လက်ကျန်ငွေ</th>
+                                    <th>မှတ်ချက်</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {tr_rows}
+                            </tbody>
+                        </table>
+                        <p></p><p></p>
+                        <div>
+                            <div>
+                                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; စာရင်းကိုင် လက်မှတ် / အမည် &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            </div>
+                            <div>
+                                <span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ဆိုဒ်တာဝန်ခံ လက်မှတ် / အမည် </span>
+                            </div>
+                        </div>
+                    </div>"""
+            # Execute the PHP script and pass data to it
+            with open(input_path,'w',encoding='utf-8') as file:
+                file.write(html_data)
+            # Execute the PHP script and capture its output with 'utf-8' encoding
+            result = subprocess.run([php_exe, php_script], stdout=subprocess.PIPE, text=True, encoding='utf-8')
+
+            # Extract the captured output (the converted text)
+            zawgyiText = result.stdout.strip()
+            print(zawgyiText)
+
+            with open(output_path,'r',encoding='utf-8') as file:
+                datas = file.readlines()
+
+            pdf = FPDF('P', 'mm', 'A4')
+
+            # Add a page
+            pdf.add_page()
+
+            pdf.add_font('pyidaungsu', '', zawgyi_font_path)
+            pdf.add_font('pyidaungsu', 'B', zawgyi_font_path)
+            pdf.set_font('pyidaungsu', '', 10)
+
+            pdf.write_html("".join(datas),table_line_separators=True)
+
+            # Output the PDF to a file
+            pdf.output(pdf_path)
+
+            file_path = pdf_path
+        elif for_what_type == 'excel':
+            workbook = xlsxwriter.Workbook(excel_path)
+            worksheet = workbook.add_worksheet("Income Expense")
+            merge_format = workbook.add_format({
+                "bold": 1,
+                "align": "center",
+                "valign": "vcenter"
+            })
+            worksheet.merge_range("A1:G1",data=pj_code,cell_format=merge_format)
+            worksheet.merge_range("A2:G2",data=pj_name,cell_format=merge_format) 
+            worksheet.merge_range("A3:G3",data="နေ့စဉ်ငွေ အဝင်အထွက်စာရင်း",cell_format=merge_format)
+            worksheet.write_row(3,0,table_header,cell_format=merge_format)            
+            for idx,lst in enumerate(pdf_result_datas,start=4):
+                worksheet.write_row(idx,0,lst)
+            workbook.close()
+            file_path = excel_path
+        return send_file(file_path,as_attachment=True)       
     return render_template("site-reports.html",result_datas=result_datas,extra_datas=extra_datas)
 
 # SELECT report.project_id AS p_id,SUM(totaluse_fuel) AS a_fuel,

@@ -6,65 +6,68 @@
 {% endblock %}
 {% block content %}
 {% if template_type == 'Import' %}
-    <datalist id="projectData">
-        {% for data in project_datas %}
-            <option value="{{data[0]}}">
+    <datalist id="machineData">
+        {% for data in machine_datas %}
+            <option value="{{data[0]}}" getId="{{data[1]}}">
         {% endfor %}
     </datalist>
     <div class="body-for-income-expense-table">
-        <h3>Daily Cash In/Cash Out<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <h3>နေ့စဉ် ငွေဝင် / ငွေထွက်<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
         <form action="{{url_for('imports.site_imports',typ='income-expense')}}" method="POST">
             <!-- project status -->
             <section class="project-status-section add-table">
                 <div class="first-div" >
-                    <span>Cash Type</span>
-                    <label for="income">Income
-                        <input type="radio"  value="incomes" name="work" id="income" autocomplete="off" required>
+                    <span>ဝင်ငွေ / အသုံးစရိတ် &nbsp;&nbsp; - </span>
+                    <label for="income">ဝင်ငွေ
+                        <input type="radio" checked value="incomes" name="work" id="income" autocomplete="off" required>
                     </label>
-                    <label for="expense">Expense
+                    <label for="expense">အသုံးစရိတ်
                         <input type="radio" value="expenses" name="work" id="expense" autocomplete="off" required>
                     </label>
                 </div>
                 <div class="create-sec-div">
-                    <label for="import_date" style="margin-right: 10px;">Date</label>
-                    <input type="number" required value="" style="display: none;"  class="leePalKwar" name="pj_id">
+                    <label for="import_date" style="margin-right: 10px;">နေ့စွဲ</label>
                     <input type="date" id="import_date" name="import_date" value="{{cur_date}}" required>
                 </div>
             </section>
             <!-- xxx -->
-            <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <h3>ဆိုဒ် အချက်အလက်များ<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
             <section class="project-details-section add-table" id="projectDetailSec">
-                <span>Project Code</span>
-                <input type="text" autocomplete="off" list="projectData" onchange="projectFill(this)" required>
 
-                <label class="label">HO A/C Name</label>
-                <span id="hoAcName"></span>
+                <label class="label" style="display: block;">ဆိုဒ်ကုဒ်</label>
+                <span id="hoAcName">- {{form_datas[0]}}</span>
 
-                <label class="label">Project Name</label>
-                <span id="prjName"></span>
+                <label class="label" style="display: block;">ဆိုဒ်အမည်</label>
+                <span id="prjName">- {{form_datas[2]}}</span>
 
-                <label class="label">Project Location</label>
-                <span id="prjLoca"></span>
+                <label class="label" style="display: block;">ဆိုဒ်တည်နေရာ</label>
+                <span id="prjLoca">- {{form_datas[3]}}</span>
 
-                <label class="label">Project Start Date</label>
-                <label id="prjDate"></label>
+                <label class="label" style="display: block;">ဆိုဒ်စတင်ရက်</label>
+                <label id="prjDate">- {{form_datas[4]}}</label>
 
-                <label class="label">Supervisor</label>
-                <span id="sprVisor"></span>
-            </section> 
+                <label class="label" style="display: block;">ဆိုဒ်တာဝန်ခံ</label>
+                <span id="sprVisor">- {{form_datas[5]}}</span>
+
+                <label class="label" style="display: block;">ငွေစာရင်းကိုင်</label>
+                <span id="hoAcName">- {{form_datas[1]}}</span>
+
+                <input type="number"  value="{{form_datas[6]}}" style="display: none;"  class="leePalKwar" name="pj_id">
+            </section>
             <!-- xxx -->
-            <h3>Activites<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <h3>လုပ်ဆောင်ချက်များ<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
             <div class="activities-table add-table toggle-table">
                 <table>
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>Description</th>
-                            <th>Voucher No.</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Amount</th>
-                            <th>Remark</th>
+                            <th>စဉ်</th>
+                            <th>အကြောင်းအရာ</th>
+                            <th>စက်/ကားအမည်</th>
+                            <th>ဘောင်ချာအမှတ်</th>
+                            <th>အရေအတွက်</th>
+                            <th>ဈေးနှုန်း</th>
+                            <th>ပမာဏ</th>
+                            <th>မှတ်ချက်</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -72,33 +75,35 @@
                         <tr onchange="fillValue(this)">
                             <td>1</td>
                             <td><input type="text" name="description" autocomplete="off" required style="width: 150px;"></td>
+                            <td><input type="text" name="machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
                             <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td>
                             <td><input type="number" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
                             <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 70px;"></td>
                             <td><input type="number" name="amt" autocomplete="off" required class="amt"  style="text-align: right;width: 70px;"></td>
                             <td><input type="text" name="remark" autocomplete="off"></td>
-                            <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                            <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
                         <tr class="add-btn">
-                            <td onclick="newRow(this)" class="activityBtn"><button type="button">+</button></td>
-                            <td colspan="5" style="text-align: right;">Total</td>
+                            <td class="activityBtn"><button  onclick="newRow(this)" type="button">+</button></td>
+                            <td colspan="6" style="text-align: right;">စုစု‌ပေါင်း</td>
                             <td id="total" style="text-align: right;"></td>
                         </tr>
                         <tr onchange="fillValue(this)" class="d-none">
                             <td id="no">1</td>
                             <td><input type="text" name="description" autocomplete="off"  class="shouldRequired" style="width: 150px;"></td>
-                            <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td>
-                            <td><input type="number" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="text" name="machine_id" autocomplete="off" hidden style="width: 70px;"><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
+                            <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td><td><input type="number" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
                             <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 70px;"></td>
                             <td><input type="number" name="amt" autocomplete="off"  class="amt shouldRequired"  style="text-align: right;width: 70px;"></td>
                             <td><input type="text" name="remark" autocomplete="off"></td>
-                            <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                            <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="btn-bg">
-                <button class="submit-btn" type="submit">Submit</button>
+            <div class="text-center mb-4">
+                <button class="btn btn-success" type="submit">အတည်ပြုရန်</button>
+                <a class="nav-item" href="{{url_for('views.show_transactions',what='income-expense')}}" ><button class="btn btn-danger" type="button">ဖျက်သိမ်းရန်</button></a>
             </div>
         </form>
     </div>
@@ -106,38 +111,37 @@
     <form id="hidden-income-expense-form" action="{{url_for('imports.import_data',what='income_expense_edit_form')}}" method="post">
         <input type="number" name="income_expense_id" id="hidden-income-expense-id" value="" hidden>
     </form>
-    <h1 class="text-center">Income Expense List</h1>
+    <h1 class="text-center">ဝင်ငွေ ထွက်ငွေ စာရင်း</h1>
     <div class="text-center m-3">
         <div class="row">
-            <div class="col d-flex">
+            <div class="col-md-6 d-flex align-items-center">
                 <form role="search">
                     <div class="input-group">
                         <input class="form-control" type="search" placeholder="Search" aria-label="Search">
                         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
                     </div>
                 </form>
-                <button class="btn btn-success text-white ms-2"><i class="fa-solid fa-download"></i></button>
-                <a href="{{url_for('site_imports.income_expense',typ='create')}}"><button class="btn btn-danger text-white ms-2">Create</button></a>
+                <button onclick="showModalAndGiveProjectCodes('remove-date')" data-bs-toggle="modal" data-bs-target="#monthlyReport" id="chooseProjectBeforeCreateForm" class="btn btn-success text-white ms-2 income-expense">ဖန်တီးပါ</button>
             </div>
-            <div class="col text-end">
+            <div class="col-md-6 col-sm-12 text-end mt-2">
                 <div class="btn-group" role="group" aria-label="Basic example">
-                    <button type="button" class="btn btn-secondary">Prev</button>
-                    <button type="button" class="btn btn-outline-dark" disabled> 1-81 / 14444</button>
-                    <button type="button" class="btn btn-secondary">Next</button>
+                    <button type="button" onclick="clickPagination(this,'pj','prev')" class="btn btn-primary">ရှေ့သို့</button>
+                    <button type="button" class="btn btn-outline-dark" disabled> 1- {% if extra_datas[0][0] >= 81 %} 81 {% else %} {{extra_datas[0][0]}} {% endif %} / {{extra_datas[0][0]}}</button>
+                    <button type="button" onclick="clickPagination(this,'pj','next')" class="btn btn-primary">နောက်သို့</button>
                 </div>
             </div>
         </div>
     </div>  
-    <div class="cpu-table-sec">
-        <table style="width: 100%;">
+    <div class="cpu-table-sec" style="max-height: 60vh;">
+        <table>
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Project Code</th>
-                    <th>Project Name</th>
-                    <th>No</th>
-                    <th>Cash Type</th>
-                    <th>Total Amount</th>
+                    <th>နေ့စွဲ</th>
+                    <th>ဆိုဒ်ကုဒ်</th>
+                    <th>ဆိုဒ် အမည်</th>
+                    <th>အမှတ်စဉ်</th>
+                    <th>ဝင် / ထွက် </th>
+                    <th>စုစုပေါင်း</th>
                 </tr>
             </thead>
             <tbody>
@@ -155,64 +159,77 @@
         </table>
     </div>
 {% elif template_type == 'Edit List' %}
-    <div class="body-for-income-expense-table">
-        <h3>Daily Cash In/Cash Out<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <form action="{{url_for('imports.site_imports',typ='income-expense')}}" method="POST">
+    <datalist id="machineData">
+        {% for data in machine_datas %}
+            <option value="{{data[0]}}" getId="{{data[1]}}">
+        {% endfor %}
+    </datalist>
+    <div class="body-for-income-expense-table" id="body-for-income-expense-table">
+        <div class="buttons-holder m-3">
+            <button  type="button" onclick="deleteTheWholeForm('income_expense','{{form_datas[9]}}')" id="prjDelete"   class="btn btn-danger d-none">ဖျက်သိမ်းရန်</button>   
+            <button  type="button" onclick="editPrjStatis(this,'body-for-income-expense-table')" id="prjEdit"   class="btn btn-secondary">ပြင်ဆင်ရန်</button>   
+            <a href="{{url_for('site_imports.income_expense',typ='view')}}" class="nav-item"><button type="button"  class="btn btn-dark ms-3shadow-sm">မလုပ်ဆောင်တော့ပါ</button></a>   
+        </div>
+        <h3>နေ့စဉ် ငွေဝင် / ငွေထွက်<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <form action="{{url_for('imports.site_imports',typ='income-expense-edit')}}" method="POST">
             <!-- project status -->
             <section class="project-status-section add-table">
-                <div class="first-div" >
-                    <span>Cash Type</span>
-                    <label for="income">Income
-                        <input type="radio"  {% if form_datas[0] %} checked {% endif %}  value="incomes" name="work" id="income" autocomplete="off" required>
+                <div class="first-div">
+                    <span>ဝင်ငွေ / အသုံးစရိတ် &nbsp; - &nbsp;</span>
+                    <label for="income">ဝင်ငွေ
+                        <input type="radio" disabled  {% if form_datas[0] %} checked {% endif %}  value="incomes" name="work" id="income" autocomplete="off" required>
                     </label>
-                    <label for="expense">Expense
-                        <input type="radio" {% if not form_datas[0] %} checked {% endif %}  value="expenses" name="work" id="expense" autocomplete="off" required>
+                    <label for="expense">အသုံးစရိတ်
+                        <input type="radio"  disabled {% if not form_datas[0] %} checked {% endif %}  value="expenses" name="work" id="expense" autocomplete="off" required>
                     </label>
                 </div>
                 <div class="sec-div">
-                    <span>Import No</span>
-                    <span id="for-income">- {{form_datas[1]}}</span>
-                    <span>Date</span>
-                    <input type="number" required value="" style="display: none;"  class="leePalKwar" name="pj_id">
-                    <span>- <input type="date" name="import_date" value="{{form_datas[2]}}" required></span>
+                    <span>ထည့်သွင်းမှု အမှတ်စဉ်</span>
+                    <span id="for-income">&nbsp;- {{form_datas[1]}}</span>
+                    <span>နေ့စွဲ</span>
+                    <input type="number"  required value="{{form_datas[9]}}" style="display: none;"  class="leePalKwar" name="form_id">
+                    <input type="number"  required value="{{form_datas[10]}}" style="display: none;"  class="leePalKwar" name="pj_id">
+                    <span>- <input type="date" disabled name="import_date" value="{{form_datas[2]}}" required></span>
                 </div>
             </section>
             <!-- xxx -->
-            <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <h3>ဆိုဒ် အချက်အလက်များ<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
             <section class="project-status-section add-table">
                 <div class="sec-div">
-                    <span>Project Code</span>
+                    <span>ဆိုဒ်ကုဒ်</span>
                     <span> - {{form_datas[3]}}</span>
 
-                    <span class="label">HO A/C Name</span>
-                    <span> - {{form_datas[4]}}</span>
-
-                    <span class="label">Project Name</span>
+                    <span class="label">ဆိုဒ်အမည်</span>
                     <span> - {{form_datas[5]}}</span>
 
-                    <span class="label">Project Location</span>
+                    <span class="label">ဆိုဒ် တည်နေရာ</span>
                     <span> - {{form_datas[6]}}</span>
 
-                    <span class="label">Project Start Date</span>
+                    <span class="label">ဆိုဒ် စတင်ရက်</span>
                     <span> - {{form_datas[7]}}</span>
 
-                    <span class="label">Supervisor</span>
+                    <span class="label">ဆိုဒ်တာဝန်ခံ</span>
                     <span> - {{form_datas[8]}}</span>
+
+                    <span class="label">စာရင်းကိုင်</span>
+                    <span> - {{form_datas[4]}}</span>
+
                 </div>
             </section> 
             <!-- xxx -->
-            <h3>Activites<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <h3>လုပ်ဆောင်ချက်များ<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
             <div class="activities-table add-table toggle-table">
                 <table>
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>Description</th>
-                            <th>Voucher No.</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Amount</th>
-                            <th>Remark</th>
+                            <th>စဉ်</th>
+                            <th>အကြောင်းအရာ</th>
+                            <th>စက်ကား အမည်</th>
+                            <th>ဘောင်ချာအမှတ်</th>
+                            <th>အရေ အတွက်</th>
+                            <th>ဈေးနှုန်း</th>
+                            <th>ပမာဏ</th>
+                            <th>မှတ်ချက်</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -220,35 +237,37 @@
                         {% for line in line_datas %}
                             <tr onchange="fillValue(this)">
                                 <td>1</td>
-                                <td><input type="text" name="description" value="{{line[2]}}" autocomplete="off" required style="width: 150px;"></td>
-                                <td><input type="text" name="invoice_no" value="{{line[3]}}"  autocomplete="off" style="width: 70px;"></td>
-                                <td><input type="number" name="qty" autocomplete="off"  value="{{line[4]}}" class="quan"  style="text-align: right;width: 70px;"></td>
-                                <td><input type="number" name="price" autocomplete="off"  value="{{line[5]}}" class="prc"  style="text-align: right;width: 70px;"></td>
-                                <td><input type="number" name="amt" autocomplete="off" value="{{line[6]}}" required class="amt"  style="text-align: right;width: 70px;"></td>
-                                <td><input type="text" name="remark" value="{{line[7]}}" autocomplete="off"></td>
-                                <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                                <td><input disabled type="text" name="description" value="{{line[2]}}" autocomplete="off" required style="width: 150px;"></td>
+                                <td><input type="text" name="machine_id" autocomplete="off" hidden><input disabled value="{{line[8]}}" type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
+                                <td><input disabled type="text" name="invoice_no" value="{{line[3]}}"  autocomplete="off" style="width: 70px;"></td>
+                                <td><input disabled type="number" name="qty" autocomplete="off"  value="{{line[4]}}" class="quan"  style="text-align: right;width: 70px;"></td>
+                                <td><input disabled type="number" name="price" autocomplete="off"  value="{{line[5]}}" class="prc"  style="text-align: right;width: 70px;"></td>
+                                <td><input disabled type="number" name="amt" autocomplete="off" value="{{line[6]}}" required class="amt"  style="text-align: right;width: 70px;"></td>
+                                <td><input disabled type="text" name="remark" value="{{line[7]}}" autocomplete="off"></td>
+                                <td><button type="button" onclick="deleteRow(this)" disabled class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                             </tr>
                         {% endfor %}
                         <tr class="add-btn">
-                            <td onclick="newRow(this)" class="activityBtn"><button type="button">+</button></td>
-                            <td colspan="5" style="text-align: right;">Total</td>
+                            <td class="activityBtn"><button onclick="newRow(this)" disabled type="button">+</button></td>
+                            <td colspan="6" style="text-align: right;">စုစုပေါင်း</td>
                             <td id="total" style="text-align: right;"></td>
                         </tr>
                         <tr onchange="fillValue(this)" class="d-none">
                             <td id="no">1</td>
                             <td><input type="text" name="description" autocomplete="off"  class="shouldRequired" style="width: 150px;"></td>
+                            <td><input type="text" name="machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
                             <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td>
                             <td><input type="number" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
                             <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 70px;"></td>
                             <td><input type="number" name="amt" autocomplete="off"  class="amt shouldRequired"  style="text-align: right;width: 70px;"></td>
                             <td><input type="text" name="remark" autocomplete="off"></td>
-                            <td onclick="deleteRow(this)"><i class="fa-solid fa-trash trash-icon"></i></td>
+                            <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             <div class="btn-bg">
-                <button class="submit-btn" type="submit">Submit</button>
+                <button class="submit-btn d-none" id="edit-submit-btn-pj-stat"  type="submit">အတည်ပြုရန်</button>
             </div>
         </form>
     </div>

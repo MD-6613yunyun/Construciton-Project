@@ -2,52 +2,62 @@
 {% block title %} Machine Details {% endblock %}
 {% block content %}
 
-<div class="col-md-10 offset-md-1 mt-2 mb-3" style="margin-top:70px;">
+{% if what not in ('employee','ajt','ajf') %}
+<div class="col-md-12 px-3 mt-1 mb-3" style="margin-top:70px;">
     <form method="POST" action="/upload-machine-details" enctype="multipart/form-data">
         <h3 class="page-header text-primary">Upload Excel File</h3>
         <div class="conatiner">
-        <div class="row">
-            <div class="col">
-            <div class="form-group w-100">
-                <input type="file"  required class="form-control" name="upload_excel_machine_details">
+            <div class="row">
+                <div class="col-md-4 col-sm-12 mb-2">
+                    <div class="form-group w-100">
+                        <input type="file"  required class="form-control" name="upload_excel_machine_details">
+                    </div>
+                    </div>
+                    <div class="col-md-4 col-sm-12 mb-2">
+                        <select class="form-select form-select" name="selectedOption"  required aria-label=".form-select-sm example">
+                            <option value="Machine List" {% if extra_datas[0] == 'Machine List'%}selected{% endif %}>Machine List</option>
+                            <option value="Machine Details" {% if extra_datas[0] == 'Machine Details'%}selected{% endif %}>Machine Details</option>
+                            <option value="Project Code" {% if extra_datas[0] == 'Project List'%}selected{% endif %}>Project Code</option>
+                            <option value="Work Done">Work Done</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                    <button type="submit" class="btn btn-success btn-block">Upload Excel</button>
+                </div>
             </div>
-            </div>
-            <div class="col">
-                <select class="form-select form-select" name="selectedOption"  required aria-label=".form-select-sm example">
-                    <option value="Machine List" {% if extra_datas[0] == 'Machine List'%}selected{% endif %}>Machine List</option>
-                    <option value="Machine Details" {% if extra_datas[0] == 'Machine Details'%}selected{% endif %}>Machine Details</option>
-                    <option value="Project Code" {% if extra_datas[0] == 'Project List'%}selected{% endif %}>Project Code</option>
-                    <option value="Work Done">Work Done</option>
-                </select>
-            </div>
-            <div class="col">
-            <button type="submit" class="btn btn-success btn-block">Upload Excel</button>
-            </div>
-        </div>
         </div>
     </form>
 </div>
-
+{% endif %}
 
 <h1 class="text-center">{{extra_datas[0]}} Table</h1>
 
 {% if extra_datas[0] != 'Machine Details' %}
 
-    <div class="container text-center mt-5 mb-3">
+    <div class="text-center m-3">
         <div class="row">
-            <div class="col">
-                <form class="d-flex" action="{% if extra_datas[0] == 'Machine List'%} {{url_for('views.configurations',what='machine')}} {% elif extra_datas[0] == 'Project List' %} {{url_for('views.configurations',what='project')}} {% endif %}" method="post" role="search">
-                    <input autocomplete="off" class="form-control me-2" type="search" name="{% if extra_datas[0] == 'Machine List'%}name-search{% elif extra_datas[0] == 'Project List' %}project-search{% endif %}" placeholder="Search" aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit">Search</button>
+            <div class="col-md-6 d-flex align-items-center mb-2">
+                <form action="{% if extra_datas[0] == 'Machine List'%} {{url_for('views.configurations',what='machine')}} {% elif extra_datas[0] == 'Project List' %} {{url_for('views.configurations',what='project')}} {% endif %}" method="post" role="search">
+                    <div class="input-group">
+                        <input autocomplete="off" class="form-control" type="search" name="{% if extra_datas[0] == 'Machine List'%}name-search{% elif extra_datas[0] == 'Project List' %}project-search{% endif %}" placeholder="Search" aria-label="Search">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </div>
                 </form>
-            </div>
+                <button class="btn btn-secondary text-white mx-2"><i class="fa-solid fa-download"></i></button>
+                {% if what not in ('employee','ajt','ajf') %}
+                    <a class="nav-item" href="{{url_for('imports.import_data',what=what)}}"><button class="btn btn-success">Create</button></a>
+                {% else %}
+                    <button class="btn btn-success ms-2" id="createBtn" onclick="createEmp(this)">Create</button>
+                    <button class="btn btn-danger ms-2 d-none" id="discardBtn" onclick="discardEmp(this)">Discard</button>
+                {% endif %}
+                </div>
             {% if not extra_datas[1] %}
-            <div class="col">
+            <div class="col-md-6 col-sm-12">
                 <div class="flex-end">
                     <div class="btn-group" role="group" aria-label="Basic example">
-                        <button type="button" onclick="clickPagination(this,'pj','prev')" class="btn btn-secondary">Prev</button>
+                        <button type="button" onclick="clickPagination(this,'pj','prev')" class="btn btn-primary">Prev</button>
                         <button type="button" class="btn btn-outline-dark" disabled> 1- {% if extra_datas[2] >= 81 %} 81 {% else %} {{extra_datas[2]}} {% endif %} / {{extra_datas[2]}}</button>
-                        <button type="button" onclick="clickPagination(this,'pj','next')" class="btn btn-secondary">Next</button>
+                        <button type="button" onclick="clickPagination(this,'pj','next')" class="btn btn-primary">Next</button>
                     </div>
                 </div>
             </div>
@@ -58,33 +68,33 @@
 {% endif %}
 
 {% if extra_datas[0] == 'Project List' %}
-<div class="m-5 mt-1 table-responsive machine-data-container">
-    <table class="table table-hover">
+<div class="cpu-table-sec machine-data-container" style="height: 50vh;">
+    <table>
         <thead>
             <tr>
             {% if extra_datas[1] %}
-            <th scope="col">#</th>
+            <th>#</th>
             {% endif %}
-            <th scope="col">Project Code</th>
-            <th scope="col">Project Name</th>
-            <th scope="col">Project Group</th>
-            <th scope="col">Project Type</th>
-            <th scope="col">Business Unit</th>
-            <th scope="col">Finished State</th>
+            <th>Project Code</th>
+            <th>Project Name</th>
+            <th>Project Group</th>
+            <th>Project Type</th>
+            <th>Business Unit</th>
+            <th>Finished State</th>
             </tr>
         </thead>
-        <tbody class="table-group-divider">
+        <tbody>
         {% for pj_data in datas %}
         <tr id="{{pj_data[6]}}" class="pj-data-changeable" {% if extra_datas[1] %} onclick="edit_data(this,true)" {% endif %}>
             {% if extra_datas[1] %}
-            <td scope="col">✏️</td>
+            <td class="text-start">✏️</td>
             {% endif %}
-            <td>{{pj_data[0]}}</td>
-            <td>{{pj_data[1]}}</td>
-            <td>{{pj_data[2]}}</td>
-            <td>{{pj_data[3]}}</td>
-            <td>{{pj_data[4]}}</td>
-            <td>{{pj_data[5]}}</td>
+            <td class="text-start">{{pj_data[0]}}</td>
+            <td class="text-start">{{pj_data[1]}}</td>
+            <td class="text-start">{{pj_data[2]}}</td>
+            <td class="text-start">{{pj_data[3]}}</td>
+            <td class="text-start">{{pj_data[4]}}</td>
+            <td class="text-start">{{pj_data[5]}}</td>
         </tr>
         {% endfor %}
         </tbody>
@@ -93,35 +103,35 @@
 
 {% elif extra_datas[0] == 'Machine List' %}
 
-<div class="m-5 mt-1 table-responsive machine-data-container">
-    <table class="table table-hover">
+<div class="cpu-table-sec machine-data-container"  style="height: 50vh;">
+    <table>
         <thead>
         <tr>
             {% if searchs %}
-            <th scope="col">#</th>
+            <th>#</th>
             {% endif %}
-            <th scope="col">Name</th>
-            <th scope="col">Type</th>
-            <th scope="col">Class</th>
-            <th scope="col">Unit</th>
-            <th scope="col">Capacity</th>
-            <th scope="col">Brand</th>
-            <th scope="col">Owner</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Class</th>
+            <th>Unit</th>
+            <th>Capacity</th>
+            <th>Brand</th>
+            <th>Owner</th>
         </tr>
         </thead>
-        <tbody class="table-group-divider">
+        <tbody>
         {% for machine_data in datas %}
         <tr id="{{machine_data[7]}}" class="machine-list-changeable" {% if extra_datas[1] %} onclick="edit_data(this)" {% endif %}>
             {% if extra_datas[1] %}
-            <td scope="col">✏️</td>
+            <td>✏️</td>
             {% endif %}
-            <td>{{machine_data[0]}}</td>
-            <td>{{machine_data[1]}}</td>
-            <td>{{machine_data[2]}}</td>
-            <td>{{machine_data[3]}}</td>
-            <td>{{machine_data[4]}}</td>
-            <td>{{machine_data[5]}}</td>
-            <td>{{machine_data[6]}}</td>
+            <td class="text-start">{{machine_data[0]}}</td>
+            <td class="text-start">{{machine_data[1]}}</td>
+            <td class="text-start">{{machine_data[2]}}</td>
+            <td class="text-start">{{machine_data[3]}}</td>
+            <td class="text-start">{{machine_data[4]}}</td>
+            <td class="text-start">{{machine_data[5]}}</td>
+            <td class="text-start">{{machine_data[6]}}</td>
         </tr>
         {% endfor %}
         </tbody>
@@ -171,51 +181,98 @@
 
 {% elif extra_datas[0] == 'Project Statistics' %}
 
-<div class="m-5 mt-1 table-responsive machine-data-container">
+<div class="cpu-table-sec machine-data-container" style="height: 45vh;">
     <form id="hidden-project-stat-form" action="{{url_for('imports.import_data',what='project_stat_form')}}" method="post">
         <input type="number" name="project_id" id="hidden-project-id" value="" hidden>
     </form>
-    <table class="table table-hover">
+    <table>
         <thead>
             <tr>
-                <th scope="col">Project Name</th>
-                <th scope="col">Project Code</th>
-                <th scope="col">Supervisor</th>
+                <th>Project Name</th>
+                <th>Project Code</th>
+                <th>Supervisor</th>
             </tr>
         </thead>
-        <tbody class="table-group-divider">
+        <tbody>
         {% for machine_data in datas %}
-        <tr  class="pj-stat-list-changeable" onclick="redirectToProjectStatForm('hidden-project-id','hidden-project-stat-form','{{machine_data[0]}}')">
-            <td>{{machine_data[1]}}</td>
-            <td>{{machine_data[2]}}</td>
-            <td>{{machine_data[3]}}</td>
+        <tr class="pj-stat-list-changeable" onclick="redirectToProjectStatForm('hidden-project-id','hidden-project-stat-form','{{machine_data[0]}}')">
+            <td class="text-start">{{machine_data[1]}}</td>
+            <td class="text-start">{{machine_data[2]}}</td>
+            <td class="text-start">{{machine_data[3]}}</td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
 </div>
 
-{% endif %}
-
-
-<div class="col-md-10 offset-md-1 mt-5" style="margin-top:70px;margin-bottom: 100px;">
-<form method="POST" action="/export/" enctype="multipart/form-data">
-    <h3 class="page-header text-primary">Export Data in Excel File Format</h3>
-    <div class="conatiner mt-3">
-    <div class="row">
-        <div class="col">
-        <select class="form-select form-select" name="selectedOption"  required aria-label=".form-select-sm example">
-            <option value="Machine List">Machine List</option>
-            <option value="Project Code">Project Code</option>
-        </select>
+{% elif extra_datas[0] == 'Employee' %}
+<form action="{{url_for('imports.import_data',what='emp')}}" method="post">
+    <div class="container-fluid">
+        <div class="cpu-table-sec">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Position</th>
+                        <th>Inactive</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="d-none" id="emplyInp">
+                        <td><input type="number" min="0" max="9999" required name="code"></td>
+                        <td><input type="text" required name="empName"></td>
+                        <td> 
+                            <select name="emp_gp">
+                                {% for data in extra_datas[3] %}
+                                    <option value="{{data[0]}}">{{data[1]}}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><button class="btn btn-success rounded-0" type="submit">Save</button></td>
+                    </tr>
+                    {% for data in datas %}
+                    <tr>
+                        <td>{{data[1]}}</td>
+                        <td>{{data[2]}}</td>
+                        <td>{{data[3]}}</td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <div class="col">
-        <button type="submit" class="btn btn-success btn-block">Export Excel</button>
-        </div>
-    </div>
     </div>
 </form>
-</div>
+{% elif what in ('ajt','ajf') %}
+<form action="{{url_for('imports.import_data',what=what)}}" method="post">
+    <div class="container-fluid">
+        <div class="cpu-table-sec">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>#</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="d-none" id="emplyInp">
+                        <td><input type="text" required name="sthName"></td>
+                        <td><button class="btn btn-success rounded-0" type="submit">Save</button></td>
+                    </tr>
+                    {% for data in datas %}
+                    <tr>
+                        <td>{{data[1]}}</td>
+                        <td idData="{{data[0]}}">🗑️</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</form>
+{% endif %}
+
 
 
 <!-- Button trigger modal -->
@@ -240,8 +297,3 @@
 </div>
 
 {% endblock %}
-
-
-<!-- HTML !-->
-
-

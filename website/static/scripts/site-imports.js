@@ -93,11 +93,38 @@ function notWork(){
     const working = document.getElementById("working");
     const notWorking = document.getElementById("notWorking");
     const notWorkingInput = document.getElementById("notWorkingInput");
+    const activityTable = document.getElementsByClassName("activities-table")[0]
+    const activitiesTable = document.getElementById("activitiesTable")
+    const activitiesInputs = activitiesTable.querySelectorAll(".notWorkInputActi")
     if(working.checked){
         notWorkingInput.style.display = "none"
+        notWorkingInput.removeAttribute("required")
+        activityTable.classList.remove("d-none")
+        activityTable.previousElementSibling.classList.remove("d-none")
+        activitiesInputs.forEach(inp => {
+            inp.setAttribute("required","")
+        })        
     }
     if(notWorking.checked){
+        activityTable.classList.add("d-none")
+        activitiesInputs.forEach(inp => {
+            inp.removeAttribute("required")
+        })
+        activitiesTable.querySelectorAll("input").forEach(inp => {
+            inp.value = ""
+        })
+
+        const children = Array.from(activitiesTable.children);
+        const toRemove = children.slice(1, -2);
+
+        toRemove.forEach(child => {
+            activitiesTable.removeChild(child)
+            console.log(child)
+        });
+
+        activityTable.previousElementSibling.classList.add("d-none")
         notWorkingInput.style.display = "inline"
+        notWorkingInput.setAttribute("required","")
     }
 }
 
@@ -163,17 +190,20 @@ function selection(){
         affPer.disabled = true;
         wealtherAff.value = 100
     }
+    if (noAff.checked || affPer.value != "" || affAll.checked){
+        wealtherAff.removeAttribute("required")
+    }
 };
 
 function checkInpNumber(inp,min,max){
-    if (inp.value < min || inp.value > max){
+    if (inp.value < min || inp.value > parseInt(max)){
         inp.value = 0
     }
 }
 
 
 function newRow(btn){
-    const inputsInTd =  btn.parentElement.previousElementSibling.querySelectorAll("input[required]")
+    const inputsInTd =  btn.parentElement.parentElement.previousElementSibling.querySelectorAll("input[required]")
     console.log(inputsInTd)
     let allowedNewRow = true
     for (inp of inputsInTd){
@@ -182,18 +212,18 @@ function newRow(btn){
         }
     }
     if (allowedNewRow){
-        let cloneRow = btn.parentElement.nextElementSibling.cloneNode(true)
+        let cloneRow = btn.parentElement.parentElement.nextElementSibling.cloneNode(true)
         cloneRow.querySelectorAll("input.shouldRequired").forEach(input => input.setAttribute('required', 'true'))
-        cloneRow.children[0].textContent = btn.parentElement.parentElement.children.length - 1
+        cloneRow.children[0].textContent = btn.parentElement.parentElement.parentElement.children.length - 1
         cloneRow.classList.remove("d-none")
-        let tableContainer =  btn.parentElement.parentElement
+        let tableContainer =  btn.parentElement.parentElement.parentElement
         tableContainer.insertBefore(cloneRow,tableContainer.rows[tableContainer.rows.length - 2])
     }
 }
 
 function deleteRow(trashIcon){
-    if (trashIcon.parentElement.parentElement.children.length > 3 ){
-        trashIcon.parentElement.remove();
+    if (trashIcon.parentElement.parentElement.parentElement.children.length > 3 ){
+        trashIcon.parentElement.parentElement.remove();
     }
 }
 
@@ -224,4 +254,29 @@ function fillValue(tr){
 
 function roundToTwoDecimalPlaces(number) {
     return Math.round(number * 100) / 100;
+}
+
+function addValueToCheckBox(checkBox){
+    checkBox.value = 0
+    if (checkBox.checked){
+        checkBox.value = 1
+    }
+    console.log(checkBox.value)
+}
+
+function calculateInlineValue(inp){
+    let targetVal = parseFloat(inp.parentElement.previousElementSibling.previousElementSibling.textContent)
+    let prevVal = parseFloat(inp.parentElement.previousElementSibling.textContent)
+    let curVal = parseFloat(inp.value)
+    let balance = targetVal - ( prevVal  + curVal )
+    if (balance <= 0.0){
+        inp.value = ''
+    }else{
+        inp.parentElement.nextElementSibling.textContent = balance
+    }
+}
+
+function calculateDiffValue(idd){
+    let datas = document.querySelectorAll(`.${idd}`)
+    console.log(datas)
 }

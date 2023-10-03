@@ -11,8 +11,8 @@ function insert_data_and_return_back_button(btn){
     belowing = []
 }
 
-function giveProjectCodes(){
-    let abovePj = document.getElementById("aboveProjectCodes")
+function giveProjectCodes(idd = 'aboveProjectCodes'){
+    let abovePj = document.getElementById(idd)
     if (abovePj && abovePj.innerHTML.trim() == ""){
         fetch("/get-pj-datas")
         .then(response => response.json())
@@ -29,15 +29,21 @@ function giveProjectCodes(){
 function showModalAndGiveProjectCodes(opt='normal'){
     giveProjectCodes()
     if (opt == 'normal'){
-    let modalContainer = document.getElementById("monthlyReport")
-    modalContainer.getElementsByClassName("modal-title")[0].textContent = "Income Expense Report"
-    let checkerRadio = modalContainer.getElementsByClassName("form-check-input")[0]
-    checkerRadio.setAttribute("checked","")
-    checkEachMachineOrAll(checkerRadio)
-    checkerRadio.parentElement.classList.add("d-none")
-    modalContainer.querySelector("form").setAttribute("action","/duty/income-expense-report")
+        let modalContainer = document.getElementById("monthlyReport")
+        modalContainer.getElementsByClassName("modal-title")[0].textContent = "Income Expense Report"
+        let checkerRadio = modalContainer.getElementsByClassName("form-check-input")[0]
+        checkerRadio.setAttribute("checked","")
+        checkEachMachineOrAll(checkerRadio)
+        checkerRadio.parentElement.classList.add("d-none")
+        modalContainer.querySelector("form").setAttribute("action","/duty/income-expense-report")
+    }else if (opt == 'monthly'){
+        let modalContainer = document.getElementById("monthlyReport")
+        modalContainer.getElementsByClassName("modal-title")[0].textContent = "Income Expense Report"
+        let checkerRadio = modalContainer.getElementsByClassName("form-check-input")[0]
+        checkerRadio.removeAttribute("checked")
+        checkEachMachineOrAll(checkerRadio)        
     }else if (opt == 'remove-date'){
-        console.log("nani")
+        let url_route_part = document.getElementById("chooseProjectBeforeCreateForm").classList[4]
         let modalContainer = document.getElementById("monthlyReport")
         modalContainer.getElementsByClassName("modal-title")[0].textContent = "Project Choice for Daily Activity"
         let checkerRadio = modalContainer.getElementsByClassName("form-check-input")[0]
@@ -45,7 +51,7 @@ function showModalAndGiveProjectCodes(opt='normal'){
         checkEachMachineOrAll(checkerRadio)
         checkerRadio.parentElement.nextElementSibling.classList.add("d-none")
         checkerRadio.parentElement.classList.add("d-none")
-        modalContainer.querySelector("form").setAttribute("action","/site-imports/daily-activity/create")        
+        modalContainer.querySelector("form").setAttribute("action",`/site-imports/${url_route_part}/create`)        
     }
 }
 
@@ -195,11 +201,25 @@ function delete_project_statistics(btn,idd,for_stats=true,for_pj_lst=true){
     .catch(err => console.log(err))
 }
 
-clicker = document.getElementById("autoClicker")
-modalUserMgs = document.getElementById("modalUserWarn")
-if (modalUserMgs.innerHTML.trim() != "<strong>None</strong>"){
-    clicker.click()
+function deleteTheWholeForm(db,idd){
+    fetch(`/delete-data/${db}/${idd}`)
+    .then(response => response.text())
+    .then(result => {
+        if (result == 'Success'){
+            let route_with_db = {'income_expense':'/site-imports/income-expense/view'}
+            window.location = route_with_db[db]
+        }else{
+            window.alert(result)
+        }
+    })
+    .catch(err => console.log(err))  
 }
+
+// clicker = document.getElementById("autoClicker")
+// modalUserMgs = document.getElementById("modalUserWarn")
+// if (modalUserMgs.innerHTML.trim() != "<strong>None</strong>"){
+//     clicker.click()
+// }
 
 
 
@@ -240,9 +260,9 @@ function updateEachMachine(inp,event){
 offsetLimit  = 81
 function clickPagination(btn,target,txt){
     target_mapp = {"pj":"pj-data-changeable",
-                  "dty":"duty-query-changeable",
+                  "Duty Query":"duty-query-changeable",
               "machine":"machine-list-changeable",
-              "expense":"expense-list-changeable"}
+              "Expenses Query":"expense-list-changeable"}
     all_tr = document.getElementsByClassName(target_mapp[target])
     if (txt == 'prev'){
         displayAmt = btn.nextElementSibling.textContent.trim().split("/")
@@ -250,7 +270,7 @@ function clickPagination(btn,target,txt){
         last = displayAmt[0].split("-")[1]
         fst = Number(displayAmt[0].split("-")[0])
         if (fst != 1){
-            fetch(`/offset-display/${target}/${fst-81}`)
+            fetch(`/offset-display/${target_mapp[target]}/${fst-81}`)
             .then(response => response.json())
             .then(result => {
                 btn.nextElementSibling.textContent = `${fst-81}-${fst-1} / ${getTotal}`
@@ -264,7 +284,7 @@ function clickPagination(btn,target,txt){
         getTotal = Number(displayAmt[1])
         last = Number(displayAmt[0].split("-")[1])
         if (last != getTotal){
-            fetch(`/offset-display/${target}/${last}`)
+            fetch(`/offset-display/${target_mapp[target]}/${last}`)
             .then(response => response.json())
             .then(result => {
                 if(last+82 > Number(getTotal)){
@@ -280,6 +300,7 @@ function clickPagination(btn,target,txt){
 }
 
 function replaceTableData(result) {
+    console.log(all_tr)
     let i = 0;
     for (i = 0; i < result.length; i++) {
       tds = all_tr[i].getElementsByTagName('td');
@@ -298,6 +319,25 @@ function getShops(inp){
     }
     filter = inp.value.toUpperCase();
     let a = dropperDiv.getElementsByTagName("p");
+    for (let i = 0; i < a.length; i++) {
+        let txtValue = a[i].textContent || a[i].innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+        } else {
+        a[i].style.display = "none";
+        }
+    }
+}
+
+function getShopsSelect(inp){
+    dropperDiv = inp.nextElementSibling
+    if (inp.value.length !== 0){
+        dropperDiv.style.display = "";
+    }else{
+        dropperDiv.style.display = "none";
+    }
+    filter = inp.value.toUpperCase();
+    let a = dropperDiv.getElementsByTagName("option");
     for (let i = 0; i < a.length; i++) {
         let txtValue = a[i].textContent || a[i].innerText;
         if (txtValue.toUpperCase().indexOf(filter) > -1) {
@@ -498,10 +538,10 @@ function showTruckAnimation(){
     let dataExpenseContainer = document.getElementById("duty-expense-container")
     dataExpenseContainer.classList.add("demo")
     const animator = document.getElementsByClassName("sending-container")[0]
-    animator.style.display = ""
+    animator.classList.remove("d-none")
 }
 
-/* Export  */
+/* Export */
 function exportTableToExcel(tableId) {
     const table = document.getElementById(tableId);
 
@@ -704,11 +744,10 @@ function redirectToProjectStatForm(inp_id,form_id,val){
     document.getElementById(form_id).submit()
 }
 
-function editPrjStatis(editBtn){
-    const prjStatis = document.querySelector("#prjStatisEdit");
+function editPrjStatis(editBtn,selectId){
+    const prjStatis = document.querySelector(`#${selectId}`);
     const getInp = prjStatis.querySelectorAll("input[disabled]");
     const getBtn = prjStatis.querySelectorAll("button[disabled]")
-    const discardBtn = document.getElementById("prjDiscard");
     const editSubmitPjStat = document.getElementById("edit-submit-btn-pj-stat")
     for(let i = 1; i < getInp.length; i++){
         if(getInp[i].disabled){
@@ -721,8 +760,8 @@ function editPrjStatis(editBtn){
         }
     }
     editBtn.classList.add("d-none");
-    discardBtn.classList.remove("d-none");
     editSubmitPjStat.classList.remove("d-none")
+    editBtn.previousElementSibling.classList.remove("d-none")
 }
 
 function savePrjStatis(saveBtn){
@@ -772,4 +811,56 @@ function submitMachineTransferForStat(){
         })     
     }
 
+}
+
+function checkValidMachine(inp,idd,mandatory=true){
+    let allMachineDatas = document.querySelectorAll(`#${idd} option`)
+    let found = ""
+    allMachineDatas.forEach(opt => {
+        if(opt.value == inp.value){
+            found = opt.getAttribute("getId")
+        }
+    })
+    inp.previousElementSibling.value = found
+    if (found == ""){
+        if (mandatory){
+            inp.previousElementSibling.setAttribute("required","")
+        }
+        inp.value = ""
+    }else{
+        inp.previousElementSibling.removeAttribute("required")
+    }
+}
+
+function setDbAndGiveProjectCodes(for_what){
+    giveProjectCodes('aboveProjectCodesForExport')
+    document.getElementById("db_model").value = for_what.trim()
+}
+
+
+
+function createEmp(btn){
+    const getInp = document.getElementById("emplyInp");
+    const discardBtn = document.getElementById("discardBtn");
+    getInp.classList.remove("d-none");
+    discardBtn.classList.remove("d-none");
+    btn.classList.add("d-none");
+}
+
+function discardEmp(btn){
+    const getInp = document.getElementById("emplyInp");
+    const createBtn = document.getElementById("createBtn");
+    getInp.querySelectorAll("input").forEach(inp => {
+        inp.value = ""
+    })
+    getInp.classList.add("d-none");
+    createBtn.classList.remove("d-none");
+    btn.classList.add("d-none");
+}
+
+function replaceDataRedirectSummaryForm(pj_id,pj_name){
+    let submitForm = document.getElementById("autoRedirectSummary")
+    submitForm.children[0].value = pj_id
+    submitForm.children[1].value = pj_name
+    submitForm.submit()
 }

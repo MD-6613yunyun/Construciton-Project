@@ -14,40 +14,43 @@
     <title> CPU | {% block title %}{% endblock %}</title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg" style="background-color: #2C41AD; box-shadow: 1px 0px 15px .5px rgba(0, 0, 0, 1);position: sticky;top: 0;z-index: 5;">
+    <nav class="navbar navbar-expand-lg" style="background-color: #2C41AD; box-shadow: 1px 0px 15px .5px rgba(0, 0, 0, 1);position: sticky;top: 0;z-index: 1000;">
         <div class="container-fluid">
             <a href="/" class="navbar-brand ms-3">
-                <img src="../static/images/logo_mdmm.png" 
+                <img src="{{url_for('static',filename='images/logo_mdmm.png')}}" 
                 width="50px" alt="sitelogo" class="bg-light">
             </a>
             <button type="button" class="navbar-toggler me-3 bg-white" data-bs-toggle="collapse" data-bs-target="#nav"><i class="navbar-toggler-icon"></i></button>
 
             <div id="nav" class="navbar-collapse collapse justify-content-between">
                 <ul class="navbar-nav px-3">
+                    <li class="nav-item"><a  class="nav-link text-white" href="{{url_for('dash.dash_home')}}" >Dashboard</a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Transactions</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{url_for('views.show_transactions',what='duty')}}" >Duty</a></li>
                             <li><a class="dropdown-item" href="{{url_for('views.show_transactions',what='expense')}}">Expense</a></li>
                             <li><a class="dropdown-item" href="{{url_for('views.show_transactions',what='income-expense')}}" >Income & Expense</a></li>
-                            <li><a class="dropdown-item" href="{{url_for('views.show_transactions',what='sale')}}">Sales</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{url_for('views.show_transactions',what='machine-activity')}}" >Activities ( Machines )</a></li>
+                            <li><a class="dropdown-item" href="{{url_for('views.show_transactions',what='repair-activity')}}" >Activities ( Repair ) </a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown ">
-                        <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Configurations</a>
+                        <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-auto-close="outside" data-bs-toggle="dropdown" aria-expanded="false">Configurations</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{url_for('views.configurations',what='machine')}}">Machines</a></li>
                             <li><a class="dropdown-item" href="{{url_for('views.configurations',what='project')}}">Projects</a></li>
                             <li><a class="dropdown-item" href="{{url_for('views.configurations',what='project-stat')}}">Project Statistics</a></li>
-                            <li><a class="dropdown-item" href="{{url_for('views.configurations',what='details')}}">Machine Details</a></li>                        
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Imports</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{url_for('imports.import_data',what='machine')}}">Machine</a></li>
-                            <li><a class="dropdown-item" href="{{url_for('imports.import_data',what='project')}}">Project</a></li>
-                            <li><a class="dropdown-item" href="{{url_for('imports.import_data',what='project_stat')}}">Project Statistics</a></li>                        
+                            <li class="dropend">
+                                <a class="dropdown-item dropdown-toggle" data-bs-toggle="dropdown">Setups</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='details')}}">Machine Details</a></li>    
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='employee')}}">Employees</a></li>  
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='ajt')}}">Job Types ( Activity )</a></li>    
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='ajf')}}">Job Function ( Activity )</a></li>    
+                                </ul>
+                            </li>             
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -60,12 +63,13 @@
                     <li class="nav-item dropdown ">
                         <a class="nav-link dropdown-toggle text-white" data-bs-auto-close="outside"  href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Reports</a>
                         <ul class="dropdown-menu">
-                            <li><a type="button" onclick="giveProjectCodes()" class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#monthlyReport" >Monthly</a></li>
+                            <li><a type="button" onclick="showModalAndGiveProjectCodes('monthly')" class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#monthlyReport" >Monthly</a></li>
                             <li><a class="dropdown-item" href="{{url_for('reports.summary_duty_report')}}">Summary</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" class="dropdown-item" onclick="showModalAndGiveProjectCodes()" data-bs-toggle="modal" data-bs-target="#monthlyReport">Income Expense</a></li>
                         </ul>
                     </li>
+                    <li class="nav-item"><a  class="nav-link text-white" href="{{url_for('auth.admin_panel')}}" >Admin Panel</a></li>
                 </ul>
             <form class="d-flex justify-content-center p-2" role="search"  action="{{url_for('auth.logout')}}">
                 <input value="Nani" hidden>
@@ -94,10 +98,10 @@
                             <div class="filters m-3">
                                 <div class="dropdown text-center">
                                     <button class="btn btn-secondary dropdown-toggle button-74 text-white text-center text-wrap" id="own" pjID="False" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Project Name & Project Code
+                                        ဆိုဒ်ကုဒ် / ဆိုဒ် အမည် 
                                     </button>
                                     <div class="dropdown-menu business-unit">
-                                        <input type="text" id="pj_id" name="pj_id" style="display: none;">
+                                        <input required type="text" id="pj_id" name="pj_id" style="display: none;">
                                         <input type="text" id="pj_name" name="pj_name" style="display: none;" value=" _&_ ">
                                         <input type="search" id="inputForProjectInMonthly" size="22" autocomplete="off" style="margin-left: 10px;" onkeyup="getShops(this)"/>
                                         <div style="max-height: 150px;overflow-y: auto;display: none;" id="aboveProjectCodes">
@@ -171,6 +175,49 @@
                     <button type="button"  class="btn btn-primary">Understood</button>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="exportStaticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" action="{{url_for('exports.download_data')}}">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Export Data</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="filters m-3">
+                            <div class="dropdown text-center">
+                                <button class="btn btn-secondary dropdown-toggle button-74 text-white text-center text-wrap" id="own" pjID="False" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Project Name & Project Code
+                                </button>
+                                <div class="dropdown-menu business-unit">
+                                    <input type="text" id="pj_id" name="pj_id" style="display: none;">
+                                    <input type="text" id="pj_name" name="pj_name" style="display: none;" value=" _&_ ">
+                                    <input type="search" id="inputForProjectInMonthly" size="22" autocomplete="off" style="margin-left: 10px;" onkeyup="getShops(this)"/>
+                                    <div style="max-height: 150px;overflow-y: auto;display: none;" id="aboveProjectCodesForExport">
+                                    </div>                                 
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mb-3">
+                            <div class="mb-2">
+                                <label for="start text-center">Start Date : </label>
+                                <input type="date" id="start" name="start_date_for_each" min="2020-01-01" max="2030-12-31" value="2023-05-11">
+                            </div>
+                            <input type="text" value="" name="db_model" id="db_model" hidden>
+                            <div>
+                                <label for="start text-center">End   Date : </label>
+                                <input type="date" id="start" name="end_date_for_each" min="2020-01-01" max="2030-12-31" onchange="check_or_trace_start_date(this)" value="2023-05-11">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Download</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

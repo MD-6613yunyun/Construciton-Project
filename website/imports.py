@@ -1,6 +1,7 @@
 from flask import Blueprint,render_template,request,redirect,url_for,jsonify
 from website import db_connect,catch_db_insert_error
 from psycopg2 import IntegrityError
+from itertools import zip_longest
 
 imports = Blueprint("imports",__name__)
 
@@ -62,7 +63,7 @@ def import_data(what,mgs=None):
         cur.execute("SELECT name FROM project_type;")
         data["Project Type"] = cur.fetchall()
         name = 'Project Line'
-    elif what == 'project_stat':
+    elif what == 'project_stat' or what == 'project-stat':
         cur.execute("SELECT code || ' | ' || name FROM analytic_project_code AS pj LEFT JOIN project_statistics AS stat ON pj.id = stat.project_id WHERE stat.project_id is NULL;")
         data['Project Code'] = cur.fetchall()
         cur.execute("SELECT machine_name FROM fleet_vehicle WHERE id NOT IN (SELECT id FROM machines_history WHERE end_time is NULL);")
@@ -104,7 +105,7 @@ def import_data(what,mgs=None):
         if request.method == 'POST':
             income_expense_id = request.form.get('income_expense_id')
             if income_expense_id:
-                cur.execute(""" SELECT form.income_status,form.income_expense_no,form.set_date,pj.code,emp_one.name,pj.name,stat.location,stat.pj_start_date,emp_two.name
+                cur.execute(""" SELECT form.income_status,form.income_expense_no,form.set_date,pj.code,emp_one.name,pj.name,stat.location,stat.pj_start_date,emp_two.name,form.id,pj.id
                                 FROM income_expense form
                                 LEFT JOIN analytic_project_code pj
                                 ON form.project_id = pj.id
@@ -116,9 +117,134 @@ def import_data(what,mgs=None):
                                 ON emp_two.id = stat.supervisor_id
                                 WHERE form.id = %s;""",(income_expense_id,))
                 form_datas = cur.fetchone()
-                cur.execute("SELECT * FROM income_expense_line WHERE income_expense_id = %s;",(income_expense_id,))
+                cur.execute("SELECT line.id,income_expense_id,description,invoice_no,qty,price,amt,remark,COALESCE(car.machine_name,'') FROM income_expense_line AS line LEFT JOIN fleet_vehicle AS car ON line.machine_id = car.id WHERE income_expense_id = %s;",(income_expense_id,))
                 line_datas = cur.fetchall()
-            return render_template("income_expense.html",form_datas=form_datas,line_datas=line_datas,template_type = 'Edit List')
+                cur.execute("SELECT car.machine_name,car.id FROM machines_history LEFT JOIN fleet_vehicle AS car ON car.id = machines_history.machine_id WHERE project_id = %s AND end_time IS NULL;",(form_datas[10],))
+                machine_datas = cur.fetchall()
+            return render_template("income_expense.html",form_datas=form_datas,line_datas=line_datas,machine_datas=machine_datas,template_type = 'Edit List')
+    elif what == 'daily_activity_edit_form':
+        if request.method == 'POST':
+            daily_activity_id =  request.form.get('income_expense_id')
+            cur.execute(""" SELECT pj.code,emp_one.name,pj.name,stat.location,stat.pj_start_date,emp_two.name,estimate_day,estimate_feet,estimate_sud,estimate_duty,estimate_fuel,estimate_expense,pj.id,
+                            activity.daily_activity_no,activity.set_date,activity.working_status,activity.remark_for_not_working,activity.wealther_effect_percent,activity.complete_feet,activity.complete_sud,
+							calculated_table.hour,calculated_table.fuel
+                        FROM daily_activity activity
+                        LEFT JOIN analytic_project_code pj
+                        ON activity.project_id = pj.id
+                        LEFT JOIN project_statistics stat
+                        ON pj.id = stat.project_id
+                        LEFT JOIN employee emp_one
+                        ON emp_one.id = stat.ho_acc_id
+                        LEFT JOIN employee emp_two
+                        ON emp_two.id = stat.supervisor_id
+						LEFT JOIN (
+							SELECT daily_activity_id,ROUND(EXTRACT(hour FROM sum(duty_hour)) + EXTRACT(minute FROM sum(duty_hour)) / 60,2) AS hour,sum(used_fuel) AS fuel FROM daily_activity_lines  
+							WHERE daily_activity_id = %s GROUP BY daily_activity_id
+						) AS calculated_table
+						ON calculated_table.daily_activity_id = activity.id
+                        WHERE activity.id = %s;""",(daily_activity_id,daily_activity_id))
+            form_datas = cur.fetchone()
+            pj_id = form_datas[12]
+            line_datas = []
+            cur.execute("""SELECT line.id,car.id,car.machine_name,ajt.id,ajt.name,ajf.id,ajf.name,EXTRACT(HOUR FROM line.duty_hour),EXTRACT(MINUTE FROM line.duty_hour),line.used_fuel,line.description
+                        FROM daily_activity_lines AS line
+                        LEFT JOIN fleet_vehicle AS car
+                        ON car.id = line.machine_id
+                        LEFT JOIN activity_job_type AS ajt
+                        ON ajt.id = line.job_type_id
+                        LEFT JOIN activity_job_function AS ajf
+                        ON ajf.id = line.job_function_id
+                        WHERE line.daily_activity_id = %s;""",(daily_activity_id))
+            line_datas.append(cur.fetchall())
+            cur.execute(""" SELECT line.id,car.id,car.machine_name,line.description,line.accident_status
+                        FROM daily_activity_accident_lines AS line
+                        LEFT JOIN fleet_vehicle AS car
+                        ON car.id = line.machine_id WHERE line.daily_activity_id = %s;""",(daily_activity_id))
+            line_datas.append(cur.fetchall())
+            cur.execute(""" SELECT type.name,count(*),MIN(type.id),MAX(machines_table.present_machines) FROM machines_history AS his
+                            LEFT JOIN fleet_vehicle AS car
+                            ON car.id = his.machine_id
+                            LEFT JOIN machine_type type
+                            ON type.id = car.machine_type_id
+                            LEFT JOIN (
+                                SELECT activity.project_id,present_machines FROM machines_history_project his
+                                LEFT JOIN daily_activity activity
+                                ON activity.id = his.daily_activity_id
+                                WHERE daily_activity_id = %s
+                            ) AS machines_table
+                            ON machines_table.project_id = his.project_id
+                            WHERE his.project_id = %s AND his.end_time IS  NULL
+                            GROUP BY type.name; """,(daily_activity_id,pj_id))
+            emp_datas = cur.fetchall()
+            cur.execute(""" SELECT emp.name,emp_pj.assigned_people,emp_pj.id,emp_line.present_people FROM employee_group_project emp_pj
+                            LEFT JOIN employee_group emp
+                            ON emp.id = emp_pj.employee_group_id
+                            LEFT JOIN employee_group_project_line emp_line
+                            ON emp_line.employee_group_project_id = emp_pj.id
+                            WHERE emp_line.daily_activity_id  = %s""",(daily_activity_id,))
+            machine_type_datas = cur.fetchall()
+            print(emp_datas)
+            print(machine_type_datas)
+            extra_datas = []
+            cur.execute("SELECT CURRENT_DATE;")
+            extra_datas.append(cur.fetchone()[0])
+            zipped_machine_employee = list(zip_longest(machine_type_datas,emp_datas,fillvalue=("",0,0)))
+            zipped_machine_employee.append([["Total",0,0],["Total",0,0]])
+            for data in zipped_machine_employee[:-1]:
+                zipped_machine_employee[-1][0][1] += data[0][1]
+                zipped_machine_employee[-1][1][1] += data[1][1]
+            extra_datas.append(zipped_machine_employee)
+            cur.execute("SELECT car.machine_name,car.id FROM machines_history AS his LEFT JOIN fleet_vehicle AS car ON his.machine_id = car.id WHERE his.project_id = %s AND his.end_time IS NULL;",(pj_id,))
+            machine_datas = cur.fetchall()
+            cur.execute("SELECT name,id FROM activity_job_type;")
+            activity_job_types = cur.fetchall()
+            cur.execute("SELECT name,id FROM activity_job_function;")
+            activity_job_functions = cur.fetchall()
+            cur.execute(""" WITH form_table AS ( SELECT project_id,sum(complete_feet) AS feet,sum(complete_sud) AS sud
+                            FROM daily_activity GROUP BY project_id ) ,
+                            line_table AS (
+                            SELECT form.project_id,ROUND((EXTRACT(HOUR FROM sum(duty_hour)) + EXTRACT(MINUTE FROM sum(duty_hour))/60),2) AS hour,sum(used_fuel) AS fuel FROM daily_activity_lines AS line
+                            LEFT JOIN daily_activity AS FORM 
+                            ON line.daily_activity_id = form.id
+                            GROUP BY form.project_id ) ,
+                            expense_table AS (
+                            SELECT form.project_id,sum(line.amt) AS expense FROM income_expense_line AS line
+                            LEFT JOIN income_expense AS form 
+                            ON form.id = line.income_expense_id
+                            WHERE form.income_status = 'f'
+                            GROUP BY form.project_id
+                            )
+                            SELECT form_table.feet,form_table.sud,line_table.hour,line_table.fuel,expense_table.expense FROM form_table 
+                            LEFT JOIN line_table 
+                            ON form_table.project_id = line_table.project_id
+                            LEFT JOIN expense_table
+                            ON form_table.project_id = expense_table.project_id
+                            WHERE form_table.project_id = %s;""",(pj_id,))
+            history_datas = cur.fetchone()
+            return render_template("daily-table.html",extra_datas = extra_datas,form_datas = form_datas,machine_datas=machine_datas,activity_jobs=[activity_job_types,activity_job_functions],history_datas=history_datas,line_datas = line_datas,template_type = 'Edit List')
+    elif what == 'emp':
+        if request.method == 'POST':
+            code = request.form.get("code")
+            name = request.form.get("empName")
+            emp_gp_id = request.form.get("emp_gp")
+            try:
+                cur.execute("INSERT INTO employee (code,name,employee_group_id) VALUES(%s,%s,%s);",(code,name.upper(),emp_gp_id))
+                conn.commit()
+            except IntegrityError as err:
+                mgs = str(err)
+                conn.rollback()
+            return redirect(url_for('views.configurations',what='employee'))
+    elif what == 'ajt' or what == 'ajf':
+        if request.method == 'POST':
+            sth_name = request.form.get("sthName")
+            db = {'ajt':'activity_job_type','ajf':'activity_job_function'}
+            try:
+                cur.execute(f"INSERT INTO {db[what]} (name) VALUES('{sth_name.upper()}');")
+                conn.commit()
+            except IntegrityError as err:
+                mgs = str(err)
+                conn.rollback()
+            return redirect(url_for('views.configurations',what=what))
     return render_template("import_data.html",data = data,name=name,mgs=mgs)
 
 @imports.route("/upload-each-machine-details",methods=['GET','POST'])
@@ -289,14 +415,34 @@ def site_imports(typ):
             prices = request.form.getlist("price")[:-1]
             amts = request.form.getlist("amt")[:-1]
             remarks = request.form.getlist("remark")[:-1]
-            query = "INSERT INTO income_expense_line (income_expense_id,description,invoice_no,qty,price,amt,remark) VALUES "
-            for data in zip(descriptions,invoice_nos,qtys,prices,amts,remarks):
-                query += f"('{income_expense_id}','{data[0]}','{data[1]}','{data[2] if data[2] != '' else 0.0}','{data[3] if data[3] != '' else 0.0}','{data[4]}','{data[5]}'),"
+            machine_ids = request.form.getlist("machine_id")[:-1]
+            query = "INSERT INTO income_expense_line (income_expense_id,description,invoice_no,qty,price,amt,remark,machine_id) VALUES "
+            for data in zip(descriptions,invoice_nos,qtys,prices,amts,remarks,machine_ids):
+                query += f"('{income_expense_id}','{data[0]}','{data[1]}','{data[2] if data[2] != '' else 0.0}','{data[3] if data[3] != '' else 0.0}','{data[4]}','{data[5]}',{data[6] if data[6] != '' else 'Null'}),"
             cur.execute(query[:-1]+';')
             conn.commit()
             cur.close()
             conn.close()
             return redirect(url_for("site_imports.income_expense",typ='view'))
+        elif typ == 'income-expense-edit':
+            form_id = request.form.get("form_id")
+            descriptions = request.form.getlist("description")[:-1]
+            invoice_nos = request.form.getlist("invoice_no")[:-1]
+            qtys = request.form.getlist("qty")[:-1]
+            prices = request.form.getlist("price")[:-1]
+            amts = request.form.getlist("amt")[:-1]
+            remarks = request.form.getlist("remark")[:-1]
+            machine_ids = request.form.getlist("machine_id")[:-1]
+            print(form_id)
+            cur.execute("DELETE FROM income_expense_line WHERE income_expense_id = %s;",(form_id,))
+            query = "INSERT INTO income_expense_line (income_expense_id,description,invoice_no,qty,price,amt,remark,machine_id) VALUES "
+            for data in zip(descriptions,invoice_nos,qtys,prices,amts,remarks,machine_ids):
+                query += f"('{form_id}','{data[0]}','{data[1]}','{data[2] if data[2] != '' else 0.0}','{data[3] if data[3] != '' else 0.0}','{data[4]}','{data[5]}',{data[6] if data[6] != '' else 'Null'}),"
+            cur.execute(query[:-1]+';')
+            conn.commit()
+            cur.close()
+            conn.close()
+            return redirect(url_for("site_imports.income_expense",typ='view'))           
         elif typ == 'daily-activity':
             work_not_work = request.form.get("work")
             work_staus = True if work_not_work == 'working' else False
@@ -308,11 +454,54 @@ def site_imports(typ):
             complete_sud = request.form.get("completeSud")
             cur.execute("SELECT 'DCA/' || RIGHT(EXTRACT(YEAR FROM NOW())::TEXT,2) || '/' || TO_CHAR(EXTRACT(MONTH FROM NOW()),'FM00') || '/' || COALESCE((SELECT TO_CHAR(id + 1, 'FM000000') FROM daily_activity ORDER BY id DESC LIMIT 1),'000001');")
             report_no = cur.fetchone()[0]
-            cur.execute("INSERT INTO daily_activity (daily_activity_no,working_status,remark_for_not_working,set_date,project_id,wealther_effect_percent,complete_feet,complete_sud) VALUES(%s,%s,%s,%s,%s,%s,%s,%s);",(report_no,work_staus,reason_for_not_working,set_date,pj_id,wealther_affect,complete_feet,complete_sud))
+            cur.execute("INSERT INTO daily_activity (daily_activity_no,working_status,remark_for_not_working,set_date,project_id,wealther_effect_percent,complete_feet,complete_sud) VALUES(%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id;",(report_no,work_staus,reason_for_not_working,set_date,pj_id,wealther_affect,complete_feet,complete_sud))
+            daily_activity_id = cur.fetchone()[0]
 
+            machine_ids = request.form.getlist("machine_id")[:-1]
+            job_type_ids = request.form.getlist("job_type_id")[:-1]
+            job_function_ids = request.form.getlist("job_function_id")[:-1]
+            duty_hr = request.form.getlist("dutyHour")[:-1]
+            duty_min = request.form.getlist("dutyMin")[:-1]
+            used_fuel = request.form.getlist("used_fuel")[:-1]
+            descriptions = request.form.getlist("description")[:-1]
+            for data in zip(machine_ids,job_type_ids,job_function_ids,duty_hr,duty_min,used_fuel,descriptions):
+                if data != ('', '', '', '', '', '', ''):
+                    cur.execute("INSERT INTO daily_activity_lines(daily_activity_id,machine_id,job_type_id,job_function_id,duty_hour,used_fuel,description) VALUES (%s,%s,%s,%s,%s,%s,%s);",(daily_activity_id,data[0],data[1],data[2],f'{data[3]} hours {data[4]}  minutes',data[5],data[6]))
+            # manpower & equipment
+            man_amt = request.form.getlist("manpower_amt")
+            man_id = request.form.getlist("manpower_id")
+            type_amt = request.form.getlist("type_amt")
+            type_id = request.form.getlist("type_id")
+            for data in zip(man_id,man_amt):
+                cur.execute("INSERT INTO employee_group_project_line(daily_activity_id,employee_group_project_id,present_people) VALUES (%s,%s,%s);",(daily_activity_id,data[0],data[1]))
+            for data in zip(type_id,type_amt):
+                cur.execute("INSERT INTO machines_history_project(daily_activity_id,machine_type_id,present_machines) VALUES (%s,%s,%s);",(daily_activity_id,data[0],data[1]))
+            # accidents
+            acc_machine_ids = request.form.getlist("acc_machine_id")[:-1]
+            acc_descriptions = request.form.getlist("acc_description")[:-1]
+            hasAccidents = request.form.getlist("hasAccident")[:-1]
+            for data in zip(acc_machine_ids,acc_descriptions,hasAccidents):
+                cur.execute("INSERT INTO daily_activity_accident_lines(daily_activity_id,machine_id,description,accident_status) VALUES(%s,%s,%s,%s);",(daily_activity_id,data[0],data[1],data[2]))
+            print(man_amt)
+            print(man_id)
+            print(type_amt)
+            print(type_id)
+
+            print(acc_machine_ids)
+            print(acc_descriptions)
+            print(hasAccidents)
+
+            print(machine_ids)
+            print(job_type_ids)
+            print(job_function_ids)
+            print(duty_hr)
+            print(duty_min)
+            print(used_fuel)
+            print(descriptions)
+            conn.commit()
+            return redirect(url_for('site_imports.daily_activity',typ='view'))
     else:
         return redirect(url_for("views.home"))
+    
 
-@imports.route("/daily-acitvity")
-def daily_activities_report():
-    return render_template("daily-table.html")
+

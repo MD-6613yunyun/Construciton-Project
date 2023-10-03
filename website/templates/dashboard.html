@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %} Dashboard {% endblock %}
+{% block content %}
+<h1 class="text-center py-3">Project Status</h1>
+<form action="{{url_for('reports.summary_duty_report')}}" id="autoRedirectSummary" method="post">
+    <input type="number" name="pj_id" hidden>
+    <input type="text" name="pj_name" hidden>
+</form>
+<div class="container-fluid">
+    <div class="cardscss">
+        {% for data in all_pj_datas %}
+            <div class="card text-center m-1 shadow-md" style="height: max-content;position: relative;">
+                <div class="stack-top">
+                    <div>{{data[1]}}</div>
+                </div>
+                <div class="card-header text-white" style="background-color: #2C41AD;">
+                    Project Code - {{data[2]}}
+                </div>
+                <div class="card-body text-dark" style="background-color: #BFD1E5;">
+                    <h6 class="card-title" style="color:#2C41AD" title="{{data[3]}}">{{data[3]}}</h6>
+                    <p class="card-text" style="color:#2C41AD">Supervisor - {{data[4]}}</p>
+                    <ul class="list-group mt-2">
+                        <li class="list-group-item">Complete Feet - {{data[5]}}</li>
+                        <li class="list-group-item">Complete Sud - {{data[6]}}</li>
+                        <li class="list-group-item">Duty - {{data[7]}}</li>
+                        <li class="list-group-item">Fuel(liter) - {{data[8]}}</li>
+                        <li class="list-group-item">Expense - {{data[9]}} </li>
+                        <li class="list-group-item">Duration - {{data[10]}} days ago</li>
+                        <li class="list-group-item">Working Days - {{data[11]}} days</li>
+                    </ul>
+                </div>
+                <div class="card-footer text-white" style="background-color: #BFD1E5;">
+                    <button type="button" onclick="replaceDataRedirectSummaryForm('{{data[0]}}','{{data[3]}}')" class="btn btn-primary">See More</button>
+                </div>            
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

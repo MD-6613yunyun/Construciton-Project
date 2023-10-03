@@ -75,17 +75,42 @@ def show_transactions(what,mgs=None):
             cur.execute(""" 
                 SELECT form.set_date,form.income_expense_no,pj.code,pj.name,
                 CASE WHEN form.income_status = 't' THEN 'Income' ELSE 'Expense' END,
-                line.description,line.invoice_no,line.qty,line.price,line.amt,line.remark 
+                line.description,car.machine_name,line.invoice_no,line.qty,line.price,line.amt,line.remark 
                 FROM income_expense_line line 
                 LEFT JOIN income_expense form 
                 ON line.income_expense_id  = form.id
                 LEFT JOIN analytic_project_code pj
                 ON pj.id = form.project_id
+                LEFT JOIN fleet_vehicle car
+                ON car.id = line.machine_id
                 ORDER BY form.project_id,form.set_date DESC;""")
             datas = cur.fetchall()
             cur.execute("SELECT count(id) FROM income_expense_line;")
             total = cur.fetchall()[0][0]
             name = "Income Expense Query"
+        elif what == 'machine-activity':
+            cur.execute(""" SELECT form.set_date,pj.code,pj.name,form.daily_activity_no,car.machine_name,ajt.name,ajf.name,line.duty_hour,line.used_fuel,line.description FROM daily_activity_lines AS line 
+                        LEFT JOIN daily_activity AS form ON line.daily_activity_id = form.id 
+                        LEFT JOIN analytic_project_code AS pj ON pj.id = form.project_id 
+                        LEFT JOIN fleet_vehicle AS car ON car.id = line.machine_id 
+                        LEFT JOIN activity_job_type AS ajt ON ajt.id = line.job_type_id 
+                        LEFT JOIN activity_job_function AS ajf ON ajf.id = line.job_function_id 
+                        ORDER BY pj.id,form.set_date;""")
+            datas = cur.fetchall()
+            cur.execute("SELECT count(*) FROM daily_activity_lines;")
+            total = cur.fetchone()[0]
+            name = "Machine Activities Query"
+        elif what == 'repair-activity':
+            cur.execute(""" SELECT form.set_date,pj.code,pj.name,form.daily_activity_no,car.machine_name,line.description,line.accident_status 
+                        FROM daily_activity_accident_lines AS line 
+                        LEFT JOIN daily_activity AS form ON line.daily_activity_id = form.id 
+                        LEFT JOIN analytic_project_code AS pj ON pj.id = form.project_id 
+                        LEFT JOIN fleet_vehicle AS car ON car.id = line.machine_id
+                        ORDER BY pj.id,form.set_date; """)
+            datas = cur.fetchall()
+            cur.execute("SELECT count(*) FROM daily_activity_accident_lines;")
+            total = cur.fetchone()[0]
+            name = "Repair Activities Query"
         elif what == 'service':
             datas = []
             name = "Service Query"
@@ -182,11 +207,26 @@ def configurations(what,mgs=None):
         cur.execute("""SELECT count(id) FROM project_statistics;""")
         extra_datas[2] = cur.fetchall()[0][0]
         extra_datas[0] = "Project Statistics"
-
+    elif what == 'employee':
+        extra_datas[0] = 'Employee'
+        cur.execute("SELECT emp.id,'MD-' || code,emp.name,emp_gp.name FROM employee emp LEFT JOIN employee_group emp_gp ON emp.employee_group_id = emp_gp.id;")
+        data = cur.fetchall()
+        cur.execute("SELECT id,name FROM employee_group;")
+        extra_datas.append(cur.fetchall())
+        cur.execute("SELECT count(id) FROM employee;")
+        extra_datas[2] = cur.fetchone()[0]
+    elif what == 'ajt' or what == 'ajf':
+        db = {'ajt':'activity_job_type','ajf':'activity_job_function'}
+        naming = {'ajt':'Activity Job Type','ajf':'Activity Job Function'}
+        extra_datas[0] = naming[what]
+        cur.execute(f"SELECT id,name FROM {db[what]};")
+        data = cur.fetchall()
+        cur.execute(f"SELECT count(id) FROM {db[what]};")
+        extra_datas[2] = cur.fetchone()[0]
     cur.close()
     conn.close()
 
-    return render_template('configurations.html',message=mgs,datas=data,extra_datas = extra_datas)
+    return render_template('configurations.html',message=mgs,datas=data,extra_datas = extra_datas,what=what)
         
 def get_necessary_data_for_imports():
     global mappings,machine_brand_mapping,machine_capacity_mapping,machine_class_mapping,machine_owner_mapping,machine_type_mapping,business_unit_mapping
@@ -432,6 +472,8 @@ def delete_data(db,id):
     cur = conn.cursor()
     mgs = 'Success'
     try:
+        if db == 'income_expense':
+            cur.execute("DELETE FROM income_expense_line WHERE income_expense_id = %s;",(id,))
         cur.execute(f'DELETE FROM {db} WHERE id = {id}')
         conn.commit()
     except IntegrityError as err:
@@ -501,7 +543,7 @@ def offset_display(for_what,ofset):
                     INNER JOIN res_company com
                     ON com.id = pj.business_unit_id
                     LIMIT 81 OFFSET {ofset};""",
-        "dty": f""" SELECT 
+        "duty-query-changeable": f""" SELECT 
                     dty.duty_date,pj.code,pj.name,fv.machine_name,dty.operator_name,dty.morg_start,dty.morg_end,
                     dty.aftn_start,dty.aftn_end,dty.evn_start,dty.evn_end,dty.total_hr,dty.hrper_rate,
                     dty.totaluse_fuel,dty.fuel_price,dty.duty_amt,dty.fuel_amt,dty.total_amt,dty.way,
@@ -519,7 +561,7 @@ def offset_display(for_what,ofset):
                         LEFT JOIN vehicle_owner vo ON vo.id = fv.owner_name_id
                         LEFT JOIN vehicle_machine_config mcf ON mcf.id = fv.machine_config_id 
                         LIMIT 81 OFFSET {ofset}""",
-        "expense" : f"""  SELECT
+        "expense-list-changeable" : f"""  SELECT
                             exp.duty_date,pj.code,pj.name,bi.name,exp.expense_amt
                             FROM expense_prepaid AS exp
                             INNER JOIN analytic_project_code AS pj

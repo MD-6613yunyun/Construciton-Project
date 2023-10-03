@@ -1,0 +1,166 @@
+ 
+                    <p align='center' line-height='0.2'>RK - Than Dwe - Thu Htay - Stone Production and delivery 20-21 </p>
+                    <p align='center' line-height='0.2'> TMS-20-21-001-1</p>
+                    <p align='center' line-height='0.5'>2023-09-01 - 2023-10-02</p>
+                    <div>
+                        <table border="black">
+                            <thead>
+                                <tr>
+                                    <th>ေန႔စြဲ</th>
+                                    <th>အေၾကာင္းအရာ</th>
+                                    <th>ေဘာင္ခ်ာ အမွတ္</th>
+                                    <th>အဝင္</th>
+                                    <th>အထြက္</th>
+                                    <th>လက္က်န္ေငြ</th>
+                                    <th>မွတ္ခ်က္</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                             
+                        <tr>
+                            <td >2023-09-01</td>
+                            <td >႐ုံးလက္က်န္ေငြ</td>
+                            <td ></td>
+                            <td align="right"></td>
+                            <td align="right"></td>
+                            <td align="right">0.0</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td >2023-09-01</td>
+                            <td >ရန္ကုန္႐ုံးမွရေငြ</td>
+                            <td ></td>
+                            <td align="right">200,000.00</td>
+                            <td align="right">0.0</td>
+                            <td align="right">200,000.00</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td >2023-09-01</td>
+                            <td >ထမင္းစားရိတ္</td>
+                            <td >Vr-001</td>
+                            <td align="right">0.0</td>
+                            <td align="right">12,500.00</td>
+                            <td align="right">187,500.00</td>
+                            <td >ေန႔တစ္ဝက္</td>
+                        </tr>              
+                        <tr>
+                            <td >2023-09-01</td>
+                            <td >Wate Expenses</td>
+                            <td >Vr-002</td>
+                            <td align="right">0.0</td>
+                            <td align="right">3,000.00</td>
+                            <td align="right">184,500.00</td>
+                            <td >ေရဗူးႀကီး</td>
+                        </tr>              
+                        <tr>
+                            <td >2023-09-01</td>
+                            <td >လမ္းေၾကး</td>
+                            <td ></td>
+                            <td align="right">0.0</td>
+                            <td align="right">15,000.00</td>
+                            <td align="right">169,500.00</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td ></td>
+                            <td ></td>
+                            <td ></td>
+                            <td align="right">200,000.00</td>
+                            <td align="right">30,500.00</td>
+                            <td align="right">169,500.00</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td >2023-09-02</td>
+                            <td >႐ုံးလက္က်န္ေငြ</td>
+                            <td ></td>
+                            <td align="right"></td>
+                            <td align="right"></td>
+                            <td align="right">169,500.00</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td >2023-09-02</td>
+                            <td >လမ္းေၾကး</td>
+                            <td >Vr-003</td>
+                            <td align="right">0.0</td>
+                            <td align="right">25,000.00</td>
+                            <td align="right">144,500.00</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td ></td>
+                            <td ></td>
+                            <td ></td>
+                            <td align="right">0.0</td>
+                            <td align="right">25,000.00</td>
+                            <td align="right">144,500.00</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td >2023-09-03</td>
+                            <td >႐ုံးလက္က်န္ေငြ</td>
+                            <td ></td>
+                            <td align="right"></td>
+                            <td align="right"></td>
+                            <td align="right">144,500.00</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td >2023-09-03</td>
+                            <td >Site Expenses</td>
+                            <td ></td>
+                            <td align="right">0.0</td>
+                            <td align="right">20,000.00</td>
+                            <td align="right">124,500.00</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td ></td>
+                            <td ></td>
+                            <td ></td>
+                            <td align="right">0.0</td>
+                            <td align="right">20,000.00</td>
+                            <td align="right">124,500.00</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td >2023-09-04</td>
+                            <td >႐ုံးလက္က်န္ေငြ</td>
+                            <td ></td>
+                            <td align="right"></td>
+                            <td align="right"></td>
+                            <td align="right">124,500.00</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td >2023-09-04</td>
+                            <td >ထမင္းစားရိတ္</td>
+                            <td ></td>
+                            <td align="right">0.0</td>
+                            <td align="right">25,000.00</td>
+                            <td align="right">99,500.00</td>
+                            <td ></td>
+                        </tr>              
+                        <tr>
+                            <td ></td>
+                            <td ></td>
+                            <td ></td>
+                            <td align="right">0.0</td>
+                            <td align="right">25,000.00</td>
+                            <td align="right">99,500.00</td>
+                            <td ></td>
+                        </tr> 
+                            </tbody>
+                        </table>
+                        <p></p><p></p>
+                        <div>
+                            <div>
+                                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; စာရင္းကိုင္ လက္မွတ္ / အမည္ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            </div>
+                            <div>
+                                <span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ဆိုဒ္တာဝန္ခံ လက္မွတ္ / အမည္ </span>
+                            </div>
+                        </div>
+                    </div>
