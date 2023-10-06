@@ -64,3 +64,10 @@
 {% endif %}
 
 {% endblock %}
+
+
+{% block project_datas %}
+    {% for data in project_datas %}
+        <p class="m-1 ms-2" shopid="{{data[0]}}" projectcode="{{data[1]}}" onclick="assignShop(this)">{{data[2]}} _&_ {{data[1]}}</p>
+    {% endfor %}
+{% endblock %}

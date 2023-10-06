@@ -23,112 +23,110 @@
         {% endfor %}
     </datalist>
     <div class="body-for-daily-table">
-        <h3>Daily Construction Activities<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <h3>‌နေ့စဥ်လုပ်ဆောင်ချက်<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
         <form action="{{url_for('imports.site_imports',typ='daily-activity')}}" method="post">
             <!-- project status -->
             <section class="project-status-section add-table">
                 <div class="first-div">
-                    <span>Project Status</span>
-                        <label for="working">Working
+                    <span>ဆိုဒ်အခြေအနေ</span>
+                        <label for="working">လုပ်နေသည်
                             <input checked type="radio" value="working" name="work" id="working" autocomplete="off" onchange="notWork(this)">
                         </label>
-                        <label for="notWorking">Not Working
+                        <label for="notWorking">ရပ်ထားသည်
                             <input type="radio" value="notWorking" name="work" id="notWorking" autocomplete="off" onchange="notWork(this)">
                         </label>
-                        <input type="text" placeholder="reson for not working" name="reason-for-not-working" autocomplete="off" id="notWorkingInput"><br>
+                        <input type="text" placeholder="အလုပ်မလုပ်သောအကြောင်းအရာ" name="reason-for-not-working" autocomplete="off" id="notWorkingInput"><br>
                 </div>
                 <div class="sec-div">
                     <!-- <span>Daily Report Number</span>
                     <span>- DCR/2021/000001</span> -->
-                    <span>Date</span>
+                    <span>နေ့စွဲ</span>
                     <span>- <input type="date" value="{{extra_datas[0]}}" name="set_date"></span>
                 </div>
             </section>
             <!-- xxx -->
-            <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <h3>ဆိုဒ်အသေးစိတ်အချက်အလက်<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
             <section class="project-details-section add-table" id="projectDetailSec">
-
-                <label class="label" style="display: block;">Project Code</label>
+                <label class="label" style="display: block;">ဆိုဒ်ကုတ်</label>
                 <span id="hoAcName">- {{form_datas[0]}}</span>
 
-                <!-- <label class="label" style="display: block;">HO A/C Name</label>
-                <span id="hoAcName">- {{form_datas[1]}}</span> -->
-
-                <label class="label" style="display: block;">Project Name</label>
-                <span id="prjName">- {{form_datas[2]}}</span>
-
-                <label class="label" style="display: block;">Project Location</label>
+                <label class="label" style="display: block;">ဆိုဒ်အမည်</label>
+                <span id="prjName" class="text-wrap" title="{{form_datas[2]}}">- {{form_datas[2]}}</span>
+                
+                <label class="label" style="display: block;">ဆိုဒ်တည်နေရာ</label>
                 <span id="prjLoca">- {{form_datas[3]}}</span>
 
-                <label class="label" style="display: block;">Project Start Date</label>
-                <label id="prjDate">- {{form_datas[4]}}</label>
+                <label class="label" style="display: block;">ဆိုဒ်စတင်ရက်</label>
+                <span id="prjDate">- {{form_datas[4]}}</span>
 
-                <label class="label" style="display: block;">Supervisor</label>
+                <label class="label" style="display: block;">ကြီးကြပ်ရေးမှုး</label>
                 <span id="sprVisor">- {{form_datas[5]}}</span>
 
                 <input type="number"  value="{{form_datas[12]}}" style="display: none;"  class="leePalKwar" name="pj_id">
             </section>
             <!-- xxx -->
             <!-- Affects of Weather On Project -->
-            <h3>Weather<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <h3>ရာသီဥတုအခြေအနေ<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
             <section class="weather add-table toggle-table" id="weather" onchange="selection()">
-                <span>No Affects All Day</span>
+                <span>နေသာသည်</span>
                 <input type="checkbox" autocomplete="off" required id="noAff">
-                <span>Affected % of Work Day</span>
+                <span>ရာသီဥတုသက်ရောက်မှုရာခိုင်နှုန်း</span>
                 <input type="number" placeholder="%" autocomplete="off" required id="affPer">
-                <span>Affected All Day</span>
+                <span>မိုးရွာသည်</span>
                 <input type="checkbox" autocomplete="off" required id="affAll">
                 <input type="number" required hidden id="wealtherAff" name="wealtherAff">
             </section>
                         
             <!-- xxx -->
-            <h3>Estimate & Result<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <h3>ခန့်မှန်းချက် နှင့် ရလဒ်<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
             <table class="estimate-result-table add-table toggle-table">
                 <thead>
                     <tr>
-                        <th>Description</th>
-                        <th>Estimate</th>
-                        <th>Finished</th>
-                        <th>Balance</th>
+                        <th>အကြောင်းအရာ</th>
+                        <th>ခန့်မှန်းချက်</th>
+                        <th>ပြီးစီးမှု</th>
+                        <th>လက်ကျန်</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Day</td>
+                        <td>ကြာချိန် ( ရက် ) </td>
                         <td>{{form_datas[6]}}</td>
                         <td>0</td>
                         <td>{{form_datas[6]}}</td>
                     </tr>
                     <tr>
-                        <td>Feet</td>
+                        <td>ပေ</td>
                         <td>{{form_datas[7]}}</td>
                         <td class="d-none">{{history_datas[0]}}</td>
                         <td><input type="number" name="completeFeet" onchange="calculateInlineValue(this)" step=".01" autocomplete="off" required></td>
                         <td>{{form_datas[7] - history_datas[0]}}</td>
                     </tr>
                     <tr>
-                        <td>Sud</td>
+                        <td>ကျင်း</td>
                         <td>{{form_datas[8]}}</td>
                         <td class="d-none">{{history_datas[1]}}</td>
                         <td><input type="number" name="completeSud" onchange="calculateInlineValue(this)" step=".01" autocomplete="off" required></td>
                         <td>{{form_datas[8] - history_datas[1]}}</td>
                     </tr>
                     <tr>
-                        <td>Hours</td>
+                        <td>ဂျူတီ နာရီ</td>
                         <td class="traceHour">{{form_datas[9]}}</td>
-                        <td class="d-none traceHour">{{history_datas[2]}}</td>                   
+                        <td class="d-none traceHour">{{history_datas[2]}}</td>   
+                        <td class="d-none traceHour"><input value="" class="calculatedtraceHour" onchange="calculateInlineValueFromOther(this,'traceHour')"></td>                
                         <td class="traceHour">0</td>
-                        <td class="traceHour">{{form_datas[9]}}</td>
+                        <td class="traceHour">{{form_datas[9] - history_datas[2]}}</td>
                     </tr>
                     <tr>
-                        <td>Disel(Liter)</td>
+                        <td>ဒီဇယ် ( ဂါလန် )</td>
                         <td class="traceFuel">{{form_datas[10]}}</td>
                         <td class="d-none traceFuel">{{history_datas[3]}}</td>
+                        <td class="d-none traceFuel"><input value="" class="calculatedtraceFuel" oninput="calculateInlineValueFromOther(this,'traceFuel')"></td>
                         <td class="traceFuel">0</td>
-                        <td class="traceFuel">{{form_datas[10]}}</td>
+                        <td class="traceFuel">{{form_datas[10] - history_datas[3]}}</td>
                     </tr>
                     <tr>
-                        <td>Expense(Amount)</td>
+                        <td>စုစုပေါင်း အသုံးစရိတ်</td>
                         <td>{{form_datas[11]}}</td>
                         <td>{{history_datas[4]}}</td>
                         <td>{{form_datas[11] - history_datas[4]}}</td>
@@ -136,18 +134,18 @@
                 </tbody>
             </table>
             <!-- xxx -->
-            <h3>Activites<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <h3>လုပ်ဆောင်ချက်<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
             <div class="activities-table add-table toggle-table">
                 <table>
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>Machine</th>
-                            <th>Job Type</th>
-                            <th>Job Function</th>
-                            <th>Duty Hour</th>
-                            <th>Liter</th>
-                            <th>Description</th>
+                            <th>စဉ်</th>
+                            <th>စက်</th>
+                            <th>အလုပ်အမျိုးအစား</th>
+                            <th>အလုပ်လုပ်ဆောင်ချက်</th>
+                            <th>အလုပ်ချိန်</th>
+                            <th>လီတာ</th>
+                            <th>မှတ်ချက်</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -157,8 +155,8 @@
                             <td><input type="text" class="notWorkInputActi" required name="machine_id" autocomplete="off" hidden><input type="text"  list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
                             <td><input type="text" class="notWorkInputActi" required name="job_type_id" autocomplete="off" hidden><input type="text"  list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
                             <td><input type="text" class="notWorkInputActi" required name="job_function_id" autocomplete="off" hidden><input type="text"  list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
-                            <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class="notWorkInputActi" required>:<input type="number" class="notWorkInputActi" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
-                            <td><input type="number" class="notWorkInputActi" name="used_fuel" autocomplete="off" required></td>
+                            <td class="duty-hour hourValueActivity"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class="notWorkInputActi" required>:<input type="number" class="notWorkInputActi" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
+                            <td><input type="number" step="any" class="notWorkInputActi fuelValueActivity" onchange="addValueToTraceFuel('fuelValueActivity','activitiesTable','calculatedtraceFuel','traceFuel')" name="used_fuel" autocomplete="off" required></td>
                             <td><input type="text"  name="description" autocomplete="off"></td>
                             <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
@@ -170,8 +168,8 @@
                             <td><input type="text" class="shouldRequired" name="machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
                             <td><input type="text" class="shouldRequired" name="job_type_id" autocomplete="off" hidden><input type="text" list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
                             <td><input type="text" class="shouldRequired" name="job_function_id" autocomplete="off" hidden><input type="text" list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
-                            <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class="shouldRequired">:<input type="number" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" class="shouldRequired"></td>
-                            <td><input type="number" name="used_fuel" autocomplete="off" class="shouldRequired"></td>
+                            <td class="duty-hour hourValueActivity"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class="shouldRequired">:<input type="number" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" class="shouldRequired"></td>
+                            <td><input type="number" step="any" name="used_fuel" autocomplete="off" class="shouldRequired fuelValueActivity" onchange="addValueToTraceFuel('fuelValueActivity','activitiesTable','calculatedtraceFuel','traceFuel')"></td>
                             <td><input type="text" name="description" autocomplete="off"></td>
                             <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
@@ -179,36 +177,44 @@
                 </table>
             </div>
             <!-- xxx -->
-            <h3>Manpower & Equipment<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <h3>လုပ်သားဦးရေ နှင့် စက်ပစ္စည်း<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
             <div class="manpower add-table toggle-table">
                 <table id="acc-table" class="manpower-equiment-table">
                     <thead>
                         <tr>
-                            <th colspan="3">Manpower</th>
-                            <th colspan="3">Equipment</th>
+                            <th colspan="3">လုပ်သားဦးရေ</th>
+                            <th colspan="3">စက်ပစ္စည်း</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="manpowerTable">
                         <tr>
-                            <td>Desgnation</td>
-                            <td>Number</td>
-                            <td>Present</td>
-                            <td>Machine Type</td>
-                            <td>Number</td>
-                            <td>Present</td>
+                            <td>ရာထူး</td>
+                            <td>ဆိုဒ်ထဲရှိလူဦးရေ</td>
+                            <td>အလုပ်လုပ်သည့် လူဦးရေ</td>
+                            <td>စက်ပစ္စည်း အမျိုးအစား</td>
+                            <td>ဆိုဒ်ထဲရှိ စက် အရေအတွက်</td>
+                            <td>အလုပ်လုပ်သည့် စက် အရေအတွက်</td>
                         </tr>
                         {% for data in extra_datas[1] %}
                         <tr>
                             <td>{{data[0][0]}}</td>
                             <td>{% if data[0][0] != '' %} {{data[0][1]}} {% endif %}</td>
                             <td>
-                                <input onchange="checkInpNumber(this,0,'{{data[0][1]}}')" {% if data[0][0] == "" or data[0][0] == 'Total' %} hidden {% else %} name="manpower_amt" required {% endif %} type="number" autocomplete="off">
+                                {% if data[0][0] == 'Total' %}
+                                <p id="manpower_amt">0</p>
+                                {% else %}
+                                <input onchange="checkInpNumber(this,0,'{{data[0][1]}}')" {% if data[0][0] == "" or data[0][0] == 'Total' %} hidden {% else %} name="manpower_amt" class="manpower_amt" required {% endif %} type="number" autocomplete="off">                                
+                                {% endif %}                               
                                 <input type="number" value="{{data[0][2]}}" {% if data[0][2] != 0 %} name="manpower_id" {% endif %} hidden/>
                             </td>
                             <td>{{data[1][0]}}</td>
                             <td>{% if data[1][0] != '' %} {{data[1][1]}} {% endif %}</td>
                             <td>
-                                <input onchange="checkInpNumber(this,0,'{{data[1][1]}}')" type="number" {% if data[1][0] == "" or data[1][0] == 'Total' %} hidden {% else %} required name="type_amt" {% endif %} autocomplete="off">
+                                {% if data[1][0] == 'Total' %}
+                                <p id="type_amt">0</p>
+                                {% else %}
+                                <input onchange="checkInpNumber(this,0,'{{data[1][1]}}')" type="number" {% if data[1][0] == "" or data[1][0] == 'Total' %} hidden {% else %} required name="type_amt" class="type_amt" {% endif %} autocomplete="off">                                
+                                {% endif %}
                                 <input type="number" value="{{data[1][2]}}" {% if data[1][2] != 0 %} name="type_id" {% endif %}  hidden/>
                             </td>
                         </tr>
@@ -217,39 +223,42 @@
                 </table>
             </div>
             <!-- repair & maintainance -->
-            <h3>Repair & Maintainance<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-            <table class="repair-maintainace-table add-table toggle-table">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Machine Name</th>
-                        <th>Description</th>
-                        <th>Accident</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody  id="repairTable">
-                    <tr>
-                        <td>1</td>
-                        <td><input type="text" name="acc_machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
-                        <td><input type="text" autocomplete="off"  name="acc_description"></td>
-                        <td><input type="checkbox"   onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
-                        <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
-                    </tr>
-                    <tr class="add-btn">
-                        <td class="repairBtn"><button onclick="newRow(this)"  type="button">+</button></td>
-                    </tr>
-                    <tr class="d-none">
-                        <td>1</td>
-                        <td><input type="text"  name="acc_machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
-                        <td><input type="text"  name="acc_description"></td>
-                        <td><input type="checkbox"  onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
-                        <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
-                    </tr>
-                </tbody>
-            </table>
+            <h3>စက်ပြုပြင်စာရင်း<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <div class="activities-table add-table toggle-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>စဉ်</th>
+                            <th>စက်ပစ္စည်း အမျိုးအစား</th>
+                            <th>အကြောင်းအရာ</th>
+                            <th>ထိခိုက်မှု</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody  id="repairTable">
+                        <tr>
+                            <td>1</td>
+                            <td><input type="text" name="acc_machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                            <td><input type="text" autocomplete="off"  name="acc_description"></td>
+                            <td><input type="checkbox" onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
+                            <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
+                        </tr>
+                        <tr class="add-btn">
+                            <td class="repairBtn"><button onclick="newRow(this)"  type="button">+</button></td>
+                        </tr>
+                        <tr class="d-none">
+                            <td>1</td>
+                            <td><input type="text"  name="acc_machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                            <td><input type="text"  name="acc_description"></td>
+                            <td><input type="checkbox"  onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
+                            <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <div class="btn-bg">
-                <button class="submit-btn" type="submit">Submit</button>
+                <button class="submit-btn" type="submit">အတည်ပြုပါသည်</button>
             </div>
         </form>
     </div>
@@ -258,7 +267,7 @@
     <form id="hidden-income-expense-form" action="{{url_for('imports.import_data',what='daily_activity_edit_form')}}" method="post">
         <input type="number" name="income_expense_id" id="hidden-income-expense-id" value="" hidden>
     </form>
-    <h1 class="text-center">Daily Activity List</h1>
+    <h4 class="text-center mt-3">နေ့စဉ် လုပ်ငန်းဆောင်တာပြ စာရင်းဇယား</h4>
     
     <div class="text-center m-3">
         <div class="row">
@@ -285,21 +294,21 @@
         <table>
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Project Code</th>
-                    <th>Project Name</th>
-                    <th>Daily Report Number</th>
-                    <th>Project Status</th>
-                    <th>Reason</th>
-                    <th>Weather%</th>
-                    <th>Feet</th>
-                    <th>Sud</th>
-                    <th>Hours</th>
-                    <th>Use Diesel</th>
-                    <th>Manpower</th>
-                    <th>Equipment</th>
-                    <th>R & M</th>
-                    <th>Accident</th>
+                    <th>ရက်စွဲ</th>
+                    <th>ဆိုဒ် ကုဒ်</th>
+                    <th>ဆိုဒ် အမည်</th>
+                    <th>နေ့စဉ် Report နံပါတ်</th>
+                    <th>ဆိုဒ် အခြေအနေ</th>
+                    <th>အကြောင်းပြချက် </th>
+                    <th>ရာသီဥတု သက်ရောက်မှု</th>
+                    <th>လုပ်ဆောင်မှု ပေ</th>
+                    <th>လုပ်ဆောင်မှု ကျင်း</th>
+                    <th>စုစုပေါင်း ဂျူတီ နာရီ</th>
+                    <th>စုစုပေါင်း ဒီဇယ် ( ဂါလန် )</th>
+                    <th>စုစုပေါင်း လူဦးရေ</th>
+                    <th>စုစုပေါင်း စက်ပစ္စည်း</th>
+                    <th>ပြင်ဆင်မှု နဲ့ ထိန်းသိမ်းမှု</th>
+                    <th>မတော်တဆ ထိခိုက်မှု</th>
                 </tr>
             </thead>
             <tbody>
@@ -347,113 +356,119 @@
             <option value="{{data[0]}}" getId="{{data[1]}}">
         {% endfor %}
     </datalist>
-<div class="body-for-daily-table">
-    <h3>Daily Construction Activities<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+<div class="body-for-daily-table" id="body-for-daily-table">
+    <div class="buttons-holder m-3">
+        <button  type="button" onclick="deleteTheWholeForm('income_expense','{{form_datas[9]}}')" id="prjDelete"   class="btn btn-danger d-none">ဖျက်သိမ်းရန်</button>   
+        {% if request.cookies.get('cpu_role') in ('3','4') %}
+        <button  type="button" onclick="editPrjStatis(this,'body-for-daily-table')" id="prjEdit"   class="btn btn-secondary">ပြင်ဆင်ရန်</button>   
+        {% endif %}
+        <a href="{{url_for('site_imports.daily_activity',typ='view')}}" class="nav-item"><button type="button"  class="btn btn-dark ms-3shadow-sm">မလုပ်ဆောင်တော့ပါ</button></a>   
+    </div>
+    <h3>‌နေ့စဥ်လုပ်ဆောင်ချက်<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
     <form action="{{url_for('imports.site_imports',typ='daily-activity')}}" method="post">
-        <!-- project status -->
         <section class="project-status-section add-table">
             <div class="first-div">
-                <span>Project Status</span>
-                    <label for="working">Working
-                        <input type="radio" {% if form_datas[15] %} checked {% endif %} value="working" name="work" id="working" autocomplete="off" onchange="notWork(this)">
-                    </label>
-                    <label for="notWorking">Not Working
-                        <input type="radio" {% if not form_datas[15] %} checked {% endif %}  value="notWorking" name="work" id="notWorking" autocomplete="off" onchange="notWork(this)">
-                    </label>
-                    <input type="text" {% if not form_datas[15] %} value="{{form_datas[16]}}" {% endif %} placeholder="reson for not working" name="reason-for-not-working" autocomplete="off" id="notWorkingInput"><br>
+                <span>ဆိုဒ်အခြေအနေ</span>
+                <label for="working">လုပ်နေသည်
+                    <input type="radio" disabled {% if form_datas[15] %} checked {% endif %} value="working" name="work" id="working" autocomplete="off" onchange="notWork(this)">
+                </label>
+                <label for="notWorking">ရပ်ထားသည်
+                    <input type="radio" disabled {% if not form_datas[15] %} checked {% endif %}  value="notWorking" name="work" id="notWorking" autocomplete="off" onchange="notWork(this)">
+                </label>
+                <input type="text" disabled {% if not form_datas[15] %} value="{{form_datas[16]}}" style="display: inline-block;" {% endif %} name="reason-for-not-working" autocomplete="off" id="notWorkingInput"><br>
             </div>
             <div class="sec-div">
-                <span>Daily Report Number</span>
+                <span>နေ့စဉ် Report နံပါတ်</span>
                 <span>- {{form_datas[13]}}</span>
-                <span>Date</span>
-                <span>- <input type="date" value="{{form_datas[14]}}" name="set_date"></span>
+                <span>နေ့စွဲ</span>
+                <span>- <input disabled type="date" value="{{form_datas[14]}}" name="set_date"></span>
             </div>
         </section>
         <!-- xxx -->
-        <h3>Project Details<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <h3>ဆိုဒ်အသေးစိတ်အချက်အလက်<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
         <section class="project-details-section add-table" id="projectDetailSec">
 
-            <label class="label" style="display: block;">Project Code</label>
+            <label class="label" style="display: block;">ဆိုဒ်ကုတ်</label>
             <span id="hoAcName">- {{form_datas[0]}}</span>
 
             <!-- <label class="label" style="display: block;">HO A/C Name</label>
             <span id="hoAcName">- {{form_datas[1]}}</span> -->
 
-            <label class="label" style="display: block;">Project Name</label>
+            <label class="label" style="display: block;">ဆိုဒ်အမည်</label>
             <span id="prjName">- {{form_datas[2]}}</span>
 
-            <label class="label" style="display: block;">Project Location</label>
+            <label class="label" style="display: block;">ဆိုဒ်တည်နေရာ</label>
             <span id="prjLoca">- {{form_datas[3]}}</span>
 
-            <label class="label" style="display: block;">Project Start Date</label>
+            <label class="label" style="display: block;">ဆိုဒ်စတင်ရက်</label>
             <label id="prjDate">- {{form_datas[4]}}</label>
 
-            <label class="label" style="display: block;">Supervisor</label>
+            <label class="label" style="display: block;">ကြီးကြပ်ရေးမှုး</label>
             <span id="sprVisor">- {{form_datas[5]}}</span>
 
             <input type="number"  value="{{form_datas[12]}}" style="display: none;"  class="leePalKwar" name="pj_id">
         </section>
         <!-- xxx -->
         <!-- Affects of Weather On Project -->
-        <h3>Weather<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <h3>ရာသီဥတုအခြေအနေ<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
         <section class="weather add-table toggle-table" id="weather" onchange="selection()">
-            <span>No Affects All Day</span>
-            <input type="checkbox" autocomplete="off" {% if form_datas[17] == 0 %} checked {% else %} disabled {% endif %} required id="noAff">
-            <span>Affected % of Work Day</span>
-            <input type="number" placeholder="%" {% if form_datas[17] not in (0,100) %} value="{{form_datas[17]}}" {% else %} disabled {% endif %} autocomplete="off" required id="affPer">
-            <span>Affected All Day</span>
-            <input type="checkbox" {% if form_datas[17] == 100 %} checked {% else %} disabled {% endif %} autocomplete="off" required id="affAll">
+            <span>နေသာသည်</span>
+            <input type="checkbox"  autocomplete="off" {% if form_datas[17] == 0 %} checked {% endif %} disabled id="noAff">
+            <span>ရာသီဥတုသက်ရောက်မှုရာခိုင်နှုန်း</span>
+            <input type="number" placeholder="%" {% if form_datas[17] not in (0,100) %} value="{{form_datas[17]}}"  {% endif %} disabled  autocomplete="off"  id="affPer">
+            <span>မိုးရွာသည်</span>
+            <input type="checkbox" {% if form_datas[17] == 100 %} checked {% endif %} disabled  autocomplete="off"  id="affAll">
             <input type="number"  required hidden id="wealtherAff" value="{{form_datas[17]}}" name="wealtherAff">
         </section>
                     
         <!-- xxx -->
-        <h3>Estimate & Result<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <h3>ခန့်မှန်းချက် နှင့် ရလဒ်<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
         <table class="estimate-result-table add-table toggle-table">
             <thead>
                 <tr>
-                    <th>Description</th>
-                    <th>Estimate</th>
-                    <th>Finished</th>
-                    <th>Balance</th>
+                    <th>အကြောင်းအရာ</th>
+                    <th>ခန့်မှန်းချက်</th>
+                    <th>ပြီးစီးမှု</th>
+                    <th>လက်ကျန်</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>Day</td>
+                    <td>ကြာချိန် ( ရက် )</td>
                     <td>{{form_datas[6]}}</td>
                     <td>0</td>
                     <td>{{form_datas[6]}}</td>
                 </tr>
                 <tr>
-                    <td>Feet</td>
+                    <td>ပေ</td>
                     <td>{{form_datas[7]}}</td>
                     <td class="d-none">{{history_datas[0]}}</td>
-                    <td><input type="number" value="{{form_datas[18]}}" name="completeFeet" onchange="calculateInlineValue(this)" step=".01" autocomplete="off" required></td>
+                    <td><input type="number" disabled value="{{form_datas[18]}}" name="completeFeet" onchange="calculateInlineValue(this)" step=".01" autocomplete="off" required></td>
                     <td>{{form_datas[7] - ( form_datas[18] + history_datas[1] )}}</td>
                 </tr>
                 <tr>
-                    <td>Sud</td>
+                    <td>ကျင်း</td>
                     <td>{{form_datas[8]}}</td>
                     <td class="d-none">{{history_datas[1]}}</td>
-                    <td><input type="number" value="{{form_datas[19]}}" name="completeSud" onchange="calculateInlineValue(this)" step=".01" autocomplete="off" required></td>
+                    <td><input type="number" disabled value="{{form_datas[19]}}" name="completeSud" onchange="calculateInlineValue(this)" step=".01" autocomplete="off" required></td>
                     <td>{{form_datas[8] - ( form_datas[19] + history_datas[1] )}}</td>
                 </tr>
                 <tr>
-                    <td>Hours</td>
+                    <td>ဂျူတီ နာရီ</td>
                     <td class="traceHour">{{form_datas[9]}}</td>
                     <td class="d-none traceHour">{{history_datas[2]}}</td>                   
                     <td class="traceHour">{{form_datas[20]}}</td>
                     <td class="traceHour">{{form_datas[9] - form_datas[20]}}</td>
                 </tr>
                 <tr>
-                    <td>Disel(Liter)</td>
+                    <td>ဒီဇယ် ( ဂါလန် )</td>
                     <td class="traceFuel">{{form_datas[10]}}</td>
                     <td class="d-none traceFuel">{{history_datas[3]}}</td>
                     <td class="traceFuel">{{form_datas[21]}}</td>
                     <td class="traceFuel">{{form_datas[10] - form_datas[21]}}</td>
                 </tr>
                 <tr>
-                    <td>Expense(Amount)</td>
+                    <td>အသုံးစရိတ်</td>
                     <td>{{form_datas[11]}}</td>
                     <td>{{history_datas[4]}}</td>
                     <td>{{form_datas[11] - history_datas[4]}}</td>
@@ -461,18 +476,18 @@
             </tbody>
         </table>
         <!-- xxx -->
-        <h3>Activites<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <div class="activities-table add-table toggle-table">
+        <h3 {% if not form_datas[15] %} class="d-none" {% endif %}>လုပ်ဆောင်ချက်<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <div class="activities-table add-table toggle-table  {% if not form_datas[15] %} d-none {% endif %}">
             <table>
                 <thead>
                     <tr>
-                        <th>No</th>
-                        <th>Machine</th>
-                        <th>Job Type</th>
-                        <th>Job Function</th>
-                        <th>Duty Hour</th>
-                        <th>Liter</th>
-                        <th>Description</th>
+                        <th>စဉ်</th>
+                        <th>စက်</th>
+                        <th>အလုပ်အမျိုးအစား</th>
+                        <th>အလုပ်လုပ်ဆောင်ချက်</th>
+                        <th>အလုပ်ချိန်</th>
+                        <th>လီတာ</th>
+                        <th>မှတ်ချက်</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -480,17 +495,17 @@
                     {% for line_data in line_datas[0] %}
                     <tr>
                         <td>1</td>
-                        <td><input type="text" value="{{line_data[1]}}" required name="machine_id" autocomplete="off" hidden><input type="text" value="{{line_data[2]}}" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
-                        <td><input type="text" value="{{line_data[3]}}" required name="job_type_id" autocomplete="off" hidden><input type="text" value="{{line_data[4]}}" list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
-                        <td><input type="text" value="{{line_data[5]}}" required name="job_function_id" autocomplete="off" hidden><input type="text"  value="{{line_data[6]}}" list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
-                        <td class="duty-hour"><input type="number" value="{{line_data[7]}}" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" required>:<input type="number" value="{{line_data[8]}}" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
-                        <td><input type="number" name="used_fuel" autocomplete="off" value="{{line_data[9]}}" required></td>
-                        <td><input type="text" name="description" value="{{line_data[10]}}" autocomplete="off"></td>
-                        <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
+                        <td><input type="text" disabled value="{{line_data[1]}}" required name="machine_id" autocomplete="off" hidden><input type="text" value="{{line_data[2]}}" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                        <td><input type="text" disabled value="{{line_data[3]}}" required name="job_type_id" autocomplete="off" hidden><input type="text" value="{{line_data[4]}}" list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
+                        <td><input type="text" disabled value="{{line_data[5]}}" required name="job_function_id" autocomplete="off" hidden><input type="text"  value="{{line_data[6]}}" list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
+                        <td class="duty-hour"><input type="number" disabled value="{{line_data[7]}}" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" required>:<input disabled type="number" value="{{line_data[8]}}" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
+                        <td><input disabled type="number" step="any" name="used_fuel" autocomplete="off" value="{{line_data[9]}}" required></td>
+                        <td><input disabled type="text" name="description" value="{{line_data[10]}}" autocomplete="off"></td>
+                        <td><button disabled  type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                     </tr>
                     {% endfor %}
                     <tr class="add-btn">
-                        <td class="activityBtn"><button onclick="newRow(this)"  type="button">+</button></td>
+                        <td class="activityBtn"><button onclick="newRow(this)"  disabled  type="button">+</button></td>
                     </tr>
                     <tr class="d-none">
                         <td>1</td>
@@ -498,7 +513,7 @@
                         <td><input type="text" class="shouldRequired" name="job_type_id" autocomplete="off" hidden><input type="text" list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
                         <td><input type="text" class="shouldRequired" name="job_function_id" autocomplete="off" hidden><input type="text" list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
                         <td class="duty-hour"><input type="number" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class="shouldRequired">:<input type="number" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" class="shouldRequired"></td>
-                        <td><input type="number" name="used_fuel" autocomplete="off" class="shouldRequired"></td>
+                        <td><input type="number" step="any" name="used_fuel" autocomplete="off" class="shouldRequired"></td>
                         <td><input type="text" name="description" autocomplete="off"></td>
                         <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                     </tr>
@@ -506,36 +521,44 @@
             </table>
         </div>
         <!-- xxx -->
-        <h3>Manpower & Equipment<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <h3>လုပ်သားဦးရေ နှင့် စက်ပစ္စည်း<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
         <div class="manpower add-table toggle-table">
             <table id="acc-table" class="manpower-equiment-table">
                 <thead>
                     <tr>
-                        <th colspan="3">Manpower</th>
-                        <th colspan="3">Equipment</th>
+                        <th colspan="3">လုပ်သားဦးရေ</th>
+                        <th colspan="3">စက်ပစ္စည်း</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Designation</td>
-                        <td>Number</td>
-                        <td>Present</td>
-                        <td>Machine Type</td>
-                        <td>Number</td>
-                        <td>Present</td>
+                        <td>ရာထူး</td>
+                        <td>ဆိုဒ်ထဲရှိလူဦးရေ</td>
+                        <td>အလုပ်လုပ်သည့် လူဦးရေ</td>
+                        <td>စက်ပစ္စည်း အမျိုးအစား</td>
+                        <td>ဆိုဒ်ထဲရှိ စက် အရေအတွက်</td>
+                        <td>အလုပ်လုပ်သည့် စက် အရေအတွက်</td>
                     </tr>
                     {% for data in extra_datas[1] %}
                     <tr>
                         <td>{{data[0][0]}}</td>
                         <td>{% if data[0][0] != '' %} {{data[0][1]}} {% endif %}</td>
                         <td>
-                            <input onchange="checkInpNumber(this,0,'{{data[0][1]}}')" {% if data[0][0] == "" or data[0][0] == 'Total' %} hidden {% else %} name="manpower_amt" value="{{data[0][3]}}" required {% endif %} type="number" autocomplete="off">
+                            {% if data[0][0] == 'Total' %}
+                            <p id="manpower_amt">0</p>
+                            {% else %}
+                            <input disabled onchange="checkInpNumber(this,0,'{{data[0][1]}}')" {% if data[0][0] == "" or data[0][0] == 'Total' %} hidden {% else %} name="manpower_amt" value="{{data[0][3]}}" required {% endif %} type="number" autocomplete="off">
+                            {% endif %}
                             <input type="number" value="{{data[0][2]}}" {% if data[0][2] != 0 %} name="manpower_id" {% endif %} hidden/>
                         </td>
                         <td>{{data[1][0]}}</td>
                         <td>{% if data[1][0] != '' %} {{data[1][1]}} {% endif %}</td>
                         <td>
-                            <input onchange="checkInpNumber(this,0,'{{data[1][1]}}')" type="number" {% if data[1][0] == "" or data[1][0] == 'Total' %} hidden {% else %} required name="type_amt" value="{{data[1][3]}}" {% endif %} autocomplete="off">
+                            {% if data[1][0] == 'Total' %}
+                            <p id="type_amt">0</p>
+                            {% else %}
+                            <input disabled onchange="checkInpNumber(this,0,'{{data[1][1]}}')" type="number" {% if data[1][0] == "" or data[1][0] == 'Total' %} hidden {% else %} required name="type_amt" value="{{data[1][3]}}" {% endif %} autocomplete="off">
+                            {% endif %}
                             <input type="number" value="{{data[1][2]}}" {% if data[1][2] != 0 %} name="type_id" {% endif %}  hidden/>
                         </td>
                     </tr>
@@ -544,43 +567,51 @@
             </table>
         </div>
         <!-- repair & maintainance -->
-        <h3>Repair & Maintainance<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <table class="repair-maintainace-table add-table toggle-table">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Machine Name</th>
-                    <th>Description</th>
-                    <th>Accident</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody  id="repairTable">
-                {% for line_data in line_datas[1] %}
-                <tr>
-                    <td>1</td>
-                    <td><input type="text" required name="acc_machine_id" value="{{line_data[1]}}" autocomplete="off" hidden><input type="text" value="{{line_data[2]}}" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
-                    <td><input type="text" autocomplete="off" value="{{line_data[3]}}" required name="acc_description"></td>
-                    <td><input type="checkbox" {% if line_data[4] %} checked {% endif %} onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
-                    <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
-                </tr>
-                {% endfor %}
-                <tr class="add-btn">
-                    <td class="repairBtn"><button onclick="newRow(this)"  type="button">+</button></td>
-                </tr>
-                <tr class="d-none">
-                    <td>1</td>
-                    <td><input type="text" class="shouldRequired" name="acc_machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
-                    <td><input type="text" class="shouldRequired" name="acc_description"></td>
-                    <td><input type="checkbox" checked onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
-                    <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
-                </tr>
-            </tbody>
-        </table>
+        <h3>စက်ပြုပြင်စာရင်း<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+            <div class="activities-table add-table toggle-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>စဉ်</th>
+                            <th>စက်ပစ္စည်း အမျိုးအစား</th>
+                            <th>အကြောင်းအရာ</th>
+                            <th>ထိခိုက်မှု</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody  id="repairTable">
+                        {% for line_data in line_datas[1] %}
+                        <tr>
+                            <td>1</td>
+                            <td><input disabled type="text" required name="acc_machine_id" value="{{line_data[1]}}" autocomplete="off" hidden><input type="text" value="{{line_data[2]}}" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                            <td><input disabled type="text" autocomplete="off" value="{{line_data[3]}}" required name="acc_description"></td>
+                            <td><input disabled type="checkbox" {% if line_data[4] %} checked {% endif %} onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
+                            <td><button disabled type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="add-btn">
+                            <td class="repairBtn"><button onclick="newRow(this)" disabled  type="button">+</button></td>
+                        </tr>
+                        <tr class="d-none">
+                            <td>1</td>
+                            <td><input type="text" class="shouldRequired" name="acc_machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                            <td><input type="text" class="shouldRequired" name="acc_description"></td>
+                            <td><input type="checkbox" checked onchange="addValueToCheckBox(this)" value="1" name="hasAccident"></td>
+                            <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         <div class="btn-bg">
-            <button class="submit-btn" type="submit">Submit</button>
+            <button class="submit-btn d-none" id="edit-submit-btn-pj-stat" type="submit">အတည်ပြုပါသည်</button>
         </div>
     </form>
 </div>
 {% endif %}
 {% endblock %}
+
+{% block project_datas %}
+    {% for data in project_datas %}
+        <p class="m-1 ms-2" shopid="{{data[0]}}" projectcode="{{data[1]}}" onclick="assignShop(this)">{{data[2]}} _&_ {{data[1]}}</p>
+    {% endfor %}
+{% endblock %}21

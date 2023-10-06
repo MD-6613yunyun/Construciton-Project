@@ -13,7 +13,7 @@ from fpdf import FPDF
 base_directory = os.path.dirname(os.path.abspath(__file__))
 
 # Combine the base directory and relative path to get the full file path
-excel_path = os.path.join(base_directory, "static/downloadable_files/PartnerLedger.xlsx")
+excel_path = os.path.join(base_directory, "static/downloadable_files/IncomeExpesneReport.xlsx")
 pdf_path = os.path.join(base_directory, "static/downloadable_files/IncomeExpenseReport.pdf")
 output_path = os.path.join(base_directory, "static/php/output.txt")
 input_path = os.path.join(base_directory, "static/php/input.txt")
@@ -42,7 +42,8 @@ def check_supervisior(name:str):
 def summary_duty_report(mgs=None):
     conn = db_connect()
     cur = conn.cursor()
-    role = request.cookies.get('role')
+    user_id = request.cookies.get('cpu_user_id')
+    role = request.cookies.get('cpu_role')
     if not role:
         return redirect(url_for('views.home'))
     else:
@@ -66,13 +67,15 @@ def summary_duty_report(mgs=None):
                     ON emp.id = ps.supervisor_id
                     WHERE report.project_id = %s
                     GROUP BY ps.estimate_feet,ps.will_sud,ps.estimate_sud,ps.estimate_duty,ps.estimate_fuel,ps.estimate_expense,report.project_id,emp.name )
-                SELECT pj.name,pj.code,person,e_feet,e_sud_1,e_sud,e_duty,balance_duty,e_duty-balance_duty,e_fuel,ROUND(a_fuel/4.54,2) AS a_fuel_gl,e_fuel-ROUND(a_fuel/4.54,2),e_expense,e_sud,SUM(pd.work_done),e_sud - SUM(pd.work_done) AS balance_sud,pj.finished_state
+                SELECT pj.name,pj.code,person,e_feet,e_sud_1,e_sud,e_duty,balance_duty,e_duty-balance_duty,e_fuel,ROUND(a_fuel/4.54,2) AS a_fuel_gl,e_fuel-ROUND(a_fuel/4.54,2),e_expense,e_sud,SUM(pd.work_done),e_sud - SUM(pd.work_done) AS balance_sud,status.name
                     FROM project_each_day_work_done pd
                     INNER JOIN sum_dty 
                     ON sum_dty.p_id = pd.project_id
                     LEFT JOIN analytic_project_code pj
                     ON pj.id = sum_dty.p_id
-                    GROUP BY pj.name,balance_duty,pj.code,person,e_feet,e_sud_1,e_sud,a_duty,a_fuel,e_duty,e_fuel,e_expense,pj.finished_state;
+                    LEFT JOIN project_status status
+                    ON status.id = pj.project_status_id
+                    GROUP BY pj.name,balance_duty,pj.code,person,e_feet,e_sud_1,e_sud,a_duty,a_fuel,e_duty,e_fuel,e_expense,status.name;
             """,(pj_summary_id,))
             result_data = cur.fetchall()
             if result_data == []:
@@ -83,7 +86,7 @@ def summary_duty_report(mgs=None):
                                     COALESCE(total_sum, 0) AS total_expenses,
                                     COALESCE(project_code, 'Unassigned Project Code') AS pj_code,
                                     COALESCE(project_name, 'Unassigned Project Name') AS pj_name,
-                                    COALESCE(project_state,False) AS pj_state
+                                    COALESCE(project_state,'Unassigned') AS pj_state
                                 FROM
                                     duty_odoo_report report
                                 LEFT JOIN (
@@ -108,7 +111,7 @@ def summary_duty_report(mgs=None):
                                             FROM
                                                 expense_prepaid ep
                                             WHERE ep.res_company_id = (SELECT business_unit_id FROM analytic_project_code 
-                                                    WHERE id = 63)
+                                                    WHERE id = '{pj_summary_id}')
                                             GROUP BY
                                                 ep.project_id, ep.res_company_id
                                             UNION ALL
@@ -126,15 +129,17 @@ def summary_duty_report(mgs=None):
                                 ) ep ON report.project_id = ep.p_id
                                 LEFT JOIN (
                                     SELECT
-                                        id,
-                                        name AS project_name,
-                                        code AS project_code,
-                                        finished_state AS project_state
+                                        pj.id,
+                                        pj.name AS project_name,
+                                        pj.code AS project_code,
+                                        status.name AS project_state
                                     FROM
-                                        analytic_project_code
+                                        analytic_project_code pj
+                                    INNER JOIN project_status status
+                                    ON status.id = pj.project_status_id 
                                 ) pj ON pj.id = report.project_id
                                 WHERE
-                                    report.project_id = 63
+                                    report.project_id = '{pj_summary_id}'
                                 GROUP BY
                                     report.project_id, work_done_sum, total_sum, project_code, project_name,project_state;
                 """)
@@ -142,11 +147,9 @@ def summary_duty_report(mgs=None):
                 if datas == []:
                     cur.execute("SELECT name,code FROM analytic_project_code WHERE id = %s;",(pj_summary_id,))
                     pj_code_name = cur.fetchall()
-                    cur.execute("SELECT id ,name , code FROM analytic_project_code;")
-                    pj_datas = cur.fetchall()
-                    cur.execute("SELECT id , machine_name FROM fleet_vehicle;")
-                    machine_datas = cur.fetchall()
-                    return render_template("summary_form.html",machine_datas = machine_datas,pj_datas = pj_datas,message=f"No data was found for your project - <br>{pj_code_name[0][0]} <--> {pj_code_name[0][1]}")
+                    cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+                    project_datas = cur.fetchall()
+                    return render_template("summary_form.html",pj_code_name = pj_code_name,project_datas = project_datas)
                 result_data = [(datas[0][5],datas[0][4],'Unassigned Supervisor',Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),datas[0][1],Decimal('0.0')-datas[0][1],Decimal('0.0'),datas[0][0],Decimal('0.0')-datas[0][0],Decimal('0.0'),Decimal('0.0'),datas[0][3],Decimal('0.0')-datas[0][3],datas[0][6])]
                 exp = [datas[0][2],Decimal('0.0')-datas[0][2]]
             else:
@@ -174,44 +177,12 @@ def summary_duty_report(mgs=None):
                 exp = cur.fetchall()
                 if result_data and exp:
                     exp = [exp[0][0],result_data[0][-5] - exp[0][0]]
+            cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+            project_datas = cur.fetchall()
             cur.close()
             conn.close()
-            return render_template("summary_form.html",result_data = result_data[0] if result_data else result_data,message=mgs,exp=exp)
-        else:
-            pj_idds = request.form.getlist('code')
-            pj_idds = [int(dt.split('|')[2].strip()) for dt in pj_idds]
-            supervisior = request.form.getlist('supervisior')
-            machine_ids = request.form.getlist('machine-ids')
-            location = request.form.getlist('location')
-            pj_start_dt = request.form.getlist('pj-start-date')
-            day = request.form.getlist('estimate_day')
-            feets = request.form.getlist('feet')
-            will_suds = request.form.getlist('will-sud')
-            suds = request.form.getlist('sud')
-            duties = request.form.getlist('duty')
-            fuels = request.form.getlist('fuel')
-            expenses = request.form.getlist('expense')
-            print(machine_ids,location,pj_start_dt,day)
-            tuples_list = [data for data in zip(pj_idds,supervisior,feets,will_suds,suds,duties,fuels,expenses)]
-            query = """ INSERT INTO project_statistics (project_id,,supervisior,estimate_feet,will_sud,estimate_sud,estimate_duty,estimate_fuel,estimate_expense) VALUES """
-            # for tup in tuples_list:
-            #     query += f"{tup},"
-            # try:
-            #     cur.execute(query[:-1]) 
-            #     conn.commit()                
-            # except IntegrityError as err:
-            #     print(err)
-            #     conn.rollback()
-            #     mgs = 'Statistics of project already existed..'
-            # print(query)
-
-    cur.execute("SELECT id ,name , code FROM analytic_project_code")
-    pj_datas = cur.fetchall()
-    cur.execute("SELECT id , machine_name FROM fleet_vehicle;")
-    machine_datas = cur.fetchall()
-    cur.close()
-    conn.close()
-    return render_template("summary_form.html",machine_datas = machine_datas,pj_datas = pj_datas,message=mgs)
+            return render_template("summary_form.html",result_data = result_data[0] if result_data else result_data,message=mgs,exp=exp,project_datas=project_datas)
+    return render_template("not_found.html")
 
 @reports.route('/call-project-statistics/<pjCode>')
 def call_project_statistics(pjCode):
@@ -290,6 +261,12 @@ def get_the_previous_data(temp,fst_temp,optionGroupBy):
 def get_monthly_duty():
     conn = db_connect()
     cur = conn.cursor()
+    user_id = request.cookies.get("cpu_user_id")
+    role = request.cookies.get("cpu_role")
+    if not user_id:
+        return redirect(url_for('auth.authenticate',typ='log'))
+    elif role not in ('2','3','4'):
+        return render_template("access_error.html")
     if request.method == 'POST':
         pj_id = request.form.get("pj_id")
         date_duty = request.form.get("start")
@@ -462,10 +439,18 @@ def get_monthly_duty():
             idx_for_wd += 1
     else:
         return redirect(url_for('views.home'))
-    return render_template("monthly_duty.html",all_classes = all_classes,h_datas = [pj_name,dt_text,pj_code],final_dct=final_dct,message=None,flt=flt,show_all = show_all)
+    cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+    project_datas = cur.fetchall()
+    return render_template("monthly_duty.html",all_classes = all_classes,h_datas = [pj_name,dt_text,pj_code],final_dct=final_dct,message=None,flt=flt,show_all = show_all,project_datas = project_datas)
 
 @reports.route("/report-by-each-machine",methods=['GET','POST'])
 def report_by_each_machine():
+    user_id = request.cookies.get("cpu_user_id")
+    role = request.cookies.get("cpu_role")
+    if not user_id:
+        return redirect(url_for('auth.authenticate',typ='log'))
+    elif role not in ('2','3','4') or request.method != 'POST':
+        return render_template("access_error.html")
     conn = db_connect()
     cur = conn.cursor()
     pj_name, pj_code = request.form.get("pj_name").split('_&_')
@@ -475,6 +460,8 @@ def report_by_each_machine():
     print(start_dt)
     print(end_dt)
     print(pj_id)
+    cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+    project_datas = cur.fetchall()
     yer , mon , sth = map(int,start_dt.split("-"))
     if pj_id == "" or start_dt == "" or end_dt == "" or pj_name == "":
         return redirect(url_for('views.home',mgs=f"Incomplete Field For Project Name - Project Code."))
@@ -483,7 +470,7 @@ def report_by_each_machine():
                         AND duty_date >= %s AND duty_date <= %s;""",(pj_id,start_dt,end_dt))
     date_datas = cur.fetchall()
     if date_datas == [(None,None)]:
-        return render_template('machine_by_each_duty.html',vehicles_dct={},pj_datas=[pj_name,pj_code])
+        return render_template('machine_by_each_duty.html',vehicles_dct={},pj_datas=[pj_name,pj_code],project_datas = project_datas)
     start_dt_contain,end_dt_contain = get_max_day(mon,yer,True,date_datas)
     query = """ WITH date_range AS (
                     SELECT
@@ -552,30 +539,17 @@ def report_by_each_machine():
     total_minutes, total_seconds = divmod(remainder, 60)
     vehicles_dct[temp_machine_name][0].append(f"{int(total_hours):02d}:{int(total_minutes):02d}:{int(total_seconds):02d}")
     vehicles_dct[temp_machine_name][1].append(sum(vehicles_dct[temp_machine_name][1]))
-    return render_template('machine_by_each_duty.html',vehicles_dct=vehicles_dct,date_diff = [int(start_dt_contain.split('-')[2]),int(end_dt_contain.split('-')[2]),(int(end_dt_contain.split('-')[2])-int(start_dt_contain.split('-')[2]))+1,start_dt_contain.split("-")[0] + '/' + start_dt_contain.split("-")[1]],pj_datas=[pj_name,pj_code])
+    return render_template('machine_by_each_duty.html',vehicles_dct=vehicles_dct,date_diff = [int(start_dt_contain.split('-')[2]),int(end_dt_contain.split('-')[2]),(int(end_dt_contain.split('-')[2])-int(start_dt_contain.split('-')[2]))+1,start_dt_contain.split("-")[0] + '/' + start_dt_contain.split("-")[1]],pj_datas=[pj_name,pj_code],project_datas = project_datas)
 
-@reports.route('/income-expense',methods=['GET','POST'])
-def income_expense_tree_view():
-    conn = db_connect()
-    cur = conn.cursor()
-    cur.execute(""" 
-        SELECT form.set_date,form.income_expense_no,pj.code,pj.name,
-        CASE WHEN form.income_status = 't' THEN 'Income' ELSE 'Expense' END,
-        line.description,line.invoice_no,line.qty,line.price,line.amt,line.remark 
-        FROM income_expense_line line 
-        LEFT JOIN income_expense form 
-        ON line.income_expense_id  = form.id
-        LEFT JOIN analytic_project_code pj
-        ON pj.id = form.project_id
-        ORDER BY form.project_id,form.set_date DESC;""")
-    income_expense_lines = cur.fetchall()
-    extra_datas = []
-    cur.execute("SELECT count(id) FROM income_expense_line;")
-    extra_datas.append(cur.fetchone())
-    return render_template("income_expense.html",template_type = 'Report List',income_expense_lines = income_expense_lines,extra_datas=extra_datas)
 
 @reports.route("/income-expense-report",methods=['GET','POST'])
 def income_expense_report_view():
+    user_id = request.cookies.get('cpu_user_id')
+    role = request.cookies.get('cpu_role')
+    if not role:
+        return redirect(url_for('views.home'))
+    elif role not in ('2','3','4','5') or request.method != 'POST':
+        return render_template('access_error.html')
     conn = db_connect()
     cur = conn.cursor()
     pj_name, pj_code = request.form.get("pj_name").split('_&_')
@@ -634,133 +608,117 @@ def income_expense_report_view():
             opening_balance = datas[5]
             result_datas[i] = tuple(datas)
         extra_datas.append(pj_id)
-    if for_what_type == 'pdf' or for_what_type == 'excel':
-        print(result_datas,extra_datas)
-        date_temps = []
-        table_header = ['နေ့စွဲ','အကြောင်းအရာ','ဘောင်ချာ','အဝင်','အထွက်','လက်ကျန်','မှတ်ချက်']
-        pdf_result_datas = []
-        left_balance_temp = 0
-        total_income_for_day = Decimal('0.0')
-        total_expense_for_day = Decimal('0.0')
+    table_header = ['နေ့စွဲ','အကြောင်းအရာ','ဘောင်ချာ','အဝင်','အထွက်','လက်ကျန်','မှတ်ချက်'] 
+    if for_what_type == 'excel':
+        workbook = xlsxwriter.Workbook(excel_path)
+        worksheet = workbook.add_worksheet("Income Expense")
+        merge_format = workbook.add_format({
+            "bold": 1,
+            "align": "center",
+            "valign": "vcenter"
+        })
+        worksheet.merge_range("A1:G1",data=pj_code,cell_format=merge_format)
+        worksheet.merge_range("A2:G2",data=pj_name,cell_format=merge_format) 
+        worksheet.merge_range("A3:G3",data="နေ့စဉ်ငွေ အဝင်အထွက်စာရင်း",cell_format=merge_format)
+        worksheet.write_row(3,0,table_header,cell_format=merge_format)  
+        worksheet.write_row(4,0,[result_datas[0][0],'Opening လက်ကျန်ငွေ','','','',extra_datas[4][0],''],cell_format=merge_format)          
+        for idx,lst in enumerate(result_datas,start=4):
+            worksheet.write_row(idx,0,lst)
+        worksheet.write_row(idx+1,0,['စုစုပေါင်း','','',extra_datas[4][1],extra_datas[4][2],extra_datas[4][3],''])
+        workbook.close()
+        return send_file(excel_path,as_attachment=True) 
+    elif for_what_type == 'pdf':
+        tr_rows = ""
         for data in result_datas:
-            data = list(data)
-            data[0] = data[0].strftime("%Y-%m-%d")
-            if data[0] not in date_temps:
-                if len(date_temps) == 0:
-                    pdf_result_datas.append([data[0],'ရုံးလက်ကျန်ငွေ','','','',extra_datas[4][0],''])
-                else:
-                    pdf_result_datas.append(['','','',total_income_for_day,total_expense_for_day,left_balance_temp,''])
-                    pdf_result_datas.append([data[0],'ရုံးလက်ကျန်ငွေ','','','',left_balance_temp,''])
-                    total_income_for_day = Decimal('0.0')
-                    total_expense_for_day = Decimal('0.0')
-                date_temps.append(data[0])
-            pdf_result_datas.append(data)
-            total_income_for_day += data[3]
-            total_expense_for_day += data[4]
-            left_balance_temp = data[5]
-        pdf_result_datas.append(['','','',total_income_for_day,total_expense_for_day,left_balance_temp,''])
-        if for_what_type == 'pdf':
-            tr_rows = ""
-            for data in pdf_result_datas:
-                if isinstance(data[3],str):
-                    tr_rows += """             
-                        <tr>
-                            <td >{}</td>
-                            <td >{}</td>
-                            <td >{}</td>
-                            <td align="right">{}</td>
-                            <td align="right">{}</td>
-                            <td align="right">{:,}</td>
-                            <td >{}</td>
-                        </tr> """.format(data[0],data[1],data[2],data[3],data[4],data[5],data[6])
-                else:
-                    tr_rows += """             
-                        <tr>
-                            <td >{}</td>
-                            <td >{}</td>
-                            <td >{}</td>
-                            <td align="right">{:,}</td>
-                            <td align="right">{:,}</td>
-                            <td align="right">{:,}</td>
-                            <td >{}</td>
-                        </tr> """.format(data[0],data[1],data[2],data[3],data[4],data[5],data[6])                   
-            html_data = f""" 
-                    <p align='center' line-height='0.2'>{pj_name}</p>
-                    <p align='center' line-height='0.2'>{pj_code}</p>
-                    <p align='center' line-height='0.5'>{start_dt} - {end_dt}</p>
+            tr_rows += """             
+                <tr>
+                    <td >{}</td>
+                    <td >{}</td>
+                    <td >{}</td>
+                    <td align="right">{:,}</td>
+                    <td align="right">{:,}</td>
+                    <td align="right">{:,}</td>
+                    <td >{}</td>
+                </tr> """.format(data[0],data[1],data[2],data[3],data[4],data[5],data[6])                   
+        html_data = f""" 
+                <p align='center' line-height='0.2'>{pj_name}</p>
+                <p align='center' line-height='0.2'>{pj_code}</p>
+                <p align='center' line-height='0.5'>{start_dt} - {end_dt}</p>
+                <div>
+                    <table border="black">
+                        <thead>
+                            <tr>
+                                <th>နေ့စွဲ</th>
+                                <th>အကြောင်းအရာ</th>
+                                <th>ဘောင်ချာ အမှတ်</th>
+                                <th>အဝင်</th>
+                                <th>အထွက်</th>
+                                <th>လက်ကျန်ငွေ</th>
+                                <th>မှတ်ချက်</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td >{result_datas[0][0]}</td>
+                                <td >Opening လက်ကျန်ငွေ</td>
+                                <td ></td>
+                                <td ></td>
+                                <td ></td>
+                                <td >{float(extra_datas[4][0]):,.2f}</td>
+                                <td ></td>
+                            </tr> 
+                            {tr_rows}
+                            <tr>
+                                <td >စုစုပေါင်း</td>
+                                <td ></td>
+                                <td ></td>
+                                <td align="right">{float(extra_datas[4][1]):,.2f}</td>
+                                <td align="right">{float(extra_datas[4][2]):,.2f}</td>
+                                <td align="right">{float(extra_datas[4][3]):,.2f}</td>
+                                <td ></td>
+                            </tr>                             
+                        </tbody>
+                    </table>
+                    <p></p><p></p>
                     <div>
-                        <table border="black">
-                            <thead>
-                                <tr>
-                                    <th>နေ့စွဲ</th>
-                                    <th>အကြောင်းအရာ</th>
-                                    <th>ဘောင်ချာ အမှတ်</th>
-                                    <th>အဝင်</th>
-                                    <th>အထွက်</th>
-                                    <th>လက်ကျန်ငွေ</th>
-                                    <th>မှတ်ချက်</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {tr_rows}
-                            </tbody>
-                        </table>
-                        <p></p><p></p>
                         <div>
-                            <div>
-                                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; စာရင်းကိုင် လက်မှတ် / အမည် &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            </div>
-                            <div>
-                                <span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ဆိုဒ်တာဝန်ခံ လက်မှတ် / အမည် </span>
-                            </div>
+                            <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; စာရင်းကိုင် လက်မှတ် / အမည် &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                         </div>
-                    </div>"""
-            # Execute the PHP script and pass data to it
-            with open(input_path,'w',encoding='utf-8') as file:
-                file.write(html_data)
-            # Execute the PHP script and capture its output with 'utf-8' encoding
-            result = subprocess.run([php_exe, php_script], stdout=subprocess.PIPE, text=True, encoding='utf-8')
+                        <div>
+                            <span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ဆိုဒ်တာဝန်ခံ လက်မှတ် / အမည် </span>
+                        </div>
+                    </div>
+                </div>"""
+        # Execute the PHP script and pass data to it
+        with open(input_path,'w',encoding='utf-8') as file:
+            file.write(html_data)
+        # Execute the PHP script and capture its output with 'utf-8' encoding
+        result = subprocess.run([php_exe, php_script], stdout=subprocess.PIPE, text=True, encoding='utf-8')
 
-            # Extract the captured output (the converted text)
-            zawgyiText = result.stdout.strip()
-            print(zawgyiText)
+        # Extract the captured output (the converted text)
+        zawgyiText = result.stdout.strip()
+        print(zawgyiText)
 
-            with open(output_path,'r',encoding='utf-8') as file:
-                datas = file.readlines()
+        with open(output_path,'r',encoding='utf-8') as file:
+            datas = file.readlines()
 
-            pdf = FPDF('P', 'mm', 'A4')
+        pdf = FPDF('P', 'mm', 'A4')
 
-            # Add a page
-            pdf.add_page()
+        # Add a page
+        pdf.add_page()
 
-            pdf.add_font('pyidaungsu', '', zawgyi_font_path)
-            pdf.add_font('pyidaungsu', 'B', zawgyi_font_path)
-            pdf.set_font('pyidaungsu', '', 10)
+        pdf.add_font('pyidaungsu', '', zawgyi_font_path)
+        pdf.add_font('pyidaungsu', 'B', zawgyi_font_path)
+        pdf.set_font('pyidaungsu', '', 10)
 
-            pdf.write_html("".join(datas),table_line_separators=True)
+        pdf.write_html("".join(datas),table_line_separators=True)
 
-            # Output the PDF to a file
-            pdf.output(pdf_path)
-
-            file_path = pdf_path
-        elif for_what_type == 'excel':
-            workbook = xlsxwriter.Workbook(excel_path)
-            worksheet = workbook.add_worksheet("Income Expense")
-            merge_format = workbook.add_format({
-                "bold": 1,
-                "align": "center",
-                "valign": "vcenter"
-            })
-            worksheet.merge_range("A1:G1",data=pj_code,cell_format=merge_format)
-            worksheet.merge_range("A2:G2",data=pj_name,cell_format=merge_format) 
-            worksheet.merge_range("A3:G3",data="နေ့စဉ်ငွေ အဝင်အထွက်စာရင်း",cell_format=merge_format)
-            worksheet.write_row(3,0,table_header,cell_format=merge_format)            
-            for idx,lst in enumerate(pdf_result_datas,start=4):
-                worksheet.write_row(idx,0,lst)
-            workbook.close()
-            file_path = excel_path
-        return send_file(file_path,as_attachment=True)       
-    return render_template("site-reports.html",result_datas=result_datas,extra_datas=extra_datas)
+        # Output the PDF to a file
+        pdf.output(pdf_path)
+        return send_file(pdf_path,as_attachment=True)
+    cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+    project_datas = cur.fetchall()       
+    return render_template("site-reports.html",result_datas=result_datas,extra_datas=extra_datas,project_datas = project_datas)
 
 # SELECT report.project_id AS p_id,SUM(totaluse_fuel) AS a_fuel,
 # SUM(ROUND(EXTRACT(HOUR FROM total_hr) + EXTRACT(MINUTE FROM total_hr) / 60.0, 2)) AS balance_duty

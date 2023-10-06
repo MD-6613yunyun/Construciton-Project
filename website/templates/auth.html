@@ -24,16 +24,20 @@
                     <strong class="text-danger fw-bolder">{{mgs}}</strong>
                     {% endif %}
                     <div>
-                        <label for="userName">Email</label>
+                        <label for="userName">အီးမေးလ်</label>
                         <input type="email" autocomplete="off" name="email" class="userNameInput" required/>
                     </div>
                     <div>
-                        <label for="userName">Password</label>
+                        <label for="userName">စကားဝှက်</label>
                         <input type="password" name="password" class="passwordInput" required/>
                     </div>
-                    <button>Login</button>
+                    <button>အကောင့် ဝင်ရောက် ပါ </button>
                 </div>
-                <div class="signup-forget"><a href="{{url_for('auth.authenticate',typ='reg')}}">Sign Up</a> | <a href="{{url_for('auth.authenticate',typ='forget')}}">Forget Password?</a></div>
+                <div class="signup-forget mt-3">
+                    <a href="{{url_for('auth.authenticate',typ='reg')}}">အကောင့် ဖန်တီးရန် | </a>  
+                    <a href="{{url_for('auth.authenticate',typ='forgot')}}">စကားဝှက် ချိန်းရန်  | </a>
+                    <a href="{{url_for('auth.authenticate',typ='help')}}">အကူအညီ ရယူရန် </a>
+                </div>
             </form>
             {% elif typ == 'reg' %}
             <!-- sign-up form -->
@@ -43,26 +47,26 @@
                     <strong class="text-danger fw-bolder">{{mgs}}</strong>
                     {% endif %}
                     <div>
-                        <!-- <label for="userName">Username</label> -->
-                        <input type="text" autocomplete="off" placeholder="Username" name="username" class="userNameInput" required/>
+                        <input type="text" autocomplete="off" placeholder="အမည်" name="username" class="userNameInput" required/>
                     </div>
                     <div>
-                        <!-- <label for="userName">Email</label> -->
-                        <input type="email" autocomplete="off" placeholder="Email" name="email" class="userNameInput" required/>
+                        <input type="email" autocomplete="off" placeholder="အီးမေးလ်" name="email" class="userNameInput" required/>
                     </div>
                     <div>
-                        <!-- <label for="userName">Password</label> -->
-                        <input type="password" name="password" placeholder="Password" class="passwordInput" required/>
+                        <input type="password" name="password" placeholder="စကားဝှက်" class="passwordInput" required/>
                     </div>
                     <div>
-                        <!-- <label for="userName">Confirm Password</label> -->
-                        <input type="password" name="confirmPassword" placeholder="Confirm Password" class="passwordInput" required/>
+                        <input type="password" name="confirmPassword" placeholder="အတည်ပြု စကားဝှက်" class="passwordInput" required/>
                     </div>
-                    <button>Sign Up</button>
+                    <button>အကောင့်ဖန်တီးပါ</button>
                 </div>
-                <div class="signup-forget"><a href="{{url_for('auth.authenticate',typ='log')}}">Login</a> | <a href="{{url_for('auth.authenticate',typ='forget')}}">Forget Password?</a></div>
+                <div class="signup-forget mt-3">
+                    <a href="{{url_for('auth.authenticate',typ='log')}}">အကောင့် ဝင်ရောက်ရန် | </a>  
+                    <a href="{{url_for('auth.authenticate',typ='forgot')}}">စကားဝှက် ချိန်းရန်  | </a>
+                    <a href="{{url_for('auth.authenticate',typ='help')}}">အကူအညီ ရယူရန် </a>
+                </div>
             </form>
-            {% else %}
+            {% elif typ == 'forgot' %}
             <!-- forgot password -->
             <form action="{{url_for('auth.authenticate',typ='forgot')}}" method="post">
                 <div class="inputContainer">
@@ -71,32 +75,81 @@
                     {% endif %}
                     <strong class="text-danger fw-bolder" id="forget-pwd"></strong>
                     <div>
-                        <label for="userName">Email</label>
+                        <label for="userName">အီးမေးလ်</label>
                         <input type="email" autocomplete="off" name="email" class="userNameInput" required/>
                     </div>
                     <div>
-                        <label for="userName">Username</label>
+                        <label for="userName">အမည်</label>
                         <input type="text" autocomplete="off" name="username" class="userNameInput" required/>
                     </div>
-                    <button type="button" onclick="checkUsernameForget(this)">Request Password</button>
-                    <div style="display: none;">
-                        <label for="userName">New Password</label>
+                    <button type="button" onclick="checkUsernameForget()"><p class="userNameInput d-none"></p>စကားဝှက်အသစ် တောင်းခံပါ</button>
+                    <div class="passwordHolders d-none">
+                        <label for="userName">စကားဝှက်အသစ်</label>
                         <input type="password" name="password" class="passwordInput" required/>
                     </div>
-                    <div style="display: none;">
-                        <label for="userName">Confirm Password</label>
+                    <div class="passwordHolders d-none">
+                        <label for="userName">အတည်ပြု စကားဝှက် အသစ်</label>
                         <input type="password" name="confirmPassword" class="passwordInput" required/>
                     </div>
-                    <button type="submit" style="display: none;">Change Password</button>
+                    <button type="submit" class="btn btn-success d-none passwordHolders">စကားဝှက် ပြုပြင်ပါ</button>
                 </div>
-                <div class="signup-forget"><a href="{{url_for('auth.authenticate',typ='log')}}">Login</a> | <a href="{{url_for('auth.authenticate',typ='reg')}}">Sign Up</a></div>
+                <div class="signup-forget mt-3">
+                    <a href="{{url_for('auth.authenticate',typ='reg')}}">အကောင့် ဖန်တီးရန် | </a>  
+                    <a href="{{url_for('auth.authenticate',typ='forgot')}}">စကားဝှက် ချိန်းရန်  | </a>
+                    <a href="{{url_for('auth.authenticate',typ='help')}}">အကူအညီ ရယူရန် </a>
+                </div>
             </form>
+            {% else %}
+            <div style="height: 100%;overflow: auto;padding: 10px;" class="pb-5"  id="helpsection">
+                <h5 class="text-light text-center">အကူအညီ</h5>
+                <p>
+                    <p class="text-white m-0">အကောင့် ဖန်တီးခြင်း</p>
+                    <p class="text-white m-0">၁။ အမည် - မိမိအမည်</p>
+                    <p class="text-white m-0">၂။ အီးမေးလ် - မိမိအီးမေးလ် ( အီးမေးလ် မရှိပါက ဝန်ထမ်း ကုဒ် အမှတ်  နှင့်  @gmail.com  ကို တွဲရေးပါ )</p>
+                    <p class="text-white m-0">( ဉပမာ -   ဝန်ထမ်းကုဒ် -  MD-0231  ဖြစ်ပါက အီးမေးလ် နေရာတွင်  md0231@gmail.com  ဟု ထည့်ရေးပါ  )</p>
+                    <p class="text-white m-0">၃။ စကားဝှက် - မိမိကြိုက်နှစ်ရာ စကားဝှက် </p>
+                    <p class="text-white m-0">၄။ အတည်ပြု စကားဝှက် - အပေါ် တွင် ထည့်သွင်းထားသော မိမိ စကားဝှက်</p>
+                </p>
+                <hr class="text-white">
+                <p>
+                    <p class="text-white m-0">အကောင့် ဝင်ရောက်ခြင်း</p>
+                    <p class="text-white m-0">၁။ အီးမေးလ် - အကောင့်ဖန်တီးစဉ်က ထည့်သွင်းထားသော မိမိ အီးမေးလ်</p>
+                    <p class="text-white m-0">၂။ စကားဝှက် - အကောင့်ဖန်တီးစဉ်က ထည့်သွင်းထားသော မိမိ စကားဝှက်</p>
+                </p>
+                <hr class="text-white">
+                <p>
+                    <p class="text-white m-0">စကားဝှက် ပြင်ဆင်ခြင်း</p>
+                    <p class="text-white m-0">၁။ အမည် - အကောင့်ဖန်တီးစဉ်က ထည့်သွင်းထားသော မိမိ အမည်</p>
+                    <p class="text-white m-0">၂။ အီးမေးလ် - အကောင့်ဖန်တီးစဉ်က ထည့်သွင်းထားသော မိမိ အီးမေးလ်</p>
+                    <p class="text-white m-0">၃။ စကားဝှက် - မိမိ အသစ်ပြင်ဆင်လိုသော စကားဝှက် အသစ်</p>
+                    <p class="text-white m-0">၄။ အတည်ပြု စကားဝှက် - အပေါ် တွင် ထည့်သွင်းထားသော မိမိ စကားဝှက်အသစ်</p>
+                </p>
+            </div>
+            <div class="signup-forget bg-white text-dark" style="position: absolute;bottom: 0;">
+                <a href="{{url_for('auth.authenticate',typ='log')}}" class="text-dark">အကောင့် ဝင်ရောက်ရန် | </a>
+                <a href="{{url_for('auth.authenticate',typ='reg')}}" class="text-dark">အကောင့် ဖန်တီးရန် | </a>
+                <a href="{{url_for('auth.authenticate',typ='forget')}}" class="text-dark">စကားဝှက် ပြောင်းရန် | </a></div>
+            </div>
             {% endif %}
         </div>
     </div>  
     <script>
-        document.cookie = 'username' + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie = 'role' + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = 'cpu_username' + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = 'cpu_role' + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = 'cpu_user_id' + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        function checkUsernameForget(){
+            userInps = document.getElementsByClassName("userNameInput")
+            fetch(`checkforget/${userInps[0].value}/${userInps[1].value}`)
+            .then(response => response.json())
+            .then(result => {
+                if (result[0] == 1){
+                    Array.from(userInps).forEach(inp => inp.parentElement.classList.add("d-none") )
+                    document.querySelectorAll(".passwordHolders").forEach(divv => divv.classList.remove("d-none"))
+                }else{
+                    document.getElementById("forget-pwd").textContent = 'Invalid Username & Email'
+                }
+            })
+        }
     </script>
 </body>
 </html>

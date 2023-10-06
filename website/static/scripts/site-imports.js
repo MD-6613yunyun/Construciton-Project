@@ -142,24 +142,25 @@ function showUnderDisplay(btn){
 function checkHour(inp){
     const regex = /^\d{0,2}$/;
     if(regex.test(inp.value)){
-        console.log(inp.value)
         if(parseInt(inp.value) > 23 || parseInt(inp.value) < 0){
-        inp.value = ""
-    }
+            inp.value = 0
+        }
     }else{
-        inp.value = ""
+        inp.value = 0
     }
+    addValueToTraceFuel('hourValueActivity','activitiesTable','calculatedtraceHour','traceHour')
 }
 
 function checkMin(inp){
     const regex = /^\d{0,2}$/;
     if(regex.test(inp.value)){
         if(parseInt(inp.value) > 59 || parseInt(inp.value) < 0){
-        inp.value = ""
+        inp.value = 0
     }
     }else{
-        inp.value = ""
+        inp.value = 0
     }
+    addValueToTraceFuel('hourValueActivity','activitiesTable','calculatedtraceHour','traceHour')
 }
 
 function selection(){
@@ -198,20 +199,32 @@ function selection(){
 function checkInpNumber(inp,min,max){
     if (inp.value < min || inp.value > parseInt(max)){
         inp.value = 0
+    }else{
+        let result = 0
+        let className = inp.classList[0]
+        document.getElementById("manpowerTable").querySelectorAll(`.${className}`).forEach(inp => {
+            result += parseInt(inp.value) || 0
+        })
+        document.getElementById(className).textContent = result
     }
 }
 
 
 function newRow(btn){
-    const inputsInTd =  btn.parentElement.parentElement.previousElementSibling.querySelectorAll("input[required]")
-    console.log(inputsInTd)
+    let fstRow = btn.parentElement.parentElement
     let allowedNewRow = true
-    for (inp of inputsInTd){
-        if (inp.value.trim() == ""){
-            allowedNewRow = false
+    console.log("..")
+    if (fstRow.previousElementSibling){
+        console.log("hhd")
+        const inputsInTd =  btn.parentElement.parentElement.previousElementSibling.querySelectorAll("input[required]")
+        for (inp of inputsInTd){
+            if (inp.value.trim() == ""){
+                allowedNewRow = false
+            }
         }
     }
     if (allowedNewRow){
+        console.log("papi")
         let cloneRow = btn.parentElement.parentElement.nextElementSibling.cloneNode(true)
         cloneRow.querySelectorAll("input.shouldRequired").forEach(input => input.setAttribute('required', 'true'))
         cloneRow.children[0].textContent = btn.parentElement.parentElement.parentElement.children.length - 1
@@ -219,6 +232,7 @@ function newRow(btn){
         let tableContainer =  btn.parentElement.parentElement.parentElement
         tableContainer.insertBefore(cloneRow,tableContainer.rows[tableContainer.rows.length - 2])
     }
+
 }
 
 function deleteRow(trashIcon){
@@ -279,4 +293,32 @@ function calculateInlineValue(inp){
 function calculateDiffValue(idd){
     let datas = document.querySelectorAll(`.${idd}`)
     console.log(datas)
+}
+
+function calculateInlineValueFromOther(inp,idd){
+    const formValues = inp.parentElement.parentElement.getElementsByClassName(idd)
+    let finalValue = parseFloat(formValues[0].textContent) - ( parseFloat(formValues[1].textContent) + parseFloat(inp.value) )
+    formValues[3].textContent = parseFloat(inp.value).toFixed(2)
+    formValues[4].textContent = finalValue.toFixed(2)
+}
+
+function addValueToTraceFuel(cls,parentIdd,targetCls,classNameForReplacer){
+    const allFuelValues = document.getElementById(parentIdd).getElementsByClassName(cls)
+    let count = 0
+    let resultValue = 0.0
+    if (cls == 'hourValueActivity'){
+        while (count < (allFuelValues.length)-1){
+            let hour = allFuelValues[count].children[0].value || 0
+            let min = allFuelValues[count].children[1].value || 0
+            resultValue += parseInt(hour) + (parseInt(min) / 60)
+            count += 1
+        }       
+    }else{
+        while (count < (allFuelValues.length)-1){
+            resultValue += parseFloat(allFuelValues[count].value)
+            count += 1
+        }
+    }
+    document.getElementsByClassName(targetCls)[0].value = resultValue
+    calculateInlineValueFromOther(document.getElementsByClassName(targetCls)[0],classNameForReplacer)
 }

@@ -1,5 +1,13 @@
 let belowing = []
 
+let current_date = new Date();
+document.querySelectorAll('.start_date_for_each').forEach(inp => {
+    inp.valueAsDate = current_date
+})
+document.querySelectorAll('.end_date_for_each').forEach(inp => {
+    inp.valueAsDate = current_date
+})
+
 function create_add_machine_input(btn,event){
     btn.style.display = 'none'
     btn.nextElementSibling.style.display = ""
@@ -27,7 +35,7 @@ function giveProjectCodes(idd = 'aboveProjectCodes'){
 }
 
 function showModalAndGiveProjectCodes(opt='normal'){
-    giveProjectCodes()
+    // giveProjectCodes()
     if (opt == 'normal'){
         let modalContainer = document.getElementById("monthlyReport")
         modalContainer.getElementsByClassName("modal-title")[0].textContent = "Income Expense Report"
@@ -38,20 +46,30 @@ function showModalAndGiveProjectCodes(opt='normal'){
         modalContainer.querySelector("form").setAttribute("action","/duty/income-expense-report")
     }else if (opt == 'monthly'){
         let modalContainer = document.getElementById("monthlyReport")
-        modalContainer.getElementsByClassName("modal-title")[0].textContent = "Income Expense Report"
+        modalContainer.getElementsByClassName("modal-title")[0].textContent = "Mothly Duty Report"
         let checkerRadio = modalContainer.getElementsByClassName("form-check-input")[0]
+        checkerRadio.parentElement.classList.remove("d-none")
         checkerRadio.removeAttribute("checked")
         checkEachMachineOrAll(checkerRadio)        
     }else if (opt == 'remove-date'){
         let url_route_part = document.getElementById("chooseProjectBeforeCreateForm").classList[4]
         let modalContainer = document.getElementById("monthlyReport")
-        modalContainer.getElementsByClassName("modal-title")[0].textContent = "Project Choice for Daily Activity"
+        modalContainer.getElementsByClassName("modal-title")[0].textContent = "Project Choice"
         let checkerRadio = modalContainer.getElementsByClassName("form-check-input")[0]
         checkerRadio.setAttribute("checked","")
         checkEachMachineOrAll(checkerRadio)
         checkerRadio.parentElement.nextElementSibling.classList.add("d-none")
         checkerRadio.parentElement.classList.add("d-none")
         modalContainer.querySelector("form").setAttribute("action",`/site-imports/${url_route_part}/create`)        
+    }else if (opt == 'summary'){
+        let modalContainer = document.getElementById("monthlyReport")
+        modalContainer.getElementsByClassName("modal-title")[0].textContent = "Summary"
+        let checkerRadio = modalContainer.getElementsByClassName("form-check-input")[0]
+        checkerRadio.setAttribute("checked","")
+        checkEachMachineOrAll(checkerRadio)
+        checkerRadio.parentElement.nextElementSibling.classList.add("d-none")
+        checkerRadio.parentElement.classList.add("d-none")
+        modalContainer.querySelector("form").setAttribute("action","/duty/summary-duty-report")
     }
 }
 
@@ -65,24 +83,31 @@ function checkSupervisor(){
     else{
         let closeBtn = document.getElementById("inModalStatisticsClose")
         let submitBtn = document.getElementById("inModalStatistics");
-        let sup = document.getElementsByClassName("site-supervisors")[0].value.trim()
-        let acc = document.getElementsByClassName("hoAccount")[0].value.trim()
-        fetch(`/get-api/accountant-supervisor-check/${sup}~|~${acc}`)
-        .then(response => response.json())
-        .then(result => {
-            if (result[0] == null){
-                modalBody.innerHTML += `<h4>Invalid Supervisor ${sup}</h4>`
-            }else if (result[1] == null){
-                modalBody.innerHTML += `<h4>Invalid HO / ACC ${acc}</h4>` 
-            }else{
-                document.getElementById("site-supervisors-id").value = result[0][0]
-                document.getElementById("ho-account-id").value = result[1][0]
-                modalBody.innerHTML += "You are seeing this form becuase you haven't input required data.."
-                submitBtn.click()
-                closeBtn.click()
-            }
-        })
+        if (document.getElementById("site-supervisors-id").value.trim() == '' || document.getElementById("ho-account-id").value.trim() == ''){
+            modalBody.innerHTML += "Invalid Supervisor or Invalid HO account .."
+        }else{
+            modalBody.innerHTML += "If your seeing this form for a while , this is because you didn't add sufficient data."
+        }
+        submitBtn.click()
+        closeBtn.click()
     }
+}
+
+function showDrop(selectRow){
+    const dropIcn = selectRow.children[0].children[5].children[0];
+    if(selectRow.children[1].style.maxHeight == 0){
+        selectRow.children[1].style.maxHeight = "60vh";
+        dropIcn.style.transform = "rotate(90deg)";
+    }else{
+        selectRow.children[1].style.maxHeight = null;
+        dropIcn.style.transform = "rotate(360deg)";
+    }
+}
+
+if (window.location.href.endsWith("/income-expense-report")){
+    document.querySelectorAll(".toAddCommaForAmt").forEach(tagg => {
+        tagg.textContent = parseFloat(tagg.textContent).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})
+    })
 }
 
 function callProjectStatistics(btn){
@@ -126,9 +151,6 @@ function callProjectStatistics(btn){
 
 }
 
-function assignIDForEachLine(opt){
-    console.log(opt)
-}
 
 function chooseMachineInSelect(btn){
     machine_data = btn.value.split("|")
@@ -330,7 +352,7 @@ function getShops(inp){
 }
 
 function getShopsSelect(inp){
-    dropperDiv = inp.nextElementSibling
+    dropperDiv = inp.nextElementSibling.nextElementSibling
     if (inp.value.length !== 0){
         dropperDiv.style.display = "";
     }else{
@@ -338,6 +360,28 @@ function getShopsSelect(inp){
     }
     filter = inp.value.toUpperCase();
     let a = dropperDiv.getElementsByTagName("option");
+    for (let i = 0; i < a.length; i++) {
+        let txtValue = a[i].textContent || a[i].innerText;
+        console.log(txtValue)
+        console.log(filter)
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            a[i].style.display = "";
+        } else {
+            a[i].style.display = "none";
+        }
+    }
+}
+
+//admin panel javascript
+function getShops(inp){
+    dropperDiv = inp.nextElementSibling
+    if (inp.value.length !== 0){
+        dropperDiv.style.display = "";
+    }else{
+        dropperDiv.style.display = "none";
+    }
+    filter = inp.value.toUpperCase();
+    let a = dropperDiv.getElementsByTagName("p");
     for (let i = 0; i < a.length; i++) {
         let txtValue = a[i].textContent || a[i].innerText;
         if (txtValue.toUpperCase().indexOf(filter) > -1) {
@@ -348,7 +392,57 @@ function getShopsSelect(inp){
     }
 }
 
+function getShopsMultiSelect(inp){
+    dropperDiv = inp.nextElementSibling.nextElementSibling;
+    if (inp.value.length !== 0){
+        dropperDiv.style.display = "";
+    }else{
+        dropperDiv.style.display = "none";
+    }
+    filter = inp.value.toUpperCase();
+    let a = dropperDiv.getElementsByTagName("p");
+    for (let i = 0; i < a.length; i++){
+            let txtValue = a[i].textContent || a[i].innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                a[i].style.display = "";
+                } else {
+                a[i].style.display = "none";
+        }
+    }
+}
 
+//adding id to hidden input box
+let prjIdArr = [];
+const inputDiv = document.getElementById("inputDiv");
+function addProject(project){
+    const projectAdd = document.getElementById("projectAdd");
+    if(project.children[0].checked == true){
+        project.style.backgroundColor = "#CADBC0";
+        prjIdArr.push(project.id);
+        projectAdd.value = [...prjIdArr];
+    }
+    if(project.children[0].checked == false){
+        project.style.backgroundColor = "unset";
+        prjIdArr.pop(project.id);
+        projectAdd.value = [...prjIdArr];
+    }
+}
+
+//adding id to hidden input to remove 
+let removeProjectId = []
+function removeProject(project){
+    const projectAdd = document.getElementById("projectRemove");
+    if(project.children[0].checked == true){
+        project.style.backgroundColor = "#CADBC0";
+        removeProjectId.push(project.id);
+        projectAdd.value = [...removeProjectId];
+    }
+    if(project.children[0].checked == false){
+        project.style.backgroundColor = "unset";
+        removeProjectId.pop(project.id);
+        projectAdd.value = [...removeProjectId];
+    }
+}
 
 
 function edit_data(trClick,for_pj_lst=false){
@@ -458,8 +552,6 @@ function assignInput(btn){
     btn.parentElement.previousElementSibling.value = btn.textContent
     btn.parentElement.style.display = 'none';
 }
-
-
 
 if (window.location.href.endsWith("/duty/get-monthly-duty")){
     excavators = document.getElementsByClassName("excavator")
@@ -718,21 +810,21 @@ function removeDataFromStats(btn){
 
 function checkProjectAndReplaceId(inp,idd){
     let pj_code = inp.value.split("|")[0].replace("/","thisIsSlash").trim()
-    console.log(pj_code)
     let url_route = 'project-check-for-stats'
-    if (idd = 'transfer_project_id_for_stat'){
+    if (idd == 'transfer_project_id_for_stat'){
         url_route = 'project-check-for-transfer-stats'
     }
     fetch(`/get-api/${url_route}/${pj_code}`)
     .then(response => response.json())
     .then(result => {
         let pj_id_holder = document.getElementById(idd)
+        console.log(idd)
         console.log(result)
         if (result.length == 0){
             pj_id_holder.value = ""
             pj_id_holder.setAttribute("required","")
         }else{
-            pj_id_holder.value = result[0][0]
+            pj_id_holder.value = result[0]
             pj_id_holder.removeAttribute("required")                    
         } 
     })
@@ -749,19 +841,10 @@ function editPrjStatis(editBtn,selectId){
     const getInp = prjStatis.querySelectorAll("input[disabled]");
     const getBtn = prjStatis.querySelectorAll("button[disabled]")
     const editSubmitPjStat = document.getElementById("edit-submit-btn-pj-stat")
-    for(let i = 1; i < getInp.length; i++){
-        if(getInp[i].disabled){
-            getInp[i].disabled = false;
-        }
-    }
-    for(let x = 0; x < getBtn.length; x++){
-        if(getBtn[x].disabled){
-            getBtn[x].disabled = false;
-        }
-    }
+    prjStatis.querySelectorAll("input[disabled]").forEach(inp => inp.disabled = false)
+    prjStatis.querySelectorAll("button[disabled]").forEach(btn => btn.disabled = false)
     editBtn.classList.add("d-none");
     editSubmitPjStat.classList.remove("d-none")
-    editBtn.previousElementSibling.classList.remove("d-none")
 }
 
 function savePrjStatis(saveBtn){
@@ -822,6 +905,7 @@ function checkValidMachine(inp,idd,mandatory=true){
         }
     })
     inp.previousElementSibling.value = found
+    console.log(inp.previousElementSibling.value , found)
     if (found == ""){
         if (mandatory){
             inp.previousElementSibling.setAttribute("required","")
@@ -833,7 +917,6 @@ function checkValidMachine(inp,idd,mandatory=true){
 }
 
 function setDbAndGiveProjectCodes(for_what){
-    giveProjectCodes('aboveProjectCodesForExport')
     document.getElementById("db_model").value = for_what.trim()
 }
 

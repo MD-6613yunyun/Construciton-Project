@@ -167,7 +167,9 @@
     <div class="body-for-income-expense-table" id="body-for-income-expense-table">
         <div class="buttons-holder m-3">
             <button  type="button" onclick="deleteTheWholeForm('income_expense','{{form_datas[9]}}')" id="prjDelete"   class="btn btn-danger d-none">ဖျက်သိမ်းရန်</button>   
+            {% if request.cookies.get('cpu_role') in ('3','4') %}
             <button  type="button" onclick="editPrjStatis(this,'body-for-income-expense-table')" id="prjEdit"   class="btn btn-secondary">ပြင်ဆင်ရန်</button>   
+            {% endif %}
             <a href="{{url_for('site_imports.income_expense',typ='view')}}" class="nav-item"><button type="button"  class="btn btn-dark ms-3shadow-sm">မလုပ်ဆောင်တော့ပါ</button></a>   
         </div>
         <h3>နေ့စဉ် ငွေဝင် / ငွေထွက်<i class="fa-solid fa-minus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
@@ -272,4 +274,10 @@
         </form>
     </div>
 {% endif %}
+{% endblock %}
+
+{% block project_datas %}
+    {% for data in project_datas %}
+        <p class="m-1 ms-2" shopid="{{data[0]}}" projectcode="{{data[1]}}" onclick="assignShop(this)">{{data[2]}} _&_ {{data[1]}}</p>
+    {% endfor %}
 {% endblock %}

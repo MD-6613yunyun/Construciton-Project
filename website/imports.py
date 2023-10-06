@@ -19,68 +19,27 @@ def get_id_from_table(cur, table_name,value):
 @imports.route("/<what>/<mgs>")
 @imports.route("/<what>",methods=['GET','POST'])
 def import_data(what,mgs=None):
-    role = request.cookies.get('role')
+    role = request.cookies.get('cpu_role')
+    user_id = request.cookies.get('cpu_user_id')
     if not role:
         return redirect(url_for('views.home'))
     else:
-        if int(role) not in (1,3,4):
+        if int(role) not in (1,3,4,5):
             return render_template('access_error.html')
     conn = db_connect()
     cur = conn.cursor()
     data = {}
-    if what == 'machine':
-        cur.execute("SELECT name FROM machine_type")
-        datas = cur.fetchall()
-        data["Machine Type"] = datas
-
-        cur.execute("SELECT name FROM machine_class")
-        datas = cur.fetchall()
-        data["Machine Class"] = datas
-
-        cur.execute("SELECT name FROM res_company")
-        datas = cur.fetchall()
-        data["Business Unit"] = datas
-
-        cur.execute("SELECT name FROM vehicle_machine_config")
-        datas = cur.fetchall()
-        data["Machine Capacity"] = datas
-
-        cur.execute("SELECT name FROM fleet_vehicle_model_brand")
-        datas = cur.fetchall()
-        data["Machine Brand"] = datas
-
-        cur.execute("SELECT name FROM vehicle_owner")
-        datas = cur.fetchall()
-        data["Owner"] = datas
-        name = 'Machine Line'
-    elif what == 'project':
-        cur.execute("SELECT name FROM res_company;")
-        data["Business Unit"] = cur.fetchall()
-
-        cur.execute("SELECT name FROM project_group;")
-        data["Project Group"] = cur.fetchall()
-
-        cur.execute("SELECT name FROM project_type;")
-        data["Project Type"] = cur.fetchall()
-        name = 'Project Line'
-    elif what == 'project_stat' or what == 'project-stat':
-        cur.execute("SELECT code || ' | ' || name FROM analytic_project_code AS pj LEFT JOIN project_statistics AS stat ON pj.id = stat.project_id WHERE stat.project_id is NULL;")
-        data['Project Code'] = cur.fetchall()
-        cur.execute("SELECT machine_name FROM fleet_vehicle WHERE id NOT IN (SELECT id FROM machines_history WHERE end_time is NULL);")
-        data['Machine'] = cur.fetchall()
-        cur.execute("SELECT name FROM employee_group;")
-        data['group'] = cur.fetchall()
-        name = 'Project Statistics Line'
-    elif what == 'project_stat_form':
-        if request.method == 'POST':
+    if request.method == 'POST':
+        if what == 'project_stat_form':
             pj_id = request.form.get("project_id")
             if pj_id:
                 cur.execute(""" SELECT pj.code , stat.location , stat.pj_start_date , emp_sup.name , 
                             stat.estimate_feet , stat.will_sud , stat.estimate_sud , stat.estimate_duty , 
-                            stat.estimate_fuel , stat.estimate_expense , stat.estimate_day , emp_acc.name , pj.id 
-                            FROM project_statistics stat INNER JOIN analytic_project_code pj ON 
-                            stat.project_id = pj.id LEFT JOIN employee emp_sup ON emp_sup.id = 
-                            stat.supervisor_id LEFT JOIN employee emp_acc ON emp_acc.id = stat.ho_acc_id 
+                            stat.estimate_fuel , stat.estimate_expense , stat.estimate_day , emp_acc.name , pj.id , emp_sup.id , emp_acc.id
+                            FROM project_statistics stat 
+                            INNER JOIN analytic_project_code pj ON stat.project_id = pj.id 
+                            LEFT JOIN employee emp_sup ON emp_sup.id = stat.supervisor_id 
+                            LEFT JOIN employee emp_acc ON emp_acc.id = stat.ho_acc_id 
                             WHERE pj.id = %s ; """,(pj_id,))
                 stat_datas = cur.fetchone()
                 cur.execute(""" SELECT  his.id , car.id , car.machine_name , type.name FROM machines_history his 
@@ -100,9 +59,12 @@ def import_data(what,mgs=None):
                 data['Machine'] = cur.fetchall()
                 cur.execute("SELECT name FROM employee_group;")
                 data['group'] = cur.fetchall()
+                cur.execute("SELECT emp.id,emp.name FROM employee emp INNER JOIN employee_group emp_gp ON emp.employee_group_id = emp_gp.id WHERE emp_gp.name = 'ACCOUNTANT';")
+                data['accountants'] = cur.fetchall()
+                cur.execute("SELECT emp.id,emp.name FROM employee emp INNER JOIN employee_group emp_gp ON emp.employee_group_id = emp_gp.id WHERE emp_gp.name = 'SUPERVISOR';")        
+                data['supervisors'] = cur.fetchall()
                 return render_template("import_data.html",name='Project Statistics Edit',data=data,stat_datas=stat_datas,history_datas=history_datas,emp_datas=emp_datas,project_stat_edit=True,mgs=mgs)
-    elif what == 'income_expense_edit_form':
-        if request.method == 'POST':
+        elif what == 'income_expense_edit_form':
             income_expense_id = request.form.get('income_expense_id')
             if income_expense_id:
                 cur.execute(""" SELECT form.income_status,form.income_expense_no,form.set_date,pj.code,emp_one.name,pj.name,stat.location,stat.pj_start_date,emp_two.name,form.id,pj.id
@@ -121,13 +83,14 @@ def import_data(what,mgs=None):
                 line_datas = cur.fetchall()
                 cur.execute("SELECT car.machine_name,car.id FROM machines_history LEFT JOIN fleet_vehicle AS car ON car.id = machines_history.machine_id WHERE project_id = %s AND end_time IS NULL;",(form_datas[10],))
                 machine_datas = cur.fetchall()
-            return render_template("income_expense.html",form_datas=form_datas,line_datas=line_datas,machine_datas=machine_datas,template_type = 'Edit List')
-    elif what == 'daily_activity_edit_form':
-        if request.method == 'POST':
+                cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+                project_datas = cur.fetchall()
+            return render_template("income_expense.html",form_datas=form_datas,line_datas=line_datas,machine_datas=machine_datas,template_type = 'Edit List',project_datas = project_datas)
+        elif what == 'daily_activity_edit_form':
             daily_activity_id =  request.form.get('income_expense_id')
             cur.execute(""" SELECT pj.code,emp_one.name,pj.name,stat.location,stat.pj_start_date,emp_two.name,estimate_day,estimate_feet,estimate_sud,estimate_duty,estimate_fuel,estimate_expense,pj.id,
                             activity.daily_activity_no,activity.set_date,activity.working_status,activity.remark_for_not_working,activity.wealther_effect_percent,activity.complete_feet,activity.complete_sud,
-							calculated_table.hour,calculated_table.fuel
+							COALESCE(calculated_table.hour,'0.0'),COALESCE(calculated_table.fuel,'0.0')
                         FROM daily_activity activity
                         LEFT JOIN analytic_project_code pj
                         ON activity.project_id = pj.id
@@ -144,6 +107,7 @@ def import_data(what,mgs=None):
 						ON calculated_table.daily_activity_id = activity.id
                         WHERE activity.id = %s;""",(daily_activity_id,daily_activity_id))
             form_datas = cur.fetchone()
+            print(form_datas)
             pj_id = form_datas[12]
             line_datas = []
             cur.execute("""SELECT line.id,car.id,car.machine_name,ajt.id,ajt.name,ajf.id,ajf.name,EXTRACT(HOUR FROM line.duty_hour),EXTRACT(MINUTE FROM line.duty_hour),line.used_fuel,line.description
@@ -154,12 +118,12 @@ def import_data(what,mgs=None):
                         ON ajt.id = line.job_type_id
                         LEFT JOIN activity_job_function AS ajf
                         ON ajf.id = line.job_function_id
-                        WHERE line.daily_activity_id = %s;""",(daily_activity_id))
+                        WHERE line.daily_activity_id = %s;""",(daily_activity_id,))
             line_datas.append(cur.fetchall())
             cur.execute(""" SELECT line.id,car.id,car.machine_name,line.description,line.accident_status
                         FROM daily_activity_accident_lines AS line
                         LEFT JOIN fleet_vehicle AS car
-                        ON car.id = line.machine_id WHERE line.daily_activity_id = %s;""",(daily_activity_id))
+                        ON car.id = line.machine_id WHERE line.daily_activity_id = %s;""",(daily_activity_id,))
             line_datas.append(cur.fetchall())
             cur.execute(""" SELECT type.name,count(*),MIN(type.id),MAX(machines_table.present_machines) FROM machines_history AS his
                             LEFT JOIN fleet_vehicle AS car
@@ -221,9 +185,10 @@ def import_data(what,mgs=None):
                             ON form_table.project_id = expense_table.project_id
                             WHERE form_table.project_id = %s;""",(pj_id,))
             history_datas = cur.fetchone()
-            return render_template("daily-table.html",extra_datas = extra_datas,form_datas = form_datas,machine_datas=machine_datas,activity_jobs=[activity_job_types,activity_job_functions],history_datas=history_datas,line_datas = line_datas,template_type = 'Edit List')
-    elif what == 'emp':
-        if request.method == 'POST':
+            cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+            project_datas = cur.fetchall()
+            return render_template("daily-table.html",extra_datas = extra_datas,form_datas = form_datas,machine_datas=machine_datas,activity_jobs=[activity_job_types,activity_job_functions],history_datas=history_datas,line_datas = line_datas,template_type = 'Edit List',project_datas = project_datas)
+        elif what == 'emp':
             code = request.form.get("code")
             name = request.form.get("empName")
             emp_gp_id = request.form.get("emp_gp")
@@ -234,8 +199,7 @@ def import_data(what,mgs=None):
                 mgs = str(err)
                 conn.rollback()
             return redirect(url_for('views.configurations',what='employee'))
-    elif what == 'ajt' or what == 'ajf':
-        if request.method == 'POST':
+        elif what == 'ajt' or what == 'ajf':
             sth_name = request.form.get("sthName")
             db = {'ajt':'activity_job_type','ajf':'activity_job_function'}
             try:
@@ -245,7 +209,61 @@ def import_data(what,mgs=None):
                 mgs = str(err)
                 conn.rollback()
             return redirect(url_for('views.configurations',what=what))
-    return render_template("import_data.html",data = data,name=name,mgs=mgs)
+        else:
+            return render_template('not_found.html')
+    else:
+        if role == '5':
+            return render_template('access_error.html')
+        if what == 'machine':
+            cur.execute("SELECT name FROM machine_type")
+            datas = cur.fetchall()
+            data["Machine Type"] = datas
+
+            cur.execute("SELECT name FROM machine_class")
+            datas = cur.fetchall()
+            data["Machine Class"] = datas
+
+            cur.execute("SELECT name FROM res_company")
+            datas = cur.fetchall()
+            data["Business Unit"] = datas
+
+            cur.execute("SELECT name FROM vehicle_machine_config")
+            datas = cur.fetchall()
+            data["Machine Capacity"] = datas
+
+            cur.execute("SELECT name FROM fleet_vehicle_model_brand")
+            datas = cur.fetchall()
+            data["Machine Brand"] = datas
+
+            cur.execute("SELECT name FROM vehicle_owner")
+            datas = cur.fetchall()
+            data["Owner"] = datas
+            name = 'Machine Line'
+        elif what == 'project':
+            cur.execute("SELECT name FROM res_company;")
+            data["Business Unit"] = cur.fetchall()
+
+            cur.execute("SELECT name FROM project_group;")
+            data["Project Group"] = cur.fetchall()
+
+            cur.execute("SELECT name FROM project_type;")
+            data["Project Type"] = cur.fetchall()
+            name = 'Project Line'
+        elif what == 'project_stat' or what == 'project-stat':
+            cur.execute("SELECT code || ' | ' || name FROM analytic_project_code AS pj LEFT JOIN project_statistics AS stat ON pj.id = stat.project_id WHERE stat.project_id is NULL;")
+            data['Project Code'] = cur.fetchall()
+            cur.execute("SELECT machine_name FROM fleet_vehicle WHERE id NOT IN (SELECT id FROM machines_history WHERE end_time is NULL);")
+            data['Machine'] = cur.fetchall()
+            cur.execute("SELECT name FROM employee_group;")
+            data['group'] = cur.fetchall()
+            cur.execute("SELECT emp.id,emp.name FROM employee emp INNER JOIN employee_group emp_gp ON emp.employee_group_id = emp_gp.id WHERE emp_gp.name = 'ACCOUNTANT';")
+            data['accountants'] = cur.fetchall()
+            cur.execute("SELECT emp.id,emp.name FROM employee emp INNER JOIN employee_group emp_gp ON emp.employee_group_id = emp_gp.id WHERE emp_gp.name = 'SUPERVISOR';")        
+            data['supervisors'] = cur.fetchall()
+            name = 'Project Statistics Line'
+        else:
+            return render_template('not_found.html')
+        return render_template("import_data.html",data = data,name=name,mgs=mgs)
 
 @imports.route("/upload-each-machine-details",methods=['GET','POST'])
 def upload_each():
@@ -280,7 +298,6 @@ def upload_each_data():
     mgs = None
     if request.method == 'POST':
         db = request.form.get("db")
-        print(db)
         conn = db_connect()
         cur = conn.cursor()
         query = ""
@@ -290,7 +307,7 @@ def upload_each_data():
             bi_id = cur.fetchall()
             if not bi_id:
                 return redirect(url_for('views.configurations',what='project',mgs="Invalid Business Unit Name"))
-            query = f""" INSERT INTO {db} (code,name,pj_group,type,business_unit_id) VALUES ({",".join(["'{}'".format(item) for item in pj_datas[:-1]])},'{bi_id[0][0]}');"""
+            query = f""" INSERT INTO {db} (code,name,pj_group,type,business_unit_id,project_status_id) VALUES ({",".join(["'{}'".format(item) for item in pj_datas[:-1]])},'{bi_id[0][0]}','1');"""
             what = 'project'
         elif db == 'duty_odoo_report':
             dty_datas = request.form.getlist('duty-datas')
@@ -332,6 +349,7 @@ def upload_each_data():
                             will_sud,estimate_sud,estimate_duty,estimate_fuel,estimate_expense,
                             estimate_day,location,pj_start_date,ho_acc_id) VALUES 
                             (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);""",(pj_id,supervisior,feet,will_sud,sud,duty,fuel,expense,estimate_day,loc,start_date,acc))
+                cur.execute("UPDATE analytic_project_code SET project_status_id = (SELECT id FROM project_status WHERE name = 'IN PROGRESS') WHERE id = %s;",(pj_id,))
                 if machine_ids != []:
                     for machine_id in machine_ids:
                         cur.execute("INSERT INTO machines_history (project_id,machine_id) VALUES (%s,%s);",(pj_id,machine_id))
@@ -342,6 +360,13 @@ def upload_each_data():
             except IntegrityError as err:
                 mgs = str(err).title()
                 conn.rollback()
+        elif db == 'terminate_project':
+            print("nani")
+            pj_id = request.form.get("pj_id")
+            status_name = request.form.get("status_name")
+            cur.execute("UPDATE analytic_project_code SET project_status_id = (SELECT id FROM project_status WHERE name = %s) WHERE id = %s;",(status_name,pj_id))
+            conn.commit()
+            what = 'project-stat'
         elif db == 'project_stats_edit':
             input_values = {}
             for key,value in request.form.items():
@@ -356,6 +381,7 @@ def upload_each_data():
             employee_powers = request.form.getlist("employee_power")
             update_query = update_query[:-2] + f" WHERE project_id = {pj_id};"
             what = 'project-stat'
+            print(update_query)
             try:
                 cur.execute(update_query,list(input_values.values()))
                 if machine_ids != []:

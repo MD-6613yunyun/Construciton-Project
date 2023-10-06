@@ -6,12 +6,12 @@
 {% if not_tree %}
 
 <h1 class="text-center py-3 adminControl">Admin Control Panel</h1>
-    <div class="card mb-3 row">
-        <div class="card-header col-12 text-white" style="background-color: #2C41AD;">
+    <div class="card w-75 mx-auto mb-3 shadow-sm rounded-0">
+        <div class="card-header text-white rounded-0" style="background-color: #2C41AD;">
             User Details
         </div>
         <div class="d-flex justify-content-between p-3" id="detailCard">
-            <div class="col-8">
+            <div class="">
                 <p class="card-text m-0 text-primary">Username</p>
                 <h5 class="card-title">{{user_data[1]}}</h5>
                 <p class="card-text m-0 text-primary">Email</p>
@@ -19,61 +19,69 @@
                 <p class="card-text m-0 text-primary">User Role</p>
                 <h5 class="card-title" id="userRoleShow">{{user_data[3]}}</h5>
             </div>
-            <div class="col-4">
+            <div class="w-50">
                 <p class="card-text m-0 text-primary">Projects List</p>
                 <div style="height: 150px;overflow: auto;" id="detailPrjList">
-                    {% for data in owned_pj_datas %}
-                        <h5 class="card-title">{{data[2]}} ( {{data[1]}} )</h5>
+                    {% for data in project_datas %}
+                        <h6 class="card-title">{{data[2]}} ( {{data[1]}} )</h6>
                     {% endfor %}
                 </div>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="input-group mb-3">
+    <div class="w-75 mx-auto" id="inputSection">
+        <div class="mb-3 shadow-sm">
             <form action="{{url_for('auth.add_remove_pj',typ='add')}}" method="post">
-                <input hidden type="number" id="user_id" name="user_id" value="{{user_data[0]}}"/>
-                <input type="search" id="inputForProjectInMonthly" size="22" autocomplete="off" style="margin-left: 10px;" onkeyup="getShopsSelect(this)"/>
-                <div style="max-height: 150px;overflow-y: auto;display: none;" id="aboveProjectCodesForExport">
-                    <select name="projects" id="projects" multiple>
-                        {% for data in pj_datas %}
-                            <option value="{{data[0]}}">{{data[1]}} | {{data[2]}}</option>
-                        {% endfor %}
-                    </select>
-                </div> 
-                <button type="submit">Add Projects</button>
+                <div class="input-group">
+                    <input type="text" required value="" name="project_ids" id="projectAdd" hidden>
+                    <input hidden type="number" id="user_id" name="user_id" value="{{user_data[0]}}"/>
+                    <input class="form-control" type="text" id="inputForProjectInMonthly" size="22" autocomplete="off" onkeyup="getShopsMultiSelect(this)"/>
+                    <button class="btn btn-success input-group-text" type="submit">Add Projects</button>
+                    <div style="max-height: 150px;width: 80%;overflow-y: auto;display: none;position: absolute;top: 100%;z-index: 5;background-color: white;" id="aboveProjectCodesForExport">
+                        <div id="projectDrop">
+                            {% for data in pj_datas %}
+                                <p id="{{data[0]}}" style="position: relative;margin: 0;display: flex;" onchange="addProject(this)">{{data[1]}} | {{data[2]}}<input type="checkbox" style="position: absolute;right: 5px;top: 50%;transform: translateY(-50%)"/></p>
+                            {% endfor %}
+                        </div>
+                    </div> 
+                </div>
             </form>
         </div>  
-        <div class="input-group mb-3">
+        <div class="mb-3 shadow-sm">
             <form action="{{url_for('auth.add_remove_pj',typ='remove')}}" method="post">
-                <input hidden type="number" id="user_id" name="user_id" value="{{user_data[0]}}"/>
-                <input type="search" id="inputForProjectInMonthly" size="22" autocomplete="off" style="margin-left: 10px;" onkeyup="getShopsSelect(this)"/>
-                <div style="max-height: 150px;overflow-y: auto;display: none;" id="aboveProjectCodesForExport">
-                    <select name="projects" id="projects" multiple>
-                        {% for data in owned_pj_datas %}
-                            <option value="{{data[0]}}">{{data[1]}} | {{data[2]}}</option>
-                        {% endfor %}
-                    </select>
-                </div> 
-                <button type="submit">Remove Projects</button>
+                <div class="input-group">
+                    <input hidden type="text" required name="project_ids" value="" id="projectRemove">
+                    <input hidden type="number" id="user_id" name="user_id" value="{{user_data[0]}}"/>
+                    <input class="form-control" type="text" id="inputForProjectInMonthly" size="22" autocomplete="off" onkeyup="getShopsMultiSelect(this)"/>
+                    <button type="submit" class="btn btn-danger">Remove Projects</button>
+                    <div style="max-height: 150px;width: 80%;overflow-y: auto;display: none;position: absolute;top: 100%;z-index: 5;background-color: white;" id="aboveProjectCodesForExport">
+                        <div id="projectDrop">
+                            {% for data in project_datas %}
+                            <p id="{{data[0]}}" style="position: relative;margin: 0;display: flex;" onchange="removeProject(this)">{{data[1]}} | {{data[2]}}<input type="checkbox" style="position: absolute;right: 5px;top: 50%;transform: translateY(-50%)"/></p>
+                            {% endfor %}
+                        </div>
+                    </div> 
+                </div>
             </form>
         </div> 
-        <div class="input-group mb-3">
+        <div class="mb-5 shadow-sm">
             <form action="{{url_for('auth.change_user_access')}}" method="post">
-                <input hidden type="number" id="user_id" name="user_id" value="{{user_data[0]}}"/>
-                <select class="form-select" name="access_id" id="inputGroupSelect02">
-                    {% for data in access_datas %}
-                        <option value="{{data[0]}}">{{data[1]}}</option>
-                    {% endfor %}
-                </select>
-                <button class="input-group-text btn btn-primary text-white" type="submit" for="inputGroupSelect02" >Change User Role</button>
+                <div class="input-group">
+                    <input hidden type="number" id="user_id" name="user_id" value="{{user_data[0]}}"/>
+                    <select class="form-select" name="access_id" id="inputGroupSelect02">
+                        {% for data in access_datas %}
+                            <option value="{{data[0]}}">{{data[1]}}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="input-group-text btn btn-primary text-white rounded-0" type="submit" for="inputGroupSelect02" >Change User Role</button>
+                </div>
             </form>
         </div>           
     </div>
 </div>
 {% else %}
 <form id="hidden-income-expense-form" action="{{url_for('auth.admin_panel')}}" method="post">
-    <input type="number" name="income_expense_id" id="hidden-income-expense-id" value="" hidden>
+    <input type="number" name="income_expense_id" id="hidden-income-expense-id" value="{{user_idd}}" hidden>
 </form>
 <h1 class="text-center m-2">Authenticated Users</h1>
 <div class="text-center m-3">
@@ -86,7 +94,6 @@
                 </div>
             </form>
             <button data-bs-toggle="modal" data-bs-target="#exportStaticBackdrop" onclick="setDbAndGiveProjectCodes('Income Expense Query')" class="btn btn-secondary text-white mx-2"><i class="fa-solid fa-download"></i></button>
-            <button class="btn btn-success" onclick="showTruckAnimation()">Create</button>
         </div>
         <div class="col-md-6 col-sm-12 text-end mt-2">
             <div class="btn-group" role="group" aria-label="Basic example">
@@ -117,4 +124,10 @@
 </div>
 
 {% endif %}
+{% endblock %}
+
+{% block project_datas %}
+    {% for data in project_datas %}
+        <p class="m-1 ms-2" shopid="{{data[0]}}" projectcode="{{data[1]}}" onclick="assignShop(this)">{{data[2]}} _&_ {{data[1]}}</p>
+    {% endfor %}
 {% endblock %}

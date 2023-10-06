@@ -16,15 +16,17 @@
 <body>
     <nav class="navbar navbar-expand-lg" style="background-color: #2C41AD; box-shadow: 1px 0px 15px .5px rgba(0, 0, 0, 1);position: sticky;top: 0;z-index: 1000;">
         <div class="container-fluid">
-            <a href="/" class="navbar-brand ms-3">
-                <img src="{{url_for('static',filename='images/logo_mdmm.png')}}" 
-                width="50px" alt="sitelogo" class="bg-light">
+            <a href="/" class="navbar-brand">
+                <img src="{{url_for('static',filename='images/web_logo.png')}}" width="50px" alt="sitelogo">
             </a>
             <button type="button" class="navbar-toggler me-3 bg-white" data-bs-toggle="collapse" data-bs-target="#nav"><i class="navbar-toggler-icon"></i></button>
 
             <div id="nav" class="navbar-collapse collapse justify-content-between">
                 <ul class="navbar-nav px-3">
+                    {% if request.cookies.get('cpu_role') in ('2','3','4') %}
                     <li class="nav-item"><a  class="nav-link text-white" href="{{url_for('dash.dash_home')}}" >Dashboard</a></li>
+                    {% endif %}
+                    {% if request.cookies.get('cpu_role') not in ('5','2') %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Transactions</a>
                         <ul class="dropdown-menu">
@@ -36,6 +38,8 @@
                             <li><a class="dropdown-item" href="{{url_for('views.show_transactions',what='repair-activity')}}" >Activities ( Repair ) </a></li>
                         </ul>
                     </li>
+                    {% endif %}
+                    {% if request.cookies.get('cpu_role') not in ('5','2') %}
                     <li class="nav-item dropdown ">
                         <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-auto-close="outside" data-bs-toggle="dropdown" aria-expanded="false">Configurations</a>
                         <ul class="dropdown-menu">
@@ -53,6 +57,8 @@
                             </li>             
                         </ul>
                     </li>
+                    {% endif %}
+                    {% if request.cookies.get('cpu_role') in ('3','4','5') %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Sites Imports</a>
                         <ul class="dropdown-menu">
@@ -60,22 +66,33 @@
                             <li><a class="dropdown-item" href="{{url_for('site_imports.income_expense',typ='view')}}">Incomes & Expenses</a></li>                       
                         </ul>
                     </li>
+                    {% endif %}
+                    {% if request.cookies.get('cpu_role') != '1' %}
                     <li class="nav-item dropdown ">
                         <a class="nav-link dropdown-toggle text-white" data-bs-auto-close="outside"  href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Reports</a>
                         <ul class="dropdown-menu">
-                            <li><a type="button" onclick="showModalAndGiveProjectCodes('monthly')" class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#monthlyReport" >Monthly</a></li>
-                            <li><a class="dropdown-item" href="{{url_for('reports.summary_duty_report')}}">Summary</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            {% if request.cookies.get('cpu_role') in ('2','3','4') %}
+                            <li><a type="button" onclick="showModalAndGiveProjectCodes('monthly')" class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#monthlyReport">Monthly</a></li>
+                            <li><a class="dropdown-item" onclick="showModalAndGiveProjectCodes('summary')" type="button"  data-bs-toggle="modal" data-bs-target="#monthlyReport">Summary</a></li>
+                                {% if request.cookies.get('cpu_role') in ('3','4') %}
+                                <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                            {% endif %}
+                            {% if request.cookies.get('cpu_role') != '1'  %}
                             <li><a class="dropdown-item" href="#" class="dropdown-item" onclick="showModalAndGiveProjectCodes()" data-bs-toggle="modal" data-bs-target="#monthlyReport">Income Expense</a></li>
+                            {% endif %}
                         </ul>
                     </li>
+                    {% endif %}
+                    {% if request.cookies.get('cpu_role') == '4' %}
                     <li class="nav-item"><a  class="nav-link text-white" href="{{url_for('auth.admin_panel')}}" >Admin Panel</a></li>
+                    {% endif %}
                 </ul>
             <form class="d-flex justify-content-center p-2" role="search"  action="{{url_for('auth.logout')}}">
                 <input value="Nani" hidden>
-                {% if request.cookies.get('username') %}
+                {% if request.cookies.get('cpu_username') %}
                 <span class="navbar-text text-white font-monospace me-3">
-                    Hello {{request.cookies.get('username')}} !!
+                    Hello {{request.cookies.get('cpu_username')}} !!
                 </span>
                 {% endif %}
                 <button class="btn btn-danger" type="submit">Log Out</button>
@@ -92,7 +109,7 @@
                     <h1 class="modal-title fs-5" style="margin: 0;" id="staticBackdropLabel">Monthly Duty Report</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                {% if request.cookies.get('role') in ('2','3','4') %}
+                {% if request.cookies.get('cpu_role') in ('2','3','4','5') %}
                     <form action="/duty/get-monthly-duty" class="monthlyformInModal" method="POST">
                         <div class="modal-body">
                             <div class="filters m-3">
@@ -105,6 +122,8 @@
                                         <input type="text" id="pj_name" name="pj_name" style="display: none;" value=" _&_ ">
                                         <input type="search" id="inputForProjectInMonthly" size="22" autocomplete="off" style="margin-left: 10px;" onkeyup="getShops(this)"/>
                                         <div style="max-height: 150px;overflow-y: auto;display: none;" id="aboveProjectCodes">
+                                            {% block project_datas %}
+                                            {% endblock %}
                                         </div>                                 
                                     </div>
                                 </div>
@@ -119,11 +138,11 @@
                             <div class="text-center mb-3 d-none">
                                 <div class="mb-2">
                                     <label for="start text-center">Start Date : </label>
-                                    <input type="date" id="start" name="start_date_for_each" min="2020-01-01" max="2030-12-31" value="2023-05-11">
+                                    <input type="date" id="start_date_for_each" class="start_date_for_each" name="start_date_for_each" min="2020-01-01" max="2030-12-31" value="2023-05-11">
                                 </div>
                                 <div>
                                     <label for="start text-center">End   Date : </label>
-                                    <input type="date" id="start" name="end_date_for_each" min="2020-01-01" max="2030-12-31" onchange="check_or_trace_start_date(this)" value="2023-05-11">
+                                    <input type="date" id="end_date_for_each" class="end_date_for_each" name="end_date_for_each" min="2020-01-01" max="2030-12-31" onchange="check_or_trace_start_date(this)" value="2023-05-11">
                                 </div>
                             </div>
                             <div class="text-center mb-3">
@@ -178,6 +197,7 @@
             </div>
         </div>
     </div>
+    <!-- Export Modal -->
     <div class="modal fade" id="exportStaticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -197,6 +217,7 @@
                                     <input type="text" id="pj_name" name="pj_name" style="display: none;" value=" _&_ ">
                                     <input type="search" id="inputForProjectInMonthly" size="22" autocomplete="off" style="margin-left: 10px;" onkeyup="getShops(this)"/>
                                     <div style="max-height: 150px;overflow-y: auto;display: none;" id="aboveProjectCodesForExport">
+                                        {% block project_export_datas %}{% endblock %}
                                     </div>                                 
                                 </div>
                             </div>
@@ -204,12 +225,12 @@
                         <div class="text-center mb-3">
                             <div class="mb-2">
                                 <label for="start text-center">Start Date : </label>
-                                <input type="date" id="start" name="start_date_for_each" min="2020-01-01" max="2030-12-31" value="2023-05-11">
+                                <input type="date" id="start" class="start_date_for_each" name="start_date_for_each" min="2020-01-01" max="2030-12-31" value="2023-05-11">
                             </div>
                             <input type="text" value="" name="db_model" id="db_model" hidden>
                             <div>
                                 <label for="start text-center">End   Date : </label>
-                                <input type="date" id="start" name="end_date_for_each" min="2020-01-01" max="2030-12-31" onchange="check_or_trace_start_date(this)" value="2023-05-11">
+                                <input type="date" id="start" class="end_date_for_each" name="end_date_for_each" min="2020-01-01" max="2030-12-31" onchange="check_or_trace_start_date(this)" value="2023-05-11">
                             </div>
                         </div>
                     </div>
@@ -218,6 +239,27 @@
                         <button type="submit" class="btn btn-primary">Download</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+    <!-- Message Modal -->
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#exampleModal" id="autoClicker"></button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5 text-danger-emphasis" id="exampleModalLabel">User Error</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalUserWarn">
+                    <strong>{{message | safe }}</strong>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>

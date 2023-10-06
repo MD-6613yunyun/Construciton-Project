@@ -1,75 +1,7 @@
 {% extends 'base.html' %}
 {% block title %} Summary Statistics {% endblock %}
 {% block content %}
-{% if pj_datas %}
-<form action="/duty/summary-duty-report" method="POST">
-    <div class="container">
-        <div class="row">
-            <div class="col">
-                <div class="filters mt-3">
-                    <div class="dropdown text-center">
-                        <button class="btn btn-secondary dropdown-toggle button-74 text-white text-center" id="own" pjID="False" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Project Name & Project Code
-                        </button>
-                        <div class="dropdown-menu business-unit">
-                            <input type="text" id="pj_id" name="pj_id" style="display: none;">
-                            <input type="text" id="pj_name" name="pj_name" style="display: none;" value=" _&_ ">
-                            <input type="search"  id="inputForProjectInMonthly" size="22" style="margin-left: 10px;" onkeyup="getShops(this)"/>
-                            <div style="max-height: 150px;overflow-y: auto;display: none;">
-                                {% for data in pj_datas %}
-                                <p class="m-1 ms-2" shopID="{{data[0]}}" projectCode="{{data[2]}}" onclick="assignShop(this)">{{data[1]}} _&_ {{data[2]}}</p>
-                                {% endfor %}                               
-                            </div>                                 
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="text-center m-3">
-                    <button class="btn btn-secondary disabled" id="pjCode" style="display: none;">Project Code</button>        
-                </div>
-            </div>
-            <div class="col">
-                <div class="text-center mt-3">
-                    <button type="submit" class="btn btn-dark bg-success border-0">Generate Summary Statistics</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</form>
 
-<div class="m-3">
-    <h4 class="d-inline-block">Project Statistics</h4>
-    <input class="form-control mt-3" size="22" type="search" placeholder="Search" onkeyup="getShops(this)" aria-label="Search">
-    <div style="max-height: 150px;overflow-y: auto;display: none;cursor: pointer;">
-        {% for data in pj_datas %}
-            <p class="m-1 ms-2" shopID="{{data[0]}}" projectCode="{{data[2]}}" onclick="callProjectStatistics(this)">{{data[1]}} _&_ {{data[2]}}</p>
-        {% endfor %}                               
-    </div>
-    <div class="table-responsive mt-3" id="table-stat" style="display: none;">
-        <table class="table table-bordered">
-            <thead class="table-light">
-                <tr class="text-center">
-                    <th scope="col">#</th>
-                    <th scope="col">ဆိုဒ် အမည်</th>
-                    <th scope="col">ဆိုဒ် ကုဒ်</th>
-                    <th scope="col">ဆိုဒ် တာဝန်ခံ</th>
-                    <th scope="col">ပမာဏ ပေ</th>
-                    <th scope="col">ပမာဏ ကျင်း</th>
-                    <th scope="col">ဆောင်ရွက်မည့် ကျင်း</th>
-                    <th scope="col">Estimate Duty</th>
-                    <th scope="col">Estimate Fuel</th>
-                    <th scope="col">Estimate Expense</th>
-                </tr>
-            </thead>
-            <tbody class="table-secondary" id="body-data-of-stats-table">
-
-            </tbody>
-        </table>
-    </div>
-</div>
-
-{% endif  %}
 
 {% if result_data %}
 <div class="container">
@@ -107,15 +39,14 @@
         </div>
         <div class="col"></div>
         <div class="col">
-            <h2 {% if result_data[16] %} class='uc uc-complete uc-sm uc-pos-fix center flex-end'
-                {% else %} class='uc  uc-sm uc-pos-fix center flex-end' {% endif %}>
+            <h2 
+                {% if result_data[16] == 'IN PROGRESS' %} class='uc  uc-sm uc-pos-fix center flex-end' 
+                {% else %} class='uc uc-complete uc-sm uc-pos-fix center flex-end'
+                {% endif %}
+            >
                 <i class='fa fa-exclamation-triangle fst-span'></i>
                 <span>
-                    {% if result_data[16]%}
-                    Complete
-                    {% else %}
-                    UNDER CONSTRUCTION                    
-                    {% endif %}
+                    {{ result_data[16] }}
                 </span>
                 <i class='fa fa-exclamation-triangle'></i>
             </h2>            
@@ -197,26 +128,17 @@
         </div>
     </div>
 </div>
+{% else %}
+<h2 class="text-center text-danger mt-3">No data was found for your project</h2>
+<h4 class="text-center">{{pj_code_name[0][0]}}</h4>
+<h5 class="text-center">{{pj_code_name[0][1]}}</h5>
+<h6 class="text-center text-danger">Please update data in duty_odoo_report to make summary analyze this project!!!!!</h6>
 {% endif %}
 
-<!-- Button trigger modal -->
-<button type="button" class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#exampleModal" id="autoClicker"></button>
+{% endblock %}
 
-<!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5 text-danger-emphasis" id="exampleModalLabel">User Error</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="modalUserWarn">
-        <strong>{{message | safe }}</strong>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
+{% block project_datas %}
+    {% for data in project_datas %}
+        <p class="m-1 ms-2" shopid="{{data[0]}}" projectcode="{{data[1]}}" onclick="assignShop(this)">{{data[2]}} _&_ {{data[1]}}</p>
+    {% endfor %}
 {% endblock %}

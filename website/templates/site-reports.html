@@ -2,7 +2,6 @@
 {% block title %} Data Reports {% endblock %}
 {% block styles %}
     <link href="{{url_for('static',filename='styles/site-reports.css')}}" rel="stylesheet"/>
-    <script src="{{url_for('static',filename='scripts/site-reports.js')}}"></script>
 {% endblock %}
 {% block content %}
 <h3 class="text-center mt-2">Income Expense Report</h3>
@@ -21,10 +20,10 @@
     <div class="inExRow " onclick="showDrop(this)">
         <ul id="totalRow">
             <li class="fs-3"><b>စုစုပေါင်း</b></li>
-            <li>လက်ကျန်ငွေ<br><b class="fs-5">{{extra_datas[4][0]}}</b></li>
-            <li>အဝင်<br><b class="fs-5">{{extra_datas[4][1]}}</b></li>
-            <li>အထွက်<br><b class="fs-5">{{extra_datas[4][2]}}</b></li>
-            <li>လက်ကျန်<br><b class="fs-5">{{extra_datas[4][3]}}</b></li>
+            <li>Opening လက်ကျန်ငွေ<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][0]}}</b></li>
+            <li>အဝင်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][1]}}</b></li>
+            <li>အထွက်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][2]}}</b></li>
+            <li>လက်ကျန်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][3]}}</b></li>
             {% if result_datas|length != 0 %}
             <li class="fs-3"><i class="fa-solid fa-caret-right"></i></li>
             {% endif %}
@@ -49,7 +48,7 @@
                                 <td class="py-2"></td>
                                 <td class="text-end"></td>
                                 <td class="text-end"></td>
-                                <td class="text-end">{{extra_datas[4][0]}}</td>
+                                <td class="text-end toAddCommaForAmt">{{extra_datas[4][0]}}</td>
                                 <td class="ps-2 text-start"></td>
                             </tr>
                             {% for result_data in result_datas %}
@@ -57,9 +56,9 @@
                                 <td class="text-center">{{result_data[0]}}</td>
                                 <td class="text-start">{{result_data[1]}}</td>
                                 <td class="">{{result_data[2]}}</td>
-                                <td class="text-end">{{result_data[3]}}</td>
-                                <td class="text-end">{{result_data[4]}}</td>
-                                <td class="text-end">{{result_data[5]}}</td>
+                                <td class="text-end toAddCommaForAmt">{{result_data[3]}}</td>
+                                <td class="text-end toAddCommaForAmt">{{result_data[4]}}</td>
+                                <td class="text-end toAddCommaForAmt">{{result_data[5]}}</td>
                                 <td class="ps-2 text-start">{{result_data[6]}}</td>
                             </tr>
                             {% endfor %}
@@ -70,4 +69,10 @@
         {% endif%}
     </div>
 </div>
+{% endblock %}
+
+{% block project_datas %}
+    {% for data in project_datas %}
+        <p class="m-1 ms-2" shopid="{{data[0]}}" projectcode="{{data[1]}}" onclick="assignShop(this)">{{data[2]}} _&_ {{data[1]}}</p>
+    {% endfor %}
 {% endblock %}

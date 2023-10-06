@@ -9,12 +9,12 @@
 <div class="container-fluid">
     <div class="cardscss">
         {% for data in all_pj_datas %}
-            <div class="card text-center m-1 shadow-md" style="height: max-content;position: relative;">
+            <div class="card text-center m-1 shadow-md" style="position: relative;">
                 <div class="stack-top">
                     <div>{{data[1]}}</div>
                 </div>
                 <div class="card-header text-white" style="background-color: #2C41AD;">
-                    Project Code - {{data[2]}}
+                    {{data[2]}}
                 </div>
                 <div class="card-body text-dark" style="background-color: #BFD1E5;">
                     <h6 class="card-title" style="color:#2C41AD" title="{{data[3]}}">{{data[3]}}</h6>
@@ -36,4 +36,10 @@
         {% endfor %}
     </div>
 </div>
+{% endblock %}
+
+{% block project_datas %}
+    {% for data in project_datas %}
+        <p class="m-1 ms-2" shopid="{{data[0]}}" projectcode="{{data[1]}}" onclick="assignShop(this)">{{data[2]}} _&_ {{data[1]}}</p>
+    {% endfor %}
 {% endblock %}

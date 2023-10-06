@@ -25,14 +25,22 @@ def get_first_and_last_day(month, year):
 
 @views.route('/')
 def home():
-    if request.cookies.get('username'):
-        return render_template('home.html')
+    user_id = request.cookies.get('cpu_user_id')
+    if user_id and request.cookies.get('cpu_role'):
+        conn = db_connect()
+        cur = conn.cursor()
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+        project_datas = cur.fetchall()
+        cur.close()
+        conn.close()
+        return render_template('home.html',project_datas = project_datas)
     return render_template('auth.html',typ='log')
 
 @views.route("/transactions/<what>/<mgs>",methods =['GET','POST'])
 @views.route("/transactions/<what>",methods =['GET','POST'])
 def show_transactions(what,mgs=None):
-    role = request.cookies.get('role')
+    role = request.cookies.get('cpu_role')
+    user_id = request.cookies.get("cpu_user_id")
     if not role:
         return redirect(url_for('views.home'))
     else:
@@ -43,6 +51,8 @@ def show_transactions(what,mgs=None):
     if request.method == 'POST':
         pass
     else:
+        cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+        project_datas = cur.fetchall()
         if what == 'duty':
             query = """ SELECT 
                             dty.duty_date,pj.code,pj.name,fv.machine_name,dty.operator_name,dty.morg_start,dty.morg_end,
@@ -115,7 +125,7 @@ def show_transactions(what,mgs=None):
             datas = []
             name = "Service Query"
             total = 70
-        return render_template("transactions.html",datas=datas,total=total,name=name,message=mgs)
+        return render_template("transactions.html",datas=datas,total=total,name=name,message=mgs,project_datas = project_datas)
 
 @views.route("/configurations/<what>/<mgs>",methods=['GET','POST'])
 @views.route("/configurations/<what>",methods=['GET','POST'])
@@ -123,6 +133,17 @@ def configurations(what,mgs=None):
 
     conn = db_connect()
     cur = conn.cursor()
+
+    role = request.cookies.get('cpu_role')
+    user_id = request.cookies.get("cpu_user_id")
+    if not role:
+        return redirect(url_for('views.home'))
+    else:
+        if int(role) not in (1,3,4):
+            return render_template('access_error.html')
+        
+    cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+    project_datas = cur.fetchall()
 
     machine_name_wildcard = pj_name_wildcard = sup_name_wildcard = "" 
     extra_datas = ["",False,0]
@@ -226,7 +247,7 @@ def configurations(what,mgs=None):
     cur.close()
     conn.close()
 
-    return render_template('configurations.html',message=mgs,datas=data,extra_datas = extra_datas,what=what)
+    return render_template('configurations.html',message=mgs,datas=data,extra_datas = extra_datas,what=what,project_datas=project_datas)
         
 def get_necessary_data_for_imports():
     global mappings,machine_brand_mapping,machine_capacity_mapping,machine_class_mapping,machine_owner_mapping,machine_type_mapping,business_unit_mapping
