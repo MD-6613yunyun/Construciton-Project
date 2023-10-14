@@ -5,11 +5,8 @@
 
 {% if result_data %}
 <div class="container">
-    {% if result_data == [] %}
-    <h1 class="text-center">No data was found!!!!!!!!!!</h1>
-    {% endif %}
-    <h4 class="text-center mt-3">{{result_data[0]}}</h4>
-    <h4 class="text-center">{{result_data[1]}}</h4>
+    <h4 class="text-center mt-3">{{result_data[3]}}</h4>
+    <h4 class="text-center">{{result_data[2]}}</h4>
     <button onclick="exportTablesToExcel('header-table-one','summary-table-one','summary-table-two')" class="btn btn-info ms-4">Export Data to Excel</button>
 
     <div class="row">
@@ -19,19 +16,19 @@
                     <tbody class="text-nowrap text-end">
                         <tr>
                             <td >တာဝန်ခံ အမည်</td>
-                            <td >{{result_data[2]}}</td>
+                            <td >{{result_data[4]}}</td>
                             <td >ပမာဏ ပေ</td>
-                            <td >{{result_data[3]}}</td>
-                            <td class="d-none">ဆိုဒ် အမည် </td>
-                            <td class="d-none">{{result_data[0]}}</td>
+                            <td >{{result_data[11]}}</td>
+                            <td class="d-none">ဆိုဒ် တည်နေရာ </td>
+                            <td class="d-none">{{result_data[18]}}</td>
                         </tr>
                         <tr>
                             <td>ဆောင်ရွက်ရမည့် ကျင်း</td>
-                            <td>{{result_data[5]}}</td>
+                            <td>{{result_data[13]}}</td>
                             <td>ပမာဏ ကျင်း</td>
-                            <td>{{result_data[4]}}</td>
-                            <td class="d-none">ဆိုဒ် ကုဒ်</td>
-                            <td class="text-start d-none">{{result_data[1]}}</td>
+                            <td>{{result_data[17]}}</td>
+                            <td class="d-none">ဆိုဒ် စတင်ရက်</td>
+                            <td class="text-start d-none">{{result_data[20]}}</td>
                         </tr>
                     </tbody>
                 </table> 
@@ -40,13 +37,13 @@
         <div class="col"></div>
         <div class="col">
             <h2 
-                {% if result_data[16] == 'IN PROGRESS' %} class='uc  uc-sm uc-pos-fix center flex-end' 
+                {% if result_data[1] == 'IN PROGRESS' %} class='uc  uc-sm uc-pos-fix center flex-end' 
                 {% else %} class='uc uc-complete uc-sm uc-pos-fix center flex-end'
                 {% endif %}
             >
                 <i class='fa fa-exclamation-triangle fst-span'></i>
                 <span>
-                    {{ result_data[16] }}
+                    {{ result_data[1] }}
                 </span>
                 <i class='fa fa-exclamation-triangle'></i>
             </h2>            
@@ -66,33 +63,33 @@
                 <tbody class="text-center">
                     <tr>
                         <th>Duty</th>
+                        <td>{{result_data[5]}}</td>
                         <td>{{result_data[6]}}</td>
-                        <td>{{result_data[7]}}</td>
-                        {% if result_data[8] < 0 %}
-                            <td class="bg-danger">{{result_data[8]}}</td>
+                        {% if (result_data[5]-result_data[6]) < 0 %}
+                            <td class="bg-danger">{{result_data[5]-result_data[6]}}</td>
                         {% else %}
-                            <td class="bg-success-subtle">{{result_data[8]}}</td>
+                            <td class="bg-success-subtle">{{result_data[5]-result_data[6]}}</td>
                         {% endif %}
                         
                     </tr>
                     <tr>
                         <th>Fuel</th>
-                        <td>{{result_data[9]}}</td>
-                        <td>{{result_data[10]}}</td>
-                        {% if result_data[11] < 0 %}
-                            <td class="bg-danger">{{result_data[11]}}</td>
+                        <td>{{result_data[7]}}</td>
+                        <td>{{result_data[8]}}</td>
+                        {% if (result_data[7]-result_data[8]) < 0 %}
+                            <td class="bg-danger">{{result_data[7]-result_data[8]}}</td>
                         {% else %}
-                            <td class="bg-success-subtle">{{result_data[11]}}</td>
+                            <td class="bg-success-subtle">{{result_data[7]-result_data[8]}}</td>
                         {% endif %}
                     </tr>
                     <tr>
                         <th>Expense</th>
-                        <td>{{result_data[12]}}</td>
-                        <td>{{exp[0]}}</td>
-                        {% if exp[1] < 0 %}
-                        <td class="bg-danger">{{exp[1]}}</td>
+                        <td>{{result_data[9]}}</td>
+                        <td>{{result_data[10]}}</td>
+                        {% if (result_data[9]-result_data[10]) < 0 %}
+                        <td class="bg-danger">{{result_data[9]-result_data[10]}}</td>
                         {% else %}
-                            <td class="bg-success-subtle">{{exp[1]}}</td>
+                            <td class="bg-success-subtle">{{result_data[9]-result_data[10]}}</td>
                         {% endif %}
                     </tr>
                 </tbody>
@@ -110,18 +107,18 @@
                 <tbody class="text-center">
                     <tr>
                         <th>Contract</th>
-                        <td> - </td>
+                        <td>{{result_data[11]}}</td>
                         <td>{{result_data[13]}}</td>
                     </tr>
                     <tr>
                         <th>Actual</th>
-                        <td> - </td>
+                        <td>{{result_data[12]}}</td>
                         <td>{{result_data[14]}}</td>
                     </tr>
                     <tr>
                         <th>Balnce</th>
-                        <td> - </td>
-                        <td>{{result_data[15]}}</td>
+                        <td>{{result_data[11]-result_data[12]}}</td>
+                        <td>{{result_data[13]-result_data[14]}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -130,8 +127,7 @@
 </div>
 {% else %}
 <h2 class="text-center text-danger mt-3">No data was found for your project</h2>
-<h4 class="text-center">{{pj_code_name[0][0]}}</h4>
-<h5 class="text-center">{{pj_code_name[0][1]}}</h5>
+<h4 class="text-center">{{pj_summary_name}}</h4>
 <h6 class="text-center text-danger">Please update data in duty_odoo_report to make summary analyze this project!!!!!</h6>
 {% endif %}
 

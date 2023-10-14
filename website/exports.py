@@ -104,7 +104,7 @@ def download_data():
             table_header = ['Date','Project Code','Project Name','Business Unit','Expense Amount']
         elif db_model == 'Machine Activities Query':
             cur.execute(""" 
-                SELECT form.set_date,pj.code,pj.name,form.daily_activity_no,car.machine_name,ajt.name,ajf.name,line.duty_hour,line.used_fuel,line.description FROM daily_activity_lines AS line 
+                SELECT form.set_date,pj.code,pj.name,form.daily_activity_no,car.machine_name,ajt.name,ajf.name,COALESCE(line.way,0.0),line.duty_hour,line.used_fuel,line.description FROM daily_activity_lines AS line 
                     LEFT JOIN daily_activity AS form ON line.daily_activity_id = form.id 
                     LEFT JOIN analytic_project_code AS pj ON pj.id = form.project_id 
                     LEFT JOIN fleet_vehicle AS car ON car.id = line.machine_id 
@@ -112,7 +112,7 @@ def download_data():
                     LEFT JOIN activity_job_function AS ajf ON ajf.id = line.job_function_id 
                 WHERE pj.id = %s AND form.set_date BETWEEN %s AND %s
                 ORDER BY pj.id,form.set_date;""",(pj_id,start_dt,end_dt))
-            table_header = ['Date','Project Code','Project Name','Report No.','Machine Name','Job Type','Job Function','Duty Hour','Used Fuel','Description']
+            table_header = ['Date','Project Code','Project Name','Report No.','Machine Name','Job Type','Job Function','Way','Duty Hour','Used Fuel','Description']
         elif db_model == 'Repair Activities Query':
             cur.execute(""" 
                         SELECT form.set_date,pj.code,pj.name,form.daily_activity_no,car.machine_name,line.description,line.accident_status 

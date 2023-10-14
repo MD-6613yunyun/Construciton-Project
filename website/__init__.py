@@ -6,6 +6,7 @@ def db_connect():
     host = 'localhost'
     port = '5432'  # Default PostgreSQL port
     database = 'mmm_cpu'
+    # database = 'mmm_cpu_test'
     user = 'postgres'
     password = 'md-6613'
 

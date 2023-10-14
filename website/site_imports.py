@@ -15,7 +15,7 @@ def income_expense(typ):
     cur = conn.cursor()
     user_id = request.cookies.get("cpu_user_id")
     current_role = request.cookies.get("cpu_role")
-    if current_role not in ('3','4','5'):
+    if current_role not in ('1','3','4','5'):
         return render_template('access_error.html')
     elif not user_id:
         return redirect(url_for('auth.authenticate',typ='log'))
@@ -35,13 +35,25 @@ def income_expense(typ):
         form_datas = cur.fetchone()
         cur.execute("SELECT car.machine_name,car.id FROM machines_history LEFT JOIN fleet_vehicle AS car ON car.id = machines_history.machine_id WHERE project_id = %s AND end_time IS NULL;",(pj_id,))
         machine_datas = cur.fetchall()
-        cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+        if current_role in ('3','4'):
+            cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
+        else:
+            cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
         project_datas = cur.fetchall()
         cur.close()
         conn.close()
         return render_template("income_expense.html",cur_date = cur_date,form_datas = form_datas,machine_datas = machine_datas,template_type = 'Import',project_datas = project_datas)
     else:
-        cur.execute("""SELECT form.id,form.set_date,MAX(pj.code),MAX(pj.name),form.income_expense_no,
+        ##
+        if current_role in ('4', '3'):
+            project_filter_query = ''
+        else:
+            project_filter_query = """
+                INNER JOIN project_user_access AS access 
+                ON access.project_id = pj.id 
+                WHERE access.user_id = %s
+            """
+        query = f""" SELECT form.id,form.set_date,MAX(pj.code),MAX(pj.name),form.income_expense_no,
                         CASE WHEN form.income_status = 't' THEN 'INCOME' ELSE 'EXPENSE' END,
                         SUM(line.amt)
                         FROM income_expense AS form 
@@ -49,17 +61,17 @@ def income_expense(typ):
                         ON line.income_expense_id = form.id
                         INNER JOIN analytic_project_code AS pj
                         ON pj.id = form.project_id
-                        INNER JOIN project_user_access access
-                        ON access.project_id = pj.id
-                        WHERE access.user_id = %s
+                        {project_filter_query}
                         GROUP BY form.id
                         ORDER BY MAX(pj.id),form.set_date DESC
-                        LIMIT 81;""",(int(user_id),))
+                        LIMIT 81; """
+        cur.execute(query,(user_id,))
         result = cur.fetchall()
         extra_datas = []
         cur.execute("SELECT count(id) FROM income_expense_line;")
         extra_datas.append(cur.fetchone())
-        cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+        query = f"SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj {project_filter_query};"
+        cur.execute(query,(user_id,))
         project_datas = cur.fetchall()
         cur.close()
         conn.close()
@@ -71,7 +83,7 @@ def daily_activity(typ):
     cur = conn.cursor()
     user_id = request.cookies.get("cpu_user_id")
     current_role = request.cookies.get("cpu_role")
-    if current_role not in ('3','4','5'):
+    if current_role not in ('1','3','4','5'):
         return render_template('access_error.html')
     elif not user_id:
         return redirect(url_for('auth.authenticate',typ='log'))
@@ -111,7 +123,10 @@ def daily_activity(typ):
             zipped_machine_employee[-1][0][1] += data[0][1]
             zipped_machine_employee[-1][1][1] += data[1][1]
         extra_datas.append(zipped_machine_employee)
-        cur.execute("SELECT car.machine_name,car.id FROM machines_history AS his LEFT JOIN fleet_vehicle AS car ON his.machine_id = car.id WHERE his.project_id = %s AND his.end_time IS NULL;",(pj_id,))
+        cur.execute(""" SELECT car.machine_name,car.id FROM machines_history AS his 
+                        LEFT JOIN fleet_vehicle AS car ON his.machine_id = car.id
+                        LEFT JOIN duty_price_history AS duty_his ON duty_his.machine_id = car.id
+                        WHERE his.project_id = %s AND his.end_time IS NULL AND duty_his.duty_price IS NOT NULL AND duty_his.end_date IS NULL;""",(pj_id,))
         machine_datas = cur.fetchall()
         cur.execute("SELECT name,id FROM activity_job_type;")
         activity_job_types = cur.fetchall()
@@ -138,15 +153,27 @@ def daily_activity(typ):
                         ON form_table.project_id = expense_table.project_id
                         WHERE form_table.project_id = %s;""",(pj_id,))
         history_datas = cur.fetchone()
-        cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+        if current_role in ('3','4'):
+            cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
+        else:
+            cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
         project_datas = cur.fetchall()
         cur.close()
         conn.close()
         if not history_datas:
             history_datas = (Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'))
+        print(history_datas)
         return render_template("daily-table.html",extra_datas = extra_datas,form_datas = form_datas,machine_datas=machine_datas,activity_jobs=[activity_job_types,activity_job_functions],history_datas=history_datas,template_type = 'create',project_datas = project_datas)
     else:
-        cur.execute(""" WITH daily_activity_summary AS (
+        if current_role in ('4', '3'):
+            project_filter_query = ''
+        else:
+            project_filter_query = """
+                INNER JOIN project_user_access AS access 
+                ON access.project_id = das.pj_id 
+                WHERE access.user_id = %s
+            """
+        query = f""" WITH daily_activity_summary AS (
                             SELECT 
                                 da.id,
                                 da.set_date,
@@ -163,7 +190,7 @@ def daily_activity(typ):
                             JOIN analytic_project_code pj ON da.project_id = pj.id
                         ),
                         duty_hours_summary AS (
-                            SELECT daily_activity_id, SUM(duty_hour) AS total_duty_hour, SUM(used_fuel) AS total_used_fuel
+                            SELECT daily_activity_id, SUM(duty_hour) AS total_duty_hour, SUM(used_fuel)  AS total_used_fuel, SUM(way) AS ways
                             FROM daily_activity_lines
                             GROUP BY daily_activity_id
                         ),
@@ -198,20 +225,24 @@ def daily_activity(typ):
                             pp.total_present_people,
                             pm.total_present_machines,
                             COALESCE(a.machine_count,0),
-                            COALESCE(a.any_accident,'FALSE')
+                            COALESCE(a.any_accident,'FALSE'),
+                            COALESCE(dh.ways,'0.0')
                         FROM daily_activity_summary das
                         LEFT JOIN duty_hours_summary dh ON das.id = dh.daily_activity_id
                         LEFT JOIN present_people_summary pp ON das.id = pp.daily_activity_id
                         LEFT JOIN present_machines_summary pm ON das.id = pm.daily_activity_id
                         LEFT JOIN accident_summary a ON das.id = a.daily_activity_id
-                        INNER JOIN project_user_access access ON access.project_id = das.pj_id
-                        WHERE access.user_id = %s
-                        ORDER BY das.pj_id,das.set_date DESC,das.daily_activity_no DESC;""",(int(user_id),))
+                        {project_filter_query}
+                        ORDER BY das.pj_id,das.set_date DESC,das.daily_activity_no DESC; """
+        cur.execute(query,(user_id,))
         result = cur.fetchall()
         extra_datas = []
         cur.execute("SELECT count(*) FROM daily_activity;")
         extra_datas.append(cur.fetchone())
-        cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+        if current_role in ('3','4'):
+            cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
+        else:
+            cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
         project_datas = cur.fetchall()
         cur.close()
         conn.close()

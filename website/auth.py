@@ -30,7 +30,7 @@ def authenticate(typ='log'):
                     return response
                 return redirect(url_for('views.home'))
             else:
-                return render_template('auth.html',mgs='Wrong Credentials',typ='log')
+                return render_template('auth.html',mgs='အီးမေးလ် (သို့) စကားဝှက် မှားယွင်းနေပါသည်။ ',typ='log')
         else:
             name = request.form.get("username")
             mail = request.form.get("email")
@@ -45,9 +45,9 @@ def authenticate(typ='log'):
                         return redirect(url_for('auth.authenticate',typ='log'))
                     except IntegrityError as err:
                         print(err)
-                        return render_template('auth.html',mgs='Already Registered',typ='reg')
+                        return render_template('auth.html',mgs='ဤအီးမေလ် ဖြင့် အကောင့် ပြုလုပ်ထားခြင်း ရှိပါသည်',typ='reg')
                 else:
-                    return render_template('auth.html',mgs='Unmatched Password',typ='reg')
+                    return render_template('auth.html',mgs='စကားဝှက် နှင့် အတည်ပြု စကားဝှက်သည် ကိုက်ညီမှု မရှိပါ။',typ='reg')
             elif typ == 'forgot':
                 cur.execute("SELECT name FROM user_auth WHERE mail = %s",(mail,))
                 data = cur.fetchall()
@@ -58,11 +58,10 @@ def authenticate(typ='log'):
                         conn.commit()
                         return redirect(url_for('auth.authenticate',typ='log'))
                     else:
-                        return render_template('auth.html',mgs='Unmatched Password',typ='forgot')
+                        return render_template('auth.html',mgs='စကားဝှက် နှင့် အတည်ပြု စကားဝှက်သည် ကိုက်ညီမှု မရှိပါ။',typ='forgot')
                 else:
-                    return render_template('auth.html',mgs='Invalid Credentials',typ='forgot')
+                    return render_template('auth.html',mgs='အီးမေးလ် (သို့) စကားဝှက် မှားယွင်းနေပါသည်။',typ='forgot')
     else:
-        print("nani")
         return render_template('auth.html',typ=typ,mgs=None)
 
 @auth.route("logout")
@@ -100,7 +99,7 @@ def admin_panel():
         pj_datas = cur.fetchall()
         cur.execute("SELECT id,name FROM user_access;")
         access_datas = cur.fetchall()
-        cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
         project_datas = cur.fetchall()
         return render_template('admin_panel.html',not_tree=True,user_data=user_data,pj_datas=pj_datas,access_datas=access_datas,project_datas=project_datas)
     else:
@@ -108,7 +107,7 @@ def admin_panel():
         all_users = cur.fetchall()
         cur.execute("SELECT count(*) FROM user_auth;")
         all_users_count = cur.fetchone()[0]
-        cur.execute("SELECT pj.id,code,name FROM analytic_project_code pj INNER JOIN project_user_access access ON access.project_id = pj.id WHERE access.user_id = %s;",(int(user_id),))
+        cur.execute("SELECT pj.id,code,name FROM analytic_project_code AS pj;")
         project_datas = cur.fetchall()
     
     return render_template("admin_panel.html",all_users=all_users,total=all_users_count,project_datas=project_datas)
@@ -136,7 +135,10 @@ def add_remove_pj(typ):
         pj_datas = cur.fetchall()
         cur.execute("SELECT id,name FROM user_access;")
         access_datas = cur.fetchall()
-        cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+        if current_role in ('3','4'):
+            cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
+        else:
+            cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
         project_datas = cur.fetchall()
         conn.commit()
         cur.close()

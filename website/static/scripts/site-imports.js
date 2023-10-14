@@ -271,11 +271,10 @@ function roundToTwoDecimalPlaces(number) {
 }
 
 function addValueToCheckBox(checkBox){
-    checkBox.value = 0
+    checkBox.nextElementSibling.value = 0
     if (checkBox.checked){
-        checkBox.value = 1
+        checkBox.nextElementSibling.value = 1
     }
-    console.log(checkBox.value)
 }
 
 function calculateInlineValue(inp){
@@ -283,7 +282,8 @@ function calculateInlineValue(inp){
     let prevVal = parseFloat(inp.parentElement.previousElementSibling.textContent)
     let curVal = parseFloat(inp.value)
     let balance = targetVal - ( prevVal  + curVal )
-    if (balance <= 0.0){
+    console.log(balance)
+    if (balance < 0.0){
         inp.value = ''
     }else{
         inp.parentElement.nextElementSibling.textContent = balance

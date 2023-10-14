@@ -23,7 +23,7 @@
 
             <div id="nav" class="navbar-collapse collapse justify-content-between">
                 <ul class="navbar-nav px-3">
-                    {% if request.cookies.get('cpu_role') in ('2','3','4') %}
+                    {% if request.cookies.get('cpu_role') in ('1','2','3','4') %}
                     <li class="nav-item"><a  class="nav-link text-white" href="{{url_for('dash.dash_home')}}" >Dashboard</a></li>
                     {% endif %}
                     {% if request.cookies.get('cpu_role') not in ('5','2') %}
@@ -51,6 +51,8 @@
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='details')}}">Machine Details</a></li>    
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='employee')}}">Employees</a></li>  
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='employee-group')}}">Employee Group</a></li>  
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='fuel-price')}}">Fuel Prices</a></li> 
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='ajt')}}">Job Types ( Activity )</a></li>    
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='ajf')}}">Job Function ( Activity )</a></li>    
                                 </ul>
@@ -58,7 +60,7 @@
                         </ul>
                     </li>
                     {% endif %}
-                    {% if request.cookies.get('cpu_role') in ('3','4','5') %}
+                    {% if request.cookies.get('cpu_role') in ('1','3','4','5') %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Sites Imports</a>
                         <ul class="dropdown-menu">
@@ -67,23 +69,18 @@
                         </ul>
                     </li>
                     {% endif %}
-                    {% if request.cookies.get('cpu_role') != '1' %}
                     <li class="nav-item dropdown ">
                         <a class="nav-link dropdown-toggle text-white" data-bs-auto-close="outside"  href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Reports</a>
                         <ul class="dropdown-menu">
-                            {% if request.cookies.get('cpu_role') in ('2','3','4') %}
+                            {% if request.cookies.get('cpu_role') in ('1','2','3','4') %}
                             <li><a type="button" onclick="showModalAndGiveProjectCodes('monthly')" class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#monthlyReport">Monthly</a></li>
                             <li><a class="dropdown-item" onclick="showModalAndGiveProjectCodes('summary')" type="button"  data-bs-toggle="modal" data-bs-target="#monthlyReport">Summary</a></li>
-                                {% if request.cookies.get('cpu_role') in ('3','4') %}
+                            <li><a class="dropdown-item" onclick="showModalAndGiveProjectCodes('job_type_function')" type="button"  data-bs-toggle="modal" data-bs-target="#monthlyReport">Job Type & Job Function</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                {% endif %}
                             {% endif %}
-                            {% if request.cookies.get('cpu_role') != '1'  %}
                             <li><a class="dropdown-item" href="#" class="dropdown-item" onclick="showModalAndGiveProjectCodes()" data-bs-toggle="modal" data-bs-target="#monthlyReport">Income Expense</a></li>
-                            {% endif %}
                         </ul>
                     </li>
-                    {% endif %}
                     {% if request.cookies.get('cpu_role') == '4' %}
                     <li class="nav-item"><a  class="nav-link text-white" href="{{url_for('auth.admin_panel')}}" >Admin Panel</a></li>
                     {% endif %}
@@ -109,7 +106,6 @@
                     <h1 class="modal-title fs-5" style="margin: 0;" id="staticBackdropLabel">Monthly Duty Report</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                {% if request.cookies.get('cpu_role') in ('2','3','4','5') %}
                     <form action="/duty/get-monthly-duty" class="monthlyformInModal" method="POST">
                         <div class="modal-body">
                             <div class="filters m-3">
@@ -151,18 +147,32 @@
                             </div>
                             <div>
                                 <strong class="d-flex">Group By Report with </strong>
-                                <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="class" id="flexRadioGroup1" checked>
-                                <label class="form-check-label" for="flexRadioGroup1">
-                                    Machine Class
-                                </label>
-                                <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="type" id="flexRadioGroup2">
-                                <label class="form-check-label" for="flexRadioGroup2">
-                                    Machine Type
-                                </label>
-                                <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="capacity" id="flexRadioGroup2">
-                                <label class="form-check-label" for="flexRadioGroup2">
-                                    Machine Capacity
-                                </label>
+                                <div class="text-center">
+                                    <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="class" id="flexRadioGroup1" checked>
+                                    <label class="form-check-label" for="flexRadioGroup1">
+                                        Machine Class
+                                    </label>
+                                    <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="type" id="flexRadioGroup2">
+                                    <label class="form-check-label" for="flexRadioGroup2">
+                                        Machine Type
+                                    </label>
+                                    <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="j_type" id="flexRadioGroup2">
+                                    <label class="form-check-label" for="flexRadioGroup2">
+                                        Job Type
+                                    </label>                                    
+                                </div>
+
+                                <div class="text-center">
+                                    <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="function" id="flexRadioGroup2">
+                                    <label class="form-check-label" for="flexRadioGroup2">
+                                        Job Function
+                                    </label>
+                                    <input class="form-check-input ms-3" type="radio" name="radioOPtions" value="capacity" id="flexRadioGroup2">
+                                    <label class="form-check-label" for="flexRadioGroup2">
+                                        Machine Capacity
+                                    </label>                                    
+                                </div>
+
                             </div>
                             <div class="groupby-report">
                                 <strong class="d-flex"> Report Fields With </strong>
@@ -185,15 +195,6 @@
                             <button type="submit"  class="btn btn-primary">Generate Report</button>
                         </div>
                     </form>
-                {% else %}
-                <div class="modal-body">
-                    <h4><i>You don't have enough access to the report section..</i> </h4>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button"  class="btn btn-primary">Understood</button>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -243,22 +244,25 @@
         </div>
     </div>
     <!-- Message Modal -->
-    <!-- Button trigger modal -->
-    <button type="button" class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#exampleModal" id="autoClicker"></button>
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#exampleModal" id="autoClicker"></button>
 
-    <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
                 <div class="modal-header">
                     <h1 class="modal-title fs-5 text-danger-emphasis" id="exampleModalLabel">User Error</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="modalUserWarn">
-                    <strong>{{message | safe }}</strong>
+                    <strong>
+                        {% block mgsContent %}{% endblock %}
+                    </strong>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
                 </div>
             </div>
         </div>

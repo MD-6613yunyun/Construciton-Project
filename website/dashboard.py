@@ -8,26 +8,32 @@ dash = Blueprint('dash',__name__)
 @dash.route("")
 def dash_home():
     role = request.cookies.get('cpu_role')
-    user_id = request.cookies.get('cpu_user_id')
+    user_id:int = request.cookies.get('cpu_user_id')
     if not role:
         return redirect(url_for('views.home'))
     else:
-        if int(role) not in (2,3,4):
+        if int(role) not in (1,2,3,4):
             return render_template('access_error.html')
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute(""" WITH stat_table AS (
+    if role in ('4', '3'):
+        project_filter_query = ''
+    else:
+        project_filter_query = """
+            LEFT JOIN project_user_access AS access 
+            ON access.project_id = pj.id 
+            WHERE access.user_id = %s 
+        """
+    query = f""" WITH stat_table AS (
             SELECT stat.project_id,status.name AS status,pj.code,pj.name AS pj_name,emp.name AS emp_name,stat.pj_start_date
             FROM project_statistics AS stat
             LEFT JOIN analytic_project_code AS pj 
             ON stat.project_id = pj.id
             LEFT JOIN employee AS emp
             ON emp.id = stat.supervisor_id
-            LEFT JOIN project_status status
+            LEFT JOIN project_status AS status
             ON status.id = pj.project_status_id
-            LEFT JOIN project_user_access access
-            ON access.project_id = pj.id
-            WHERE access.user_id = %s
+            {project_filter_query}
                 ),
             form_table AS 
             ( SELECT project_id,sum(complete_feet) AS feet,sum(complete_sud) AS sud
@@ -45,7 +51,7 @@ def dash_home():
             GROUP BY form.project_id
             ),
             working AS (
-            SELECT project_id,count(id) AS working_days FROM daily_activity
+            SELECT project_id,count(DISTINCT set_date) AS working_days FROM daily_activity
             WHERE working_status = 't' GROUP BY project_id
             )
             SELECT stat_table.project_id,stat_table.status,stat_table.code,stat_table.pj_name,stat_table.emp_name,
@@ -57,8 +63,11 @@ def dash_home():
             LEFT JOIN expense_table
             ON stat_table.project_id = expense_table.project_id
             LEFT JOIN working
-            ON working.project_id = stat_table.project_id;""",(user_id,))
+            ON working.project_id = stat_table.project_id
+            WHERE stat_table.status <> 'FINISHED'; """
+    cur.execute(query,(user_id,))
     all_pj_datas = cur.fetchall()
-    cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+    query = f"SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj {project_filter_query};"
+    cur.execute(query,(user_id,))
     project_datas = cur.fetchall()
     return render_template('dashboard.html',all_pj_datas = all_pj_datas,project_datas = project_datas)

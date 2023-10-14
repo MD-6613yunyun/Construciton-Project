@@ -160,6 +160,7 @@ th{
 
 .activities-table, .estimate-result-table, .manpower-equiment-table , .repair-maintainace-table{
     width: 80%;
+    overflow: auto;
 }
 
 .activities-table .duty-hour{
@@ -172,7 +173,7 @@ th{
 }
 
 .activities-table table{
-    width: 100%;
+    max-width: 95%;
 }
 
 .activities-table input{

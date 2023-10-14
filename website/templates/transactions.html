@@ -215,6 +215,7 @@
                         <th>Machine</th>
                         <th>Job Type</th>
                         <th>Job Function</th>
+                        <th>Way</th>
                         <th>Duty Hour</th>
                         <th>Liter</th>
                         <th>Description</th>
@@ -230,6 +231,7 @@
                             <td class="text-start">{{data[4]}}</td>
                             <td class="text-start">{{data[5]}}</td>
                             <td class="text-end">{{data[6]}}</td>
+                            <td class="text-end">{{data[10]}}</td>
                             <td class="text-end">{{data[7]}}</td>
                             <td class="text-end">{{data[8]}}</td>
                             <td class="text-wrap" title="{{data[9]}}">{{data[9]}}</td>
@@ -297,3 +299,5 @@
         <p class="m-1 ms-2" shopid="{{data[0]}}" projectcode="{{data[1]}}" onclick="assignShop(this)">{{data[2]}} _&_ {{data[1]}}</p>
     {% endfor %}
 {% endblock %}
+
+{% block mgsContent %}{{ mgs | safe }}{% endblock %}

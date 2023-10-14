@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% block title %} Configurations Edit {% endblock %}
+{% block content %}
+
+<h1 class="text-center mt-2">{{datalist_datas['name']}}</h1>
+
+<div class="container">
+    <button class="btn shadow shadow-sm" onclick="editConfigStatis(this,'machine-box-holder')" style="background-color: #2C41AD;color: white;">Edit</button>
+    <a  class="nav-item"><button onclick="{window.history.back()}" class="btn btn-danger shadow-sm">Discard</button></a>
+</div>
+
+{% if datalist_datas['name'] == 'Machine Edit' %}
+
+<div class="mx-5 mt-1 shadow shadow-sm" id="machine-box-holder">
+    <div class="card card-body" style="background-color:#2C41AD">
+        <form class="row gx-3 gy-2 align-items-center ms-4 me-4 mt-2" action="{{url_for('imports.upload_each_data')}}" method="POST">
+            <input type="text" hidden name="db" value="fleet_vehicle">
+            <input type="number" hidden name="edit-id" value="{{data[7]}}"/>
+            <div class="col-sm-4 form-floating">
+                <input disabled id="machineName" value="{{data[0]}}" type="text" name="vehicle-datas" class="form-control" placeholder="Machine Name" aria-label="Username" autocomplete="off">
+                <label for="machineName" class="ms-2">Machine Name</label>
+            </div>
+            <div class="col-sm-4 form-floating">
+                <input disabled type="text" id="machineClass" value="{{data[2]}}" name="vehicle-datas" list="datalistOptionsClass" class="form-control" autocomplete="off" placeholder="Machine Class" aria-label="Username" autocomplete="off">
+                <datalist id="datalistOptionsClass" style="height: 100px;">
+                    {% for dta in datalist_datas['Machine Class'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %}
+                </datalist>
+                <label for="machineClass" class="ms-2">Machine Class</label>
+            </div>
+            <div class="col-sm-4 form-floating">
+                <input disabled id="machineCapacity" type="text" value="{{data[4]}}" name="vehicle-datas" list="datalistOptionsCapacity" class="form-control" placeholder="Machine Capacity" aria-label="Server" autocomplete="off">
+                <datalist id="datalistOptionsCapacity" style="height: 100px;">
+                    {% for dta in datalist_datas['Machine Capacity'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %} 
+                </datalist>
+                <label for="machineCapacity" class="ms-2">Machine Capacity</label>
+            </div>
+            <div class="col-sm-4 form-floating">
+                <input disabled id="machineBrand" type="text" value="{{data[5]}}"  name="vehicle-datas" list="datalistOptionsBrand" class="form-control" placeholder="Machine Brand" aria-label="Username" autocomplete="off">
+                <datalist id="datalistOptionsBrand" style="height: 100px;">
+                    {% for dta in datalist_datas['Machine Brand'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %}
+                </datalist>
+                <label for="machineBrand" class="ms-2">Machine Brand</label>
+            </div>
+            <div class="col-sm-4 form-floating">
+                <input disabled id="businessUnit" type="text" value="{{data[3]}}" name="vehicle-datas" class="form-control" list="datalistOptionsUnit" placeholder="Business Unit" aria-label="Server" autocomplete="off">
+                <datalist id="datalistOptionsUnit" style="height: 100px;">
+                    {% for dta in datalist_datas['Business Unit'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %}
+                </datalist>
+                <label for="businessUnit" class="ms-2">Business Unit</label>
+            </div>
+            <div class="col-sm-4 form-floating">
+                <input disabled id="ownerName" type="text" value="{{data[6]}}" name="vehicle-datas" list="datalistOptionsOwner" class="form-control" placeholder="Owner Name" aria-label="Server" autocomplete="off">
+                <datalist id="datalistOptionsOwner" style="height: 100px;">
+                    {% for dta in datalist_datas['Owner'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %}
+                </datalist>
+                <label for="ownerName" class="ms-2">Owner Name</label>
+            </div>
+            <div class="col-auto">
+                <button  disabled type="submit" class="btn btn-success d-none">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<h4 class="text-center my-2">Duty Price</h4>
+<div class="cpu-table-sec mb-3">
+    <button class="btn btn-success d-none mb-2 duty-price-add-btn"  data-bs-toggle="modal" data-bs-target="#dutyPriceImport">Add Duty</button>
+    <table class="">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Price Type</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dta in datalist_datas['history'] %}
+            <tr>
+                <td class="text-start">{{dta[1]}}</td>
+                <td class="text-start">{{dta[2]}}</td>
+                <td class="text-start">{{dta[3]}}</td>
+                <td class="text-end">{{dta[4]}}</td>
+                <td class="text-end">{{dta[5]}}</td>
+            </tr>
+            {% endfor %}
+    </tbody>
+    </table>
+</div>
+
+<div class="modal modal-lg fade" data-bs-backdrop="static" data-bs-keyboard="false" id="dutyPriceImport">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>Duty Price Import</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card card-body" style="background-color:#2C41AD">
+                    <form class="row gx-3 gy-2 align-items-center ms-4 me-4 mt-2" action="{{url_for('views.configurations',what='Machine List')}}" method="POST">
+                            <div class="col-sm-5 col-md-3 form-floating">
+                                <input type="number" hidden class="" value="{{data[7]}}" name="edit-id"/>
+                                <input type="number" hidden value="" name="machine_type_id"/>
+                                <input type="text" required onchange="checkValidMachine(this,'typeList')" id="machineType" class="form-control" list="typeList" placeholder="Type" autocomplete="off">
+                                <datalist id="typeList">
+                                    {% for dta in datalist_datas['Machine Type'] %}
+                                        <option getId="{{dta[1]}}" value="{{dta[0]}}">
+                                    {% endfor %}
+                                </datalist>
+                                <label for="machineType" class="ms-2">Type</span>
+                            </div>
+                            <div class="col-sm-5 col-md-3 form-floating">
+                                <input id="startDate" required type="date" name="start_date" class="form-control" placeholder="Start-Date" autocomplete="off">
+                                <label for="startDate" class="ms-2">Start Date</label>
+                            </div>
+                            <div class="col-sm-5 col-md-3 form-floating">
+                                <select id="priceType" required type="text" name="price_type_id" class="form-control" placeholder="Price Type" autocomplete="off">
+                                    {% for dta in datalist_datas['price_type'] %}
+                                        <option value="{{dta[0]}}">{{dta[1]}}</option> 
+                                    {% endfor %}
+                                </select>
+                                <label for="priceType" class="ms-2">Price Type</label>
+                            </div>
+                            <div class="col-sm-5 col-md-3 form-floating">
+                                <input id="price" required type="text" name="price" class="form-control" placeholder="Price" autocomplete="off">
+                                <label for="price" class="ms-2">Price</label>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-success">Add</button>
+                            </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% elif datalist_datas['name'] == 'Project Edit' %}
+
+<div class="mx-5 mt-1 shadow shadow-sm" id="machine-box-holder">
+    <div class="card card-body" style="background-color:#2C41AD">
+        <form class="row gx-3 gy-2 align-items-center ms-4 me-4 mt-2" action="/import/upload" method="POST">
+            <input type="text" hidden name="db" value="analytic_project_code">
+            <input type="number" hidden name="edit-id" value="{{data[5]}}"/>
+            <div class="col-sm-4 form-floating">
+                <input disabled id="machineName" value="{{data[0]}}" type="text" name="pj-datas" class="form-control" placeholder="Machine Name" aria-label="Username" autocomplete="off">
+                <label for="machineName" class="ms-2">ဆိုဒ် ကုဒ်</label>
+            </div>
+            <div class="col-sm-4 form-floating">
+                <input disabled type="text" id="machineClass" value="{{data[1]}}" name="pj-datas" list="datalistOptionsClass" class="form-control" autocomplete="off" placeholder="Machine Class" aria-label="Username" autocomplete="off">
+                <label for="machineClass" class="ms-2">ဆိုဒ် အမည်</label>
+            </div>
+            <div class="col-sm-4 form-floating">
+                <input disabled id="machineCapacity" type="text" value="{{data[2]}}" name="pj-datas" list="datalistOptionsCapacity" class="form-control" placeholder="Machine Capacity" aria-label="Server" autocomplete="off">
+                <datalist id="datalistOptionsCapacity" style="height: 100px;">
+                    {% for dta in datalist_datas['Project Group'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %} 
+                </datalist>
+                <label for="machineCapacity" class="ms-2">ဆိုဒ် ဂရု</label>
+            </div>
+            <div class="col-sm-4 form-floating">
+                <input disabled id="machineBrand" type="text" value="{{data[3]}}"  name="pj-datas" list="datalistOptionsBrand" class="form-control" placeholder="Machine Brand" aria-label="Username" autocomplete="off">
+                <datalist id="datalistOptionsBrand" style="height: 100px;">
+                    {% for dta in datalist_datas['Project Type'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %}
+                </datalist>
+                <label for="machineBrand" class="ms-2">ဆိုဒ် အမျိုးအစား</label>
+            </div>
+            <div class="col-sm-4 form-floating">
+                <input disabled id="businessUnit" type="text" value="{{data[4]}}" name="pj-datas" class="form-control" list="datalistOptionsUnit" placeholder="Business Unit" aria-label="Server" autocomplete="off">
+                <datalist id="datalistOptionsUnit" style="height: 100px;">
+                    {% for dta in datalist_datas['Business Unit'] %}
+                        <option value="{{dta[0]}}">
+                    {% endfor %}
+                </datalist>
+                <label for="businessUnit" class="ms-2">ယူနစ်</label>
+            </div>
+            <div class="col-auto">
+                <button  disabled type="submit" class="btn btn-success d-none">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block mgsContent %}{{ mgs | safe }}{% endblock %}

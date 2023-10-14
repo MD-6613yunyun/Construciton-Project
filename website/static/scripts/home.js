@@ -61,15 +61,20 @@ function showModalAndGiveProjectCodes(opt='normal'){
         checkerRadio.parentElement.nextElementSibling.classList.add("d-none")
         checkerRadio.parentElement.classList.add("d-none")
         modalContainer.querySelector("form").setAttribute("action",`/site-imports/${url_route_part}/create`)        
-    }else if (opt == 'summary'){
+    }else if (opt == 'summary' || opt == 'job_type_function'){
         let modalContainer = document.getElementById("monthlyReport")
-        modalContainer.getElementsByClassName("modal-title")[0].textContent = "Summary"
         let checkerRadio = modalContainer.getElementsByClassName("form-check-input")[0]
         checkerRadio.setAttribute("checked","")
         checkEachMachineOrAll(checkerRadio)
-        checkerRadio.parentElement.nextElementSibling.classList.add("d-none")
         checkerRadio.parentElement.classList.add("d-none")
-        modalContainer.querySelector("form").setAttribute("action","/duty/summary-duty-report")
+        if (opt == 'summary'){
+            modalContainer.getElementsByClassName("modal-title")[0].textContent = "Summary"
+            modalContainer.querySelector("form").setAttribute("action","/duty/summary-duty-report")
+            checkerRadio.parentElement.nextElementSibling.classList.add("d-none")
+        }else{
+            modalContainer.getElementsByClassName("modal-title")[0].textContent = "Job Type & Job Function"
+            modalContainer.querySelector("form").setAttribute("action","/duty/job-type-function-report")            
+        }
     }
 }
 
@@ -237,11 +242,11 @@ function deleteTheWholeForm(db,idd){
     .catch(err => console.log(err))  
 }
 
-// clicker = document.getElementById("autoClicker")
-// modalUserMgs = document.getElementById("modalUserWarn")
-// if (modalUserMgs.innerHTML.trim() != "<strong>None</strong>"){
-//     clicker.click()
-// }
+clicker = document.getElementById("autoClicker")
+modalUserMgs = document.getElementById("modalUserWarn")
+if (modalUserMgs.innerHTML.trim() != "<strong>None</strong>" && modalUserMgs.textContent.trim() != "" && modalUserMgs.textContent.trim() != "None" ){
+    clicker.click()
+}
 
 
 
@@ -281,7 +286,8 @@ function updateEachMachine(inp,event){
 
 offsetLimit  = 81
 function clickPagination(btn,target,txt){
-    target_mapp = {"pj":"pj-data-changeable",
+    target_mapp = {"project":"pj-data-changeable",
+                    "machine":"machine-list-changeable",
                   "Duty Query":"duty-query-changeable",
               "machine":"machine-list-changeable",
               "Expenses Query":"expense-list-changeable"}
@@ -322,7 +328,6 @@ function clickPagination(btn,target,txt){
 }
 
 function replaceTableData(result) {
-    console.log(all_tr)
     let i = 0;
     for (i = 0; i < result.length; i++) {
       tds = all_tr[i].getElementsByTagName('td');
@@ -532,7 +537,6 @@ function check_or_trace_start_date(inp){
         autoClick.click()
         inp.value = inp.previousElementSibling.previousElementSibling.value
     }
-    
 }
 
 
@@ -553,7 +557,7 @@ function assignInput(btn){
     btn.parentElement.style.display = 'none';
 }
 
-if (window.location.href.endsWith("/duty/get-monthly-duty")){
+if (window.location.href.endsWith("/duty/get-monthly-duty") || window.location.href.endsWith("/duty/job-type-function-report")){
     excavators = document.getElementsByClassName("excavator")
     reportTable = document.getElementById("report-data-container")
 
@@ -752,7 +756,7 @@ function saveMachineToProjectStats(save){
                         newTr.innerHTML = `
                                         <td>${result[0][1]} <input type='number' class='employee_group_id' value='${result[0][0]}' hidden name='employee_group_id'/></td>
                                         <td>${manPower} <input type='number' class='employee_power_id' value='${manPower}' hidden name='employee_power'/></td>
-                                        <td><button onclick='removeDataFromStats(this)' class="btn btn-sm btn-danger" type='button'>Remove</button></td>    
+                                        <td><button onclick='removeTdRow(this)' class="btn btn-sm btn-danger" type='button'>Remove</button></td>    
                                         `
                         tbody.insertBefore(newTr, inputTr);
                         save.parentElement.children[0].value = "";
@@ -771,6 +775,7 @@ function saveMachineToProjectStats(save){
             fetch(`/get-api/machine-check/${machineName}`)
             .then(response => response.json())
             .then(result => {
+                console.log(result)
                 if (result.length == 0){
                     alert("Invalid Machine Name or Machine is Already in Another Project ..")
                 }else{
@@ -791,7 +796,7 @@ function saveMachineToProjectStats(save){
                         newTr.innerHTML = `
                                         <td>${result[0][1]} <input type='number' class='machine_id' value='${result[0][0]}' hidden name='machine_id'/></td>
                                         <td>${result[0][2]}</td>
-                                        <td><button class="btn btn-sm btn-success me-2" type='button'>Transfer</button><button class="btn btn-sm btn-danger" type='button' onclick='removeDataFromStats(this)'>Remove</button></td>    
+                                        <td><button class="btn btn-sm btn-success me-2" type='button'>Transfer</button><button class="btn btn-sm btn-danger" type='button' onclick='removeTdRow(this)'>Remove</button></td>    
                                         `
                         tbody.insertBefore(newTr, inputTr);
                         save.parentElement.children[0].value = "";
@@ -804,7 +809,7 @@ function saveMachineToProjectStats(save){
     };
 }
 
-function removeDataFromStats(btn){
+function removeTdRow(btn){
     btn.parentElement.parentElement.remove()
 }
 
@@ -836,10 +841,27 @@ function redirectToProjectStatForm(inp_id,form_id,val){
     document.getElementById(form_id).submit()
 }
 
+function editConfigStatis(editBtn,selectId){
+    const prjStatis = document.querySelector(`#${selectId}`);
+    const editSubmitPjStat = document.getElementById("edit-submit-btn-pj-stat")
+    prjStatis.querySelectorAll("input[disabled]").forEach(inp => inp.disabled = false)
+    let duty = document.getElementsByClassName("duty-price-add-btn")[0]
+    if (duty){
+        duty.disabled = false
+        duty.classList.remove("d-none")
+    }
+    prjStatis.querySelectorAll("button[disabled]").forEach(btn => {
+        btn.disabled = false
+        btn.classList.remove("d-none")
+    })
+    editBtn.classList.add("d-none");
+    if (editSubmitPjStat){
+        editSubmitPjStat.classList.remove("d-none")  
+    } 
+}
+
 function editPrjStatis(editBtn,selectId){
     const prjStatis = document.querySelector(`#${selectId}`);
-    const getInp = prjStatis.querySelectorAll("input[disabled]");
-    const getBtn = prjStatis.querySelectorAll("button[disabled]")
     const editSubmitPjStat = document.getElementById("edit-submit-btn-pj-stat")
     prjStatis.querySelectorAll("input[disabled]").forEach(inp => inp.disabled = false)
     prjStatis.querySelectorAll("button[disabled]").forEach(btn => btn.disabled = false)
@@ -851,7 +873,7 @@ function savePrjStatis(saveBtn){
     location.reload();
 }
 
-function directlyremoveDataFromStats(api_id,btn){
+function directlyremoveTdRow(api_id,btn){
     let api_call = ""
     if (btn.classList.contains("emp-data")){
         api_call = 'delete-employee-group-history'
@@ -905,7 +927,6 @@ function checkValidMachine(inp,idd,mandatory=true){
         }
     })
     inp.previousElementSibling.value = found
-    console.log(inp.previousElementSibling.value , found)
     if (found == ""){
         if (mandatory){
             inp.previousElementSibling.setAttribute("required","")
@@ -946,4 +967,119 @@ function replaceDataRedirectSummaryForm(pj_id,pj_name){
     submitForm.children[0].value = pj_id
     submitForm.children[1].value = pj_name
     submitForm.submit()
+}
+
+
+// adding machine to the list
+function searchMachine(inp){
+    const getAddMachineList = inp.parentElement.parentElement.nextElementSibling.querySelectorAll("li");
+    // console.log(getAddMachineList.querySelector("input"));
+    if(inp.value.length > 0){
+        getAddMachineList.forEach(
+            (machine) => {
+                // console.log(inp.value.toUpperCase());
+                // console.log(machine.textContent.trim())
+                if(machine.textContent.trim().toUpperCase().includes(inp.value.toUpperCase())){
+                    machine.classList.remove("d-none");
+                }else{
+                    machine.classList.add("d-none");
+                }
+            }
+        )
+    }else{
+        getAddMachineList.forEach(
+            (machine) => {
+                machine.classList.remove("d-none")
+            }
+        )
+    }
+}
+
+function removeDataFromStatsForm(btn,idd){
+    console.log(btn)
+    console.log(btn.classList)
+    if (btn.classList.contains("emp")){
+        chosenEmployeeIds.pop(idd)
+    }else{
+        chosenMachineIds.pop(idd)        
+    }
+    let typeInput = btn.classList.contains("emp") ? "radio" : "checkbox" 
+    document.querySelector(`input[type="${typeInput}"][value="${idd}"]`).checked = false;
+    btn.parentElement.parentElement.remove()
+}
+
+let chosenMachineIds = []
+let chosenEmployeeIds = []
+// ထည့်ရန်ခလုတ် function
+function addingMachine(btn){
+    const machines = btn.parentElement.previousElementSibling;
+    const getMachineList = machines.querySelector("ul").children;
+    if(btn.classList.contains("machine-list")){
+        const showList = document.getElementById("machinetabletable").children[0];
+        for(let i = 0; i < getMachineList.length; i++){
+            if(getMachineList[i].querySelector("input").checked == true){
+                idd = getMachineList[i].getAttribute("getId")
+                typeName = getMachineList[i].getAttribute("getType")
+                if (chosenMachineIds.length == 0 || !chosenMachineIds.includes(idd)){
+                    showList.classList.remove("d-none")
+                    const createtd = document.createElement("tr");
+                    createtd.innerHTML = `  <td class="text-center">${getMachineList[i].innerText}<input type="number" value="${idd}" class="chosenMachineIds" name="machine_id" hidden/></td>
+                                            <td class="text-center">${typeName}</td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-danger machine" type="button" onclick="removeDataFromStatsForm(this,${idd})">Remove</button>
+                                            </td>
+                                        `
+                    showList.querySelector("tbody").appendChild(createtd);
+                    document.getElementsByClassName("machine-multiple-choice-modal")[0].click()
+                }
+            }
+        }
+    }
+    if(btn.classList.contains("employee-list")){
+        const showList = document.getElementById("employeetabletable").children[0];
+        const employeeNum = document.getElementById("employeeNum");
+        let employeeName = "";
+        let idd = ""
+        for(let i = 0; i < getMachineList.length; i++){
+            if(getMachineList[i].querySelector("input").checked == true){
+                employeeName = getMachineList[i].innerText;
+                idd = getMachineList[i].getAttribute("getId")
+                break;
+            }
+        }
+        if (employeeName.trim() != "" && employeeNum.value.trim() != "" && employeeNum.value.trim() != "0" && idd.trim() != "" && (chosenEmployeeIds.length == 0 || !chosenEmployeeIds.includes(idd))){
+            chosenEmployeeIds.push(idd)
+            showList.classList.remove("d-none");
+            const createtd = document.createElement("tr");
+            createtd.innerHTML = `<td class="text-center">${employeeName}<input type="number" name="employee_group_id" hidden value="${idd}"></td>
+                                <td class="text-center">${employeeNum.value}<input type="number" name="employee_power" hidden value="${employeeNum.value}"></td>
+                                <td class="text-end"><button type="button" onclick="removeDataFromStatsForm(this,${idd})" class="btn btn-sm btn-danger emp">Remove</button></td>
+                                `
+            showList.querySelector("tbody").appendChild(createtd);
+            employeeNum.value = "";
+            document.getElementsByClassName("employee-choice-modal")[0].click()
+        }
+    }
+}
+
+function editDataShowInput(tr){
+    let realValue = tr.querySelector("p")
+    let allRequiredFields = document.querySelectorAll(".requiredInpInForm")
+    let editId = tr.getAttribute("idData")
+    if (tr.nextElementSibling.children[0].classList.contains("btn-danger")){
+        tr.innerHTML += `<input type="text" name="editsthName" required value="${realValue.textContent.trim()}">
+                         <input type="number" hidden name="editsthId" value="${editId}">`
+        tr.nextElementSibling.children[0].classList.remove("btn-danger")
+        tr.nextElementSibling.children[0].classList.add("btn-success")
+        tr.nextElementSibling.children[0].textContent = 'Save'
+        tr.children[0].classList.add("d-none")
+        allRequiredFields.forEach(inp => inp.removeAttribute("required"))
+    }else{
+        tr.querySelectorAll("input").forEach(inp => inp.remove())
+        tr.children[0].classList.remove("d-none")
+        tr.nextElementSibling.children[0].classList.remove("btn-success")
+        tr.nextElementSibling.children[0].classList.add("btn-danger")
+        tr.nextElementSibling.children[0].textContent = 'Remove'
+    }
+
 }
