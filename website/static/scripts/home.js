@@ -8,17 +8,6 @@ document.querySelectorAll('.end_date_for_each').forEach(inp => {
     inp.valueAsDate = current_date
 })
 
-function create_add_machine_input(btn,event){
-    btn.style.display = 'none'
-    btn.nextElementSibling.style.display = ""
-    belowing = Array.from(btn.parentElement.parentElement.parentElement.parentElement.children).map(element => element);
-    event.preventDefault();
-}
-
-function insert_data_and_return_back_button(btn){
-    belowing = []
-}
-
 function giveProjectCodes(idd = 'aboveProjectCodes'){
     let abovePj = document.getElementById(idd)
     if (abovePj && abovePj.innerHTML.trim() == ""){
@@ -269,10 +258,6 @@ function search_and_add(inp,event){
             belowing[i].style.display = ""
         }
     }
-}
-
-function chngInp(btn){
-    btn.parentElement.innerHTML = `<input type="text"  dbTable="${btn.getAttribute('dbTable')}" value="${btn.getAttribute('data-machine')}" idd="${btn.id}" onkeyup="updateEachMachine(this,event)"/>`
 }
 
 function updateEachMachine(inp,event){
@@ -1065,21 +1050,30 @@ function addingMachine(btn){
 function editDataShowInput(tr){
     let realValue = tr.querySelector("p")
     let allRequiredFields = document.querySelectorAll(".requiredInpInForm")
-    let editId = tr.getAttribute("idData")
     if (tr.nextElementSibling.children[0].classList.contains("btn-danger")){
-        tr.innerHTML += `<input type="text" name="editsthName" required value="${realValue.textContent.trim()}">
-                         <input type="number" hidden name="editsthId" value="${editId}">`
+        tr.innerHTML += `<input onchange="replaceTextValueInForm(this,'sthName')" type="text" name="editsthName" required value="${realValue.textContent.trim()}">`
         tr.nextElementSibling.children[0].classList.remove("btn-danger")
         tr.nextElementSibling.children[0].classList.add("btn-success")
         tr.nextElementSibling.children[0].textContent = 'Save'
+        tr.nextElementSibling.children[0].setAttribute("onclick",tr.nextElementSibling.children[0].getAttribute("onclick").replace("delete", "update"))
         tr.children[0].classList.add("d-none")
         allRequiredFields.forEach(inp => inp.removeAttribute("required"))
     }else{
-        tr.querySelectorAll("input").forEach(inp => inp.remove())
         tr.children[0].classList.remove("d-none")
+        tr.children[1].remove()
         tr.nextElementSibling.children[0].classList.remove("btn-success")
         tr.nextElementSibling.children[0].classList.add("btn-danger")
         tr.nextElementSibling.children[0].textContent = 'Remove'
+        tr.nextElementSibling.children[0].setAttribute("onclick",tr.nextElementSibling.children[0].getAttribute("onclick").replace("update", "delete"))
     }
+}
 
+function replaceTextValueInForm(inp,idd){
+    document.getElementById(idd).value = inp.value
+}
+
+function replaceValueInForm(crudTxt,idd,crudId,inpId,inpForm){
+    document.getElementById(crudId).value = crudTxt
+    document.getElementById(inpId).value = idd
+    document.getElementById(inpForm).submit()
 }

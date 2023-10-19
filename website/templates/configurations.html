@@ -2,7 +2,7 @@
 {% block title %} Configurations {% endblock %}
 {% block content %}
 
-{% if what not in ('employee','ajt','ajf','fuel-price','employee-group') %}
+{% if what not in ('employee','ajt','ajf','fuel-price','employee-group','type','class','capacity','brand','owner') %}
 <div class="col-md-12 px-3 mt-1 mb-3" style="margin-top:70px;">
     <form method="POST" action="/upload-machine-details" enctype="multipart/form-data">
         <h3 class="page-header text-primary">Upload Excel File</h3>
@@ -36,20 +36,18 @@
     <input hidden name="edit-id" id="edit-id" value="">
 </form>
 
-{% if extra_datas[0] != 'Machine Details' %}
-
     <div class="text-center m-3">
         <div class="row">
             <div class="col-md-6 d-flex align-items-center mb-2">
                 <form action="{{url_for('views.configurations',what='search')}}" method="post" role="search">
                     <div class="input-group">
-                        <input type="text" name="for-what" hidden value="{{extra_datas[0]}}">
+                        <input type="text" name="for-what" hidden value="{{what}}">
                         <input autocomplete="off" class="form-control"  type="search" name="search-value" placeholder="Search" aria-label="Search">
                         <button class="btn btn-primary" type="submit">Search</button>
                     </div>
                 </form>
                 <button class="btn btn-secondary text-white mx-2"><i class="fa-solid fa-download"></i></button>
-                {% if what not in ('employee','ajt','ajf','fuel-price','employee-group') %}
+                {% if what not in ('employee','ajt','ajf','fuel-price','employee-group','type','class','unit','capacity','brand','owner') %}
                     <a class="nav-item" href="{{url_for('imports.import_data',what=what)}}"><button class="btn btn-success">Create</button></a>
                 {% else %}
                     <button class="btn btn-success ms-2" id="createBtn" onclick="createEmp(this)">Create</button>
@@ -69,8 +67,6 @@
             {% endif %}
         </div>
     </div>
-
-{% endif %}
 
 {% if extra_datas[0] == 'Project List' %}
 <div class="cpu-table-sec machine-data-container" style="height: 50vh;">
@@ -127,47 +123,6 @@
         {% endfor %}
         </tbody>
     </table>
-</div>
-
-{% elif extra_datas[0] == 'Machine Details' %}
-
-<div class="container text-center m-5">
-    <div class="row">
-        {% for name,data in datas.items() %}
-        <div class="col scroll-bar mt-3">
-            <div class="table-responsive table-container scroll-bar">
-                <table class="table table-striped">
-                    <thead>
-                        <tr class="table-dark">
-                            <th>{{name}}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                            <form method="POST" action="/import/upload-each-machine-details">
-                                <input type="text" style="display: none;" name="table" value="{{name}}">
-                                <button class="button-83"  role="button" onclick="create_add_machine_input(this,event)">Add Data</button>
-                                <div class="div-machine-details" style="display: none;">
-                                    <input type="text" id="enter" name="data" class="add-machine-details" value="{% if request.form.get('data')  %}  {{request.form.get('data')}} {% else %}  {% endif %}"  placeholder="Type.." onkeyup="search_and_add(this,event)">
-                                    <button id="clear" type="submit" class="submit-in-input" onclick="insert_data_and_return_back_button(this)">Submit</button>
-                                </div>
-                            </form>
-                            </td>
-                        </tr>
-                        {% for dt in data%}
-                        <tr>
-                            <td>
-                            {{dt[1]}} <button onclick="chngInp(this)" class="edit-pen-btn" id="{{dt[0]}}" dbTable="{{name}}" data-machine="{{dt[1]}}"><i class="fa-solid fa-pencil"></i></button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
 </div>
 
 {% elif extra_datas[0] == 'Project Statistics' %}
@@ -298,9 +253,13 @@
     </div>
 </form>
 
-{% elif what in ('ajt','ajf') %}
+{% elif what in ('ajt','ajf','type','class','unit','capacity','brand','owner') %}
 
-<form action="{{url_for('imports.import_data',what=what)}}" method="post">
+<form action="{{url_for('imports.import_data',what=what)}}" id="configCrudForm" method="post">
+    <input type="text" name="crud" id="crud" value="create" hidden/>
+    <input type="text" name="sthName" value="" hidden id="sthName"/>
+    <input type="number" hidden name="sthId" id="sthId" value="">
+</form>
     <div class="container-fluid">
         <div class="cpu-table-sec">
             <table>
@@ -312,16 +271,16 @@
                 </thead>
                 <tbody>
                     <tr class="d-none" id="emplyInp">
-                        <td><input type="text" class="requiredInpInForm" required name="sthName"></td>
-                        <td><button class="btn btn-success rounded-0" type="submit">Save</button></td>
+                        <td><input type="text" class="requiredInpInForm" onchange="replaceTextValueInForm(this,'sthName')" required name="sthName"></td>
+                        <td><button class="btn btn-success rounded-0" onclick="replaceValueInForm('create',0,'crud','sthId','configCrudForm')" type="button">Save</button></td>
                     </tr>
                     {% for data in datas %}
                     <tr>
                         <td idData="{{data[0]}}" ondblclick="editDataShowInput(this)">
-                            <p >{{data[1]}}</p>
+                            <p>{{data[1]}}</p>
                         </td>
-                        <td >
-                            <button class="btn btn-danger rounded-0" type="submit">Remove</button>
+                        <td>
+                            <button onclick="replaceValueInForm('delete','{{data[0]}}','crud','sthId','configCrudForm')" class="btn btn-danger rounded-0" onclick="changeValueInCrudInput('delete')"  type="submit">Remove</button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -330,6 +289,7 @@
         </div>
     </div>
 </form>
+
 {% endif %}
 
 {% endblock %}

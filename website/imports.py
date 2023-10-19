@@ -227,16 +227,20 @@ def import_data(what,mgs=None):
                 mgs = str(err)
                 conn.rollback()
             return redirect(url_for('views.configurations',what='fuel-price'))
-        elif what == 'ajt' or what == 'ajf':
+        elif what in ('ajt','ajf','type','class','unit','capacity','brand','owner'):
             sth_name = request.form.get("sthName")
-            sth_edit_id = request.form.get("editsthId")
-            db = {'ajt':'activity_job_type','ajf':'activity_job_function'}
+            sth_edit_id = request.form.get("sthId")
+            crud = request.form.get("crud")
+            db = {'ajt':'activity_job_type','ajf':'activity_job_function','type':'machine_type',
+                  'class':'machine_class','brand':'fleet_vehicle_model_brand','unit':'res_company',
+                  'capacity':'vehicle_machine_config','owner':'vehicle_owner'}
             try:
-                if sth_edit_id:
-                    sth_edit_name = request.form.get("editsthName")
-                    cur.execute(f"UPDATE {db[what]}  SET name = '{sth_edit_name}' WHERE id = '{sth_edit_id}';")
-                else:
+                if crud == 'create':
                     cur.execute(f"INSERT INTO {db[what]} (name) VALUES('{sth_name.upper()}');")
+                elif crud == 'update':
+                    cur.execute(f"UPDATE {db[what]}  SET name = '{sth_name}' WHERE id = '{sth_edit_id}';")
+                elif crud == 'delete':
+                    cur.execute(f"DELETE FROM {db[what]} WHERE id =  '{sth_edit_id}';")
                 conn.commit()
             except IntegrityError as err:
                 mgs = str(err)

@@ -160,10 +160,7 @@ def configurations(what,mgs=None):
     if request.method == 'POST':
         if what == 'search':
             search_value = request.form.get('search-value')
-            for_what = request.form.get('for-what')
-            print(for_what)
-            what_dct = {'Machine List':'machine','Project List':'project','Project Statistics':'project-stat'}
-            what = what_dct.get(for_what)
+            what = request.form.get('for-what')
             search_wildcard = search_value.strip()
             if search_wildcard != "":
                 extra_datas[1] = True
@@ -294,32 +291,16 @@ def configurations(what,mgs=None):
         data = cur.fetchall()
         cur.execute("SELECT count(id) FROM fuel_price_history;")
         extra_datas[2] = cur.fetchone()[0]
-    elif what == 'details':
-        data = {}
-        extra_datas[0] = "Machine Details"
-        cur.execute("SELECT id,name FROM machine_type")
-        datas = cur.fetchall()
-        data["Machine Type"] = datas
-
-        cur.execute("SELECT id,name FROM machine_class")
-        datas = cur.fetchall()
-        data["Machine Class"] = datas
-
-        cur.execute("SELECT id,name FROM res_company")
-        datas = cur.fetchall()
-        data["Business Unit"] = datas
-
-        cur.execute("SELECT id,name FROM vehicle_machine_config")
-        datas = cur.fetchall()
-        data["Machine Capacity"] = datas
-
-        cur.execute("SELECT id,name FROM fleet_vehicle_model_brand")
-        datas = cur.fetchall()
-        data["Machine Brand"] = datas
-
-        cur.execute("SELECT id,name FROM vehicle_owner")
-        datas = cur.fetchall()
-        data["Owner"] = datas
+    elif what in ('type','class','unit','capacity','brand','owner'):
+        query_table_dct = {'type':'machine_type','class':'machine_class','brand':'fleet_vehicle_model_brand',
+                           'unit':'res_company','capacity':'vehicle_machine_config','owner':'vehicle_owner'}
+        table_name_dct = {'type':'Machine Type','class':'Machine Class','brand':'Vehicle Brand',
+                          'unit':'Business Unit','capacity':'Machine Capacity','owner':'Vehicle Owner'}
+        cur.execute(f"SELECT id,name FROM {query_table_dct[what]} WHERE name iLIKE '%{search_wildcard}%' ORDER BY CASE WHEN name = '{search_wildcard}' THEN 0 ELSE 1 END;")
+        data = cur.fetchall()
+        cur.execute(f"SELECT count(id) FROM {query_table_dct[what]};")
+        extra_datas[2] = cur.fetchone()[0]
+        extra_datas[0] = table_name_dct[what]
     elif what == 'project-stat':
         cur.execute(""" SELECT pj.id , pj.name , pj.code , emp.name FROM project_statistics stat 
                     INNER JOIN analytic_project_code pj ON stat.project_id = pj.id 
@@ -399,7 +380,7 @@ def upload_machine_details():
     if request.method == 'POST':
         upload_file = request.files["upload_excel_machine_details"]
         excel_file_type = request.form.get('selectedOption')
-        what_dct = {"Machine List":"machine","Project Code":"project"}
+        what_dct = {"Machine List":"machine","Project Code":"project","Machine Details":"owner"}
         if upload_file.filename != '' and upload_file.filename.endswith(".xlsx"):
             workbook = load_workbook(filename=upload_file,data_only=True,read_only=True)
             # Select the worksheet to read from
