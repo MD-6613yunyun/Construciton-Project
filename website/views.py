@@ -380,7 +380,7 @@ def upload_machine_details():
     if request.method == 'POST':
         upload_file = request.files["upload_excel_machine_details"]
         excel_file_type = request.form.get('selectedOption')
-        what_dct = {"Machine List":"machine","Project Code":"project","Machine Details":"owner"}
+        what_dct = {"Machine List":"machine","Project Code":"project","Machine Details":"unit"}
         if upload_file.filename != '' and upload_file.filename.endswith(".xlsx"):
             workbook = load_workbook(filename=upload_file,data_only=True,read_only=True)
             # Select the worksheet to read from
@@ -396,23 +396,19 @@ def upload_machine_details():
             cur = conn.cursor()
 
             if excel_file_type == "Machine Details":
-                machine_type_query = """INSERT INTO machine_type (name) VALUES """
-                machine_class_query = """INSERT INTO machine_class (name) VALUES """
-                unit_query = """INSERT INTO res_company (name) VALUES """
-                capacity_query = """INSERT INTO vehicle_machine_config (name) VALUES """
-                brand_query = """INSERT INTO fleet_vehicle_model_brand (name) VALUES """
-                owner_query = """INSERT INTO vehicle_owner (name) VALUES """
-
+                query_lst = [
+                    """INSERT INTO res_company (name) VALUES """,
+                    """INSERT INTO machine_type (name) VALUES """,
+                    """INSERT INTO vehicle_machine_config (name) VALUES """,
+                    """INSERT INTO fleet_vehicle_model_brand (name) VALUES """,
+                    """INSERT INTO vehicle_owner (name) VALUES """,
+                    """INSERT INTO machine_class (name) VALUES """
+                ]
                 for row in worksheet.iter_rows(min_row=2):  # Start from the second row (adjust as needed)
                     # Access data for each cell in the row
-                    machine_type_query += f"""('{row[1].value}'),""" if row[1].value else ""
-                    machine_class_query += f"""('{row[5].value}'),""" if row[5].value else ""
-                    unit_query += f"""('{row[0].value}'),""" if row[0].value else ""
-                    capacity_query += f"""('{row[2].value}' ),""" if row[2].value else ""
-                    brand_query += f"""('{row[3].value}'),""" if row[3].value else ""
-                    owner_query += f"""('{row[4].value}'),""" if row[4].value else ""
-
-                queries = [machine_type_query[:-1],machine_class_query[:-1],unit_query[:-1],capacity_query[:-1],brand_query[:-1],owner_query[:-1]]
+                    for idx,row_data in enumerate(row):
+                        query_lst[idx] += f"""('{row_data.value}'),""" if row_data.value and row_data.value.strip() != "" else ""
+                queries = [each_query[:-1] for each_query in query_lst if not each_query.strip().endswith("VALUES")]
                 mgs = catch_db_insert_error(cur,conn,queries)
             elif excel_file_type == "Machine List":
                 machine_list_insert_query = """INSERT INTO fleet_vehicle 
@@ -427,7 +423,6 @@ def upload_machine_details():
                         else:
                             stng += f"{idd},"
                     machine_list_insert_query += stng + f"'{row[6].value.strip()}'),"
-                print(machine_list_insert_query)
                 mgs = catch_db_insert_error(cur,conn,[machine_list_insert_query[:-1]+ 'ON CONFLICT (machine_name) DO NOTHING;']) 
             elif excel_file_type == 'Work Done':
                 machine_list_insert_query = """ INSERT INTO  project_each_day_work_done 
