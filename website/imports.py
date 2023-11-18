@@ -110,7 +110,7 @@ def import_data(what,mgs=None):
                 data['Project Code'] = cur.fetchall()
                 cur.execute("SELECT code || ' | ' || name FROM analytic_project_code;")
                 data['All Project Code'] = cur.fetchall()
-                cur.execute("SELECT machine_name FROM fleet_vehicle WHERE id IN (SELECT machine_id FROM machines_history WHERE end_time is NULL AND project_id = 1669);")
+                cur.execute("SELECT machine_name FROM fleet_vehicle WHERE id IN (SELECT machine_id FROM machines_history WHERE end_time is NULL AND project_id = 4);")
                 data['Machine'] = cur.fetchall()
                 cur.execute("SELECT name FROM employee_group;")
                 data['group'] = cur.fetchall()
@@ -347,7 +347,7 @@ def import_data(what,mgs=None):
                 ON his.machine_id = car.id
                 LEFT JOIN machine_type AS type
                 ON type.id = car.machine_type_id
-                WHERE his.project_id = 1669 AND his.end_time IS NULL;
+                WHERE his.project_id = 4 AND his.end_time IS NULL;
             """)
             data['Machine'] = cur.fetchall()
             cur.execute("SELECT id,name FROM employee_group;")
