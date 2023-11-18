@@ -78,8 +78,8 @@
                             <td><input type="text" name="machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
                             <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td>
                             <td><input type="number" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
-                            <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 70px;"></td>
-                            <td><input type="number" name="amt" autocomplete="off" required class="amt"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 100px;"></td>
+                            <td><input type="number" name="amt" autocomplete="off" required class="amt"  style="text-align: right;width: 100px;"></td>
                             <td><input type="text" name="remark" autocomplete="off"></td>
                             <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
@@ -93,17 +93,17 @@
                             <td><input type="text" name="description" autocomplete="off"  class="shouldRequired" style="width: 150px;"></td>
                             <td><input type="text" name="machine_id" autocomplete="off" hidden style="width: 70px;"><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
                             <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td><td><input type="number" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
-                            <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 70px;"></td>
-                            <td><input type="number" name="amt" autocomplete="off"  class="amt shouldRequired"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 100px;"></td>
+                            <td><input type="number" name="amt" autocomplete="off"  class="amt shouldRequired"  style="text-align: right;width: 100px;"></td>
                             <td><input type="text" name="remark" autocomplete="off"></td>
                             <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
                     </tbody>
-                </table>
+                </table> 
             </div>
             <div class="text-center mb-4">
                 <button class="btn btn-success" type="submit">အတည်ပြုရန်</button>
-                <a class="nav-item" href="{{url_for('views.show_transactions',what='income-expense')}}" ><button class="btn btn-danger" type="button">ဖျက်သိမ်းရန်</button></a>
+                <a href="{{url_for('site_imports.income_expense',typ='view')}}" class="nav-item"><button type="button"  class="btn btn-dark ms-3shadow-sm">မလုပ်ဆောင်တော့ပါ</button></a>
             </div>
         </form>
     </div>
@@ -243,8 +243,8 @@
                                 <td><input type="text" name="machine_id" autocomplete="off" hidden><input disabled value="{{line[8]}}" type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
                                 <td><input disabled type="text" name="invoice_no" value="{{line[3]}}"  autocomplete="off" style="width: 70px;"></td>
                                 <td><input disabled type="number" name="qty" autocomplete="off"  value="{{line[4]}}" class="quan"  style="text-align: right;width: 70px;"></td>
-                                <td><input disabled type="number" name="price" autocomplete="off"  value="{{line[5]}}" class="prc"  style="text-align: right;width: 70px;"></td>
-                                <td><input disabled type="number" name="amt" autocomplete="off" value="{{line[6]}}" required class="amt"  style="text-align: right;width: 70px;"></td>
+                                <td><input disabled type="number" name="price" autocomplete="off"  value="{{line[5]}}" class="prc"  style="text-align: right;width: 100px;"></td>
+                                <td><input disabled type="number" name="amt" autocomplete="off" value="{{line[6]}}" required class="amt"  style="text-align: right;width: 100px;"></td>
                                 <td><input disabled type="text" name="remark" value="{{line[7]}}" autocomplete="off"></td>
                                 <td><button type="button" onclick="deleteRow(this)" disabled class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                             </tr>
@@ -260,8 +260,8 @@
                             <td><input type="text" name="machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
                             <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td>
                             <td><input type="number" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
-                            <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 70px;"></td>
-                            <td><input type="number" name="amt" autocomplete="off"  class="amt shouldRequired"  style="text-align: right;width: 70px;"></td>
+                            <td><input type="number" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 100px;"></td>
+                            <td><input type="number" name="amt" autocomplete="off"  class="amt shouldRequired"  style="text-align: right;width: 100px;"></td>
                             <td><input type="text" name="remark" autocomplete="off"></td>
                             <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>

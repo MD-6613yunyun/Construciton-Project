@@ -22,7 +22,7 @@
             <div class="w-50">
                 <p class="card-text m-0 text-primary">Projects List</p>
                 <div style="height: 150px;overflow: auto;" id="detailPrjList">
-                    {% for data in project_datas %}
+                    {% for data in user_own_projects %}
                         <h6 class="card-title">{{data[2]}} ( {{data[1]}} )</h6>
                     {% endfor %}
                 </div>

@@ -5,8 +5,26 @@
 <h1 class="text-center mt-2">{{datalist_datas['name']}}</h1>
 
 <div class="container">
-    <button class="btn shadow shadow-sm" onclick="editConfigStatis(this,'machine-box-holder')" style="background-color: #2C41AD;color: white;">Edit</button>
-    <a  class="nav-item"><button onclick="{window.history.back()}" class="btn btn-danger shadow-sm">Discard</button></a>
+    
+    {% if datalist_datas['name'] == 'Machine Edit' %}
+        {% if project_stat_form_id %}
+        <form id="hidden-project-stat-form" action="{{url_for('imports.import_data',what='project_stat_form')}}" method="post">
+            <input type="number" name="project_id" id="hidden-project-id" value="{{project_stat_form_id}}" hidden>
+            <button class="btn shadow shadow-sm" type="button" onclick="editConfigStatis(this,'machine-box-holder')" style="background-color: #2C41AD;color: white;">Edit</button>
+            <button type="submit" style="display: inline;" class="btn btn-danger shadow-sm">Discard</button>
+        </form>            
+        {% else %}
+        <button class="btn shadow shadow-sm" onclick="editConfigStatis(this,'machine-box-holder')" style="background-color: #2C41AD;color: white;">Edit</button>
+            <a class="nav-item" href="{{url_for('views.configurations',what='machine')}}">
+                <button onclick="" class="btn btn-danger shadow-sm">Discard</button>
+            </a>       
+        {% endif %}
+
+    {% else %}
+    <a class="nav-item" href="{{url_for('views.configurations',what='project')}}">
+        <button onclick="" class="btn btn-danger shadow-sm">Discard</button>
+    </a>
+    {% endif %}
 </div>
 
 {% if datalist_datas['name'] == 'Machine Edit' %}
@@ -113,6 +131,9 @@
                                 <input type="number" hidden class="" value="{{data[7]}}" name="edit-id"/>
                                 <input type="number" hidden value="" name="machine_type_id"/>
                                 <input type="text" required onchange="checkValidMachine(this,'typeList')" id="machineType" class="form-control" list="typeList" placeholder="Type" autocomplete="off">
+                                {% if project_stat_form_id %}
+                                <input type="number" name="stat-form-id" value="{{project_stat_form_id}}" hidden/>
+                                {% endif %}
                                 <datalist id="typeList">
                                     {% for dta in datalist_datas['Machine Type'] %}
                                         <option getId="{{dta[1]}}" value="{{dta[0]}}">

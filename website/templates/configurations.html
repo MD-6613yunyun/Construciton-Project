@@ -32,7 +32,7 @@
 
 <h1 class="text-center">{{extra_datas[0]}} Table</h1>
 
-<form action="{{url_for('views.configurations',what=extra_datas[0])}}" method="POST" id="edit-configuration-form">
+<form action="{{url_for('views.configurations',what=extra_datas[0])}}" method="POST" id="edit-configuration-form-sth">
     <input hidden name="edit-id" id="edit-id" value="">
 </form>
 
@@ -82,7 +82,7 @@
         </thead>
         <tbody>
         {% for pj_data in datas %}
-        <tr class="pj-data-changeable" onclick="redirectToProjectStatForm('edit-id','edit-configuration-form','{{pj_data[5]}}')">
+        <tr class="pj-data-changeable" onclick="redirectToProjectStatForm('edit-id','edit-configuration-form-sth','{{pj_data[5]}}')">
             <td class="text-start">{{pj_data[0]}}</td>
             <td class="text-start">{{pj_data[1]}}</td>
             <td class="text-start">{{pj_data[2]}}</td>
@@ -111,7 +111,7 @@
         </thead>
         <tbody>
         {% for machine_data in datas %}
-        <tr id="{{machine_data[7]}}" class="machine-list-changeable"  onclick="redirectToProjectStatForm('edit-id','edit-configuration-form','{{machine_data[7]}}')">
+        <tr id="{{machine_data[7]}}" class="machine-list-changeable"  onclick="redirectToProjectStatForm('edit-id','edit-configuration-form-sth','{{machine_data[7]}}')">
             <td class="text-start">{{machine_data[0]}}</td>
             <td class="text-start">{{machine_data[1]}}</td>
             <td class="text-start">{{machine_data[2]}}</td>

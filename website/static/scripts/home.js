@@ -822,7 +822,12 @@ function checkProjectAndReplaceId(inp,idd){
 }
 
 function redirectToProjectStatForm(inp_id,form_id,val){
-    document.getElementById(inp_id).value = val
+    if (form_id == 'edit-configuration-form'){
+        document.getElementById("stat-form-id").value = val.split("||")[1]
+        document.getElementById(inp_id).value = val.split("||")[0]
+    }else{
+        document.getElementById(inp_id).value = val        
+    }
     document.getElementById(form_id).submit()
 }
 
@@ -981,31 +986,29 @@ function searchMachine(inp){
 }
 
 function removeDataFromStatsForm(btn,idd){
-    console.log(btn)
     console.log(btn.classList)
     if (btn.classList.contains("emp")){
-        chosenEmployeeIds.pop(idd)
+        document.querySelector(`input.emp[type=checkbox][value="${idd}"]`).checked = false;
+        document.querySelector(`input.emp[type=checkbox][value="${idd}"]`).nextElementSibling.value = "";
     }else{
-        chosenMachineIds.pop(idd)        
+        document.querySelector(`input.machine[type=checkbox][value="${idd}"]`).checked = false;
     }
-    let typeInput = btn.classList.contains("emp") ? "radio" : "checkbox" 
-    document.querySelector(`input[type="${typeInput}"][value="${idd}"]`).checked = false;
     btn.parentElement.parentElement.remove()
 }
 
-let chosenMachineIds = []
-let chosenEmployeeIds = []
+
 // ထည့်ရန်ခလုတ် function
 function addingMachine(btn){
     const machines = btn.parentElement.previousElementSibling;
     const getMachineList = machines.querySelector("ul").children;
     if(btn.classList.contains("machine-list")){
         const showList = document.getElementById("machinetabletable").children[0];
+        const insertedIds = Array.from(showList.querySelectorAll(".machine-tbody-tobdy input")).map(input => input.value);
         for(let i = 0; i < getMachineList.length; i++){
             if(getMachineList[i].querySelector("input").checked == true){
                 idd = getMachineList[i].getAttribute("getId")
                 typeName = getMachineList[i].getAttribute("getType")
-                if (chosenMachineIds.length == 0 || !chosenMachineIds.includes(idd)){
+                if (insertedIds.length == 0 || !insertedIds.includes(idd)){
                     showList.classList.remove("d-none")
                     const createtd = document.createElement("tr");
                     createtd.innerHTML = `  <td class="text-center">${getMachineList[i].innerText}<input type="number" value="${idd}" class="chosenMachineIds" name="machine_id" hidden/></td>
@@ -1022,27 +1025,25 @@ function addingMachine(btn){
     }
     if(btn.classList.contains("employee-list")){
         const showList = document.getElementById("employeetabletable").children[0];
-        const employeeNum = document.getElementById("employeeNum");
-        let employeeName = "";
-        let idd = ""
+        const insertedIds = Array.from(showList.querySelectorAll(".employee-group-tbody-tobdy input")).map(input => input.value);
+
         for(let i = 0; i < getMachineList.length; i++){
             if(getMachineList[i].querySelector("input").checked == true){
-                employeeName = getMachineList[i].innerText;
                 idd = getMachineList[i].getAttribute("getId")
-                break;
+                let empAmt = getMachineList[i].querySelector("input[type=number]").value
+                if (!insertedIds.includes(idd) && empAmt.trim().length > 0){
+                    showList.classList.remove("d-none");
+                    const createtd = document.createElement("tr");
+                    createtd.innerHTML = `<td class="text-center">${getMachineList[i].innerText}<input type="number" name="employee_group_id" hidden value="${idd}"></td>
+                                        <td class="text-center">${empAmt}<input type="number" name="employee_power" hidden value="${empAmt}"></td>
+                                        <td class="text-center"><button type="button" onclick="removeDataFromStatsForm(this,${idd})" class="btn btn-sm btn-danger emp">Remove</button></td>
+                                        `
+                    showList.querySelector("tbody").appendChild(createtd);
+                    document.getElementsByClassName("employee-choice-modal")[0].click()
+                }else{
+                    getMachineList[i].querySelector("input").checked = false
+                }
             }
-        }
-        if (employeeName.trim() != "" && employeeNum.value.trim() != "" && employeeNum.value.trim() != "0" && idd.trim() != "" && (chosenEmployeeIds.length == 0 || !chosenEmployeeIds.includes(idd))){
-            chosenEmployeeIds.push(idd)
-            showList.classList.remove("d-none");
-            const createtd = document.createElement("tr");
-            createtd.innerHTML = `<td class="text-center">${employeeName}<input type="number" name="employee_group_id" hidden value="${idd}"></td>
-                                <td class="text-center">${employeeNum.value}<input type="number" name="employee_power" hidden value="${employeeNum.value}"></td>
-                                <td class="text-end"><button type="button" onclick="removeDataFromStatsForm(this,${idd})" class="btn btn-sm btn-danger emp">Remove</button></td>
-                                `
-            showList.querySelector("tbody").appendChild(createtd);
-            employeeNum.value = "";
-            document.getElementsByClassName("employee-choice-modal")[0].click()
         }
     }
 }
