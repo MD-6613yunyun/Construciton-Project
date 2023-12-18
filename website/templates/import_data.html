@@ -45,6 +45,7 @@
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-primary">Submit</button>
+                <a  class="nav-item" href="{{url_for('views.configurations',what='project')}}"><button type="button" class="btn btn-danger shadow-sm">Discard</button></a>
             </div>
         </form>
     </div>
@@ -109,6 +110,7 @@
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-primary">Submit</button>
+                <a  class="nav-item" href="{{url_for('views.configurations',what='machine')}}"><button type="button" class="btn btn-danger shadow-sm">Discard</button></a>
             </div>
         </form>
     </div>
@@ -144,7 +146,7 @@
                 <input type="text" name="location" class="form-control" required autocomplete="off"></div>
             <div class="col-sm-3">
                 <label class="mb-1 text-white">ဆိုဒ် စတင်ရက်</label>
-                <input type="date"  name="pj-start-date" class="form-control" required autocomplete="off"></div>
+                <input type="date" id="pj-start-date"  name="pj-start-date" class="form-control" required autocomplete="off"></div>
             <div class="col-sm-3">
                 <label class="mb-1 text-white">ဆိုဒ် တာဝန်ခံ</label>
                 <input type="text" name="supervisior" id="site-supervisors-id"  hidden autocomplete="off">
@@ -177,7 +179,7 @@
                 <input type="text"  class="form-control hoAccount" list="accountants"  onchange="checkValidMachine(this,'accountants')" required autocomplete="off">
             </div>
             <div class="machine-name-container">
-                <button class="btn btn-warning shadow shadow-sm w-100" type="button" data-bs-toggle="modal" data-bs-target="#machineListModal">စက်ကားထည့်ရန်</button>
+                <button class="btn btn-warning shadow shadow-sm w-100" onclick="checkPjStartBeforeAddingMachine(this)"  type="button" data-bs-toggle="modal" data-bs-target="#machineListModal">စက်ကားထည့်ရန်</button>
                 <div class="card mb-1" style="overflow: auto;max-height: 250px" id="machinetabletable">                    
                     <div class="table-container d-none machine-list" style="min-width: 600px;">
                         <table class="table">
@@ -186,7 +188,7 @@
                                 <th>စက်ကား အမျိုးအစား</th>
                                 <th> # </th>
                             </thead>
-                            <tbody>                             
+                            <tbody class="machine-tbody-tobdy">                             
                             </tbody>
                         </table>
                     </div>
@@ -200,7 +202,7 @@
                                 <th>ဝန်ထမ်းဦးရေ</th>
                                 <th style="width: 30%;"></th>
                             </thead>
-                            <tbody>
+                            <tbody class="employee-group-tbody-tobdy">
                             </tbody>
                         </table>
                     </div>
@@ -220,7 +222,7 @@
                                 <ul class="list-group">
                                     {% for machine_data in data['Machine'] %}
                                         <li class="list-group-item" getId="{{machine_data[0]}}" getType="{{machine_data[2]}}">
-                                            <input class="form-check-input me-1" type="checkbox" value="{{machine_data[0]}}">{{machine_data[1]}}
+                                            <input class="form-check-input me-1 machine"  type="checkbox" value="{{machine_data[0]}}">{{machine_data[1]}}
                                         </li>
                                     {% endfor %}
                                 </ul>
@@ -247,14 +249,14 @@
                                 <ul class="list-group">
                                     {% for emp_data in data['group'] %}
                                     <li class="list-group-item" getId="{{emp_data[0]}}">
-                                        <input class="form-check-input me-1"  id="empRadios" name="empRadios" type="radio" value="{{emp_data[0]}}">
+                                        <input class="form-check-input me-1 emp"  id="empRadios" name="empRadios" type="checkbox" value="{{emp_data[0]}}">
                                         {{emp_data[1]}}
+                                        <input type="number" class="form-control form-control-sm float-end w-25">
                                     </li>
                                     {% endfor %}
                                 </ul>
                             </div>
                             <div class="modal-footer">
-                                <input type="number" class="form-control" placeholder="ဝန်ထမ်းဦးရေ" id="employeeNum">
                                 <button type="button" class="btn btn-success employee-list" onclick="addingMachine(this)">ထည့်ရန်</button>
                             </div>
                         </div>
@@ -281,9 +283,12 @@
             </div>
             <div class="machine-name-containerg">
                 <div class="col button-div mt-1 justify-content-center d-flex">
-                    <button type="button" onclick="checkSupervisor()" class="btn btn-success w-25 shadow-sm" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                    <button type="button" onclick="checkSupervisor()" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                         Submit
-                    </button>                
+                    </button>  
+                    <a href="{{url_for('views.configurations',what='project-stat')}}" class="nav-item">
+                        <button type="button"  class="btn btn-danger ms-3 shadow-sm">Discard</button>
+                    </a>             
                 </div>            
             </div>
         </form>
@@ -294,6 +299,7 @@
 
     <form action="{{url_for('views.configurations',what='Machine List')}}" method="POST" id="edit-configuration-form">
         <input hidden name="edit-id" id="edit-id" value="">
+        <input hidden name="stat-form-id" id="stat-form-id" value="">
     </form>
 
     <datalist id="accountants">
@@ -306,13 +312,17 @@
             <option getId="{{data[0]}}" value="{{data[1]}}">
         {% endfor %}
     </datalist>
+    <form action="{{url_for('imports.delete_form')}}" hidden id="delete-form-id" method="post">
+        <input type="text" value="" name="for_what" id="forWhat"/> 
+        <input type="number" value="" name="delete_id" id="deleteId"/>
+    </form>
 
     <!-- Transfer Model -->
     <div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Tranfer Machine</h1>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Transfer Machine</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center d-flex flex-column">
@@ -324,6 +334,27 @@
                     <input type="number" hidden id="transfer_project_id_for_stat" name="transfer_project_id_for_stat" value=""/>
                     <label for="">Trasfer Time</label>
                     <input type="datetime-local" id="transfer_machine_stat" name="transfer_machine_stat" class="">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="submitMachineTransferForStatCloseBtn" data-bs-dismiss="modal">Close</button>
+                    <button type="button" onclick="submitMachineTransferForStat()" class="btn btn-success">Transfer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Transfer Model -->
+    <div class="modal fade" id="removeModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Remove Machine</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center d-flex flex-column">
+                    <input type="text" hidden value="remove_machine_project" name="db"/>
+                    <input type="number" hidden value="" id="source-machine-id" name="source-machine-id"/>
+                    <label for="">Trasfer Time</label>
+                    <input type="datetime" id="transfer_machine_stat" name="transfer_machine_stat" class="">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="submitMachineTransferForStatCloseBtn" data-bs-dismiss="modal">Close</button>
@@ -348,7 +379,8 @@
                     <input type="number" value="{{stat_datas[12]}}" hidden name="pj_id">
                     <button  type="submit" class="btn btn-info" onclick="document.getElementById('status_name').value = 'IN PROGRESS' ">RESTART Project</button>
                     <button  type="submit" class="btn btn-warning" onclick="document.getElementById('status_name').value = 'HOLD' ">HOLD Project</button>
-                    <button  type="submit" class="btn btn-success" onclick="document.getElementById('status_name').value = 'FINISHED' ">Finished Project</button>                    
+                    <button  type="submit" class="btn btn-success me-2" onclick="document.getElementById('status_name').value = 'FINISHED' ">Finished Project</button> 
+                    <button class="btn btn-danger" type="button" style="float: right;" onclick="deleteFormData('{{stat_datas[12]}}','project_stat')">ဖျက်ပစ်ရန်</button>                    
                 </form>
             </div>
         </div>
@@ -417,19 +449,26 @@
                                         <tr class="fs-6 text-dark py-2 text-center">
                                             <th class="bg-warning">Machine Name</th>
                                             <th class="bg-warning">Type</th>
+                                            <th class="bg-warning">Duty Price</th>
+                                            <th class="bg-warning">Price Type</th>
                                             <th class="bg-warning"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="machineListForProjectStats" style="position: relative;">
                                         {% for data in history_datas %}
                                             <tr class="text-center fs-6">
-                                                <td style="cursor: pointer;" id="{{data[0]}}" onclick="redirectToProjectStatForm('edit-id','edit-configuration-form','{{data[1]}}')">{{data[2]}}</td>
+                                                <td style="cursor: pointer;" id="{{data[0]}}" onclick="redirectToProjectStatForm('edit-id','edit-configuration-form','{{data[1]}}||{{stat_datas[12]}}')">{{data[2]}}</td>
                                                 <td>{{data[3]}}</td>
-                                                <td><button data-bs-toggle="modal" data-bs-target="#transferModal" class="btn btn-sm btn-success me-2" disabled onclick="replaceIdInTheTransferModal('{{data[0]}}','{{data[1]}}')" type='button'>Transfer</button><button disabled class="btn btn-sm btn-danger" type='button' onclick="directlyremoveTdRow('{{data[0]}}',this)">Remove</button></td> 
+                                                <td>{{data[4]}}</td>
+                                                <td>{{data[5]}}</td>
+                                                <td>
+                                                    <button data-bs-toggle="modal" data-bs-target="#transferModal" class="btn btn-sm btn-success me-2" disabled onclick="replaceIdInTheTransferModal('{{data[0]}}','{{data[1]}}')" type='button'>Transfer</button>
+                                                    <button disabled class="btn btn-sm btn-danger" type='button' onclick="directlyremoveTdRow('{{data[1]}}',this)">Remove</button>
+                                                </td> 
                                             </tr>
                                         {% endfor %}
                                         <tr style="position: sticky;bottom: 45px;" class="d-none">
-                                            <th colspan="3" class="bg-secondary meName">
+                                            <th colspan="5" class="bg-secondary meName">
                                                 <div class="input-group px-5 z-0">  
                                                     <input type="text" class="form-control w-50"  placeholder="Enter Machine Name" list="machinelistOptions">
                                                     <button type="button"  class="btn btn-dark px-5 text-white" onclick="saveMachineToProjectStats(this)">Save</button>
@@ -437,7 +476,7 @@
                                             </th>
                                         </tr>
                                         <tr style="position: sticky;bottom: 0;">
-                                            <th class="text-center" colspan="3">
+                                            <th class="text-center" colspan="5">
                                                 <button class="btn btn-md btn-primary text-white"  disabled type="button" onclick="addInput(this)">Add Machine<i class="fa-solid fa-plus ms-2"></i></button>
                                                 <button class="btn btn-md btn-danger text-white d-none"  type="button" onclick="addInput(this,'remove')">Discard<i class="fa-solid fa-xmark ms-2"></i></button>
                                             </th>
@@ -467,9 +506,18 @@
                                     <tbody id="machineListForProjectStats" style="position: relative;">
                                         {% for data in emp_datas %}
                                             <tr class="text-center fs-6">
-                                                <td>{{data[2]}}</td>
-                                                <td>{{data[3]}}</td>
-                                                <td><button  onclick="directlyremoveTdRow('{{data[0]}}',this)"  disabled class="emp-data btn btn-sm btn-danger" type='button'>Remove</button></td> 
+                                                <td>
+                                                    {{data[2]}}
+                                                    <input type="number" hidden value="{{data[0]}}">
+                                                </td>
+                                                <td>
+                                                    {{data[3]}}
+                                                    <input type="number" hidden value="{{data[3]}}">
+                                                </td>
+                                                <td>
+                                                    <button onclick="editEmployeeGroup(this)" disabled class="emp-data btn btn-sm btn-warning" type="button">Edit</button>
+                                                    <button onclick="directlyremoveTdRow('{{data[0]}}',this)"  disabled class="emp-data btn btn-sm btn-danger" type='button'>Remove</button>
+                                                </td> 
                                             </tr>
                                         {% endfor %}
                                         <tr style="position: sticky;bottom: 45px;" class="d-none">

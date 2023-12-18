@@ -1,4 +1,4 @@
-from flask import Blueprint,render_template, request, redirect , url_for , jsonify,send_file
+from flask import Blueprint,render_template, request, redirect , url_for , jsonify,send_file, session
 from website import db_connect
 from datetime import datetime,timedelta
 import decimal
@@ -20,6 +20,8 @@ input_path = os.path.join(base_directory, "static/php/input.txt")
 
 # some php
 php_script = os.path.join(base_directory, "static/php/test_rabbit_text.php")
+## for linux
+# php_exe = r'/usr/bin/php'
 php_exe = r'C:\xampp\php\php.exe'
 
 # font path
@@ -188,14 +190,19 @@ def check_supervisior(name:str):
 
 @reports.route('/summary-duty-report',methods=['GET','POST'])
 def summary_duty_report():
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
     conn = db_connect()
     cur = conn.cursor()
-    user_id = request.cookies.get('cpu_user_id')
-    role = request.cookies.get('cpu_role')
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
     if not role:
         return redirect(url_for('views.home'))
     else:
-        if int(role) not in (1,2,3,4):
+        if role not in (1,2,3,4):
             return render_template('access_error.html')
 
     if request.method == 'POST':
@@ -252,12 +259,12 @@ def summary_duty_report():
                 ON working.project_id = stat_table.project_id
             WHERE stat_table.project_id = %s;""",(pj_summary_id,))
             result_data = cur.fetchone()
-            if role in ('3','4'):
+            if role in (3, 4):
                 cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
             else:
                 cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
             project_datas = cur.fetchall()
-            return render_template("summary_form.html",result_data=result_data,project_datas=project_datas,pj_summary_name=pj_summary_name)
+            return render_template("summary_form.html",result_data=result_data,project_datas=project_datas,pj_summary_name=pj_summary_name, current_role = role)
     return render_template("not_found.html")
 
 @reports.route('/call-project-statistics/<pjCode>')
@@ -533,13 +540,18 @@ def get_the_previous_data(temp,fst_temp,optionGroupBy):
 
 @reports.route("/get-monthly-duty",methods=['GET','POST'])
 def get_monthly_duty():
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
     conn = db_connect()
     cur = conn.cursor()
-    user_id = request.cookies.get("cpu_user_id")
-    role = request.cookies.get("cpu_role")
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
     if not user_id:
         return redirect(url_for('auth.authenticate',typ='log'))
-    elif role not in ('1','2','3','4'):
+    elif role not in [1,2,3,4]:
         return render_template("access_error.html")
     if request.method == 'POST':
         pj_id = request.form.get("pj_id")
@@ -730,22 +742,29 @@ def get_monthly_duty():
             idx_for_wd += 1
     else:
         return redirect(url_for('views.home'))
-    if role in ('3','4'):
+    if role in (3, 4):
         cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
     else:
         cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
     project_datas = cur.fetchall()
-    return render_template("monthly_duty.html",all_classes = all_classes,h_datas = [pj_name,dt_text,pj_code],final_dct=final_dct,flt=flt,show_all = show_all,project_datas = project_datas)
+    return render_template("monthly_duty.html",all_classes = all_classes,h_datas = [pj_name,dt_text,pj_code],final_dct=final_dct,flt=flt,show_all = show_all,project_datas = project_datas,current_role = role)
 
 @reports.route("/job-type-function-report",methods=['GET','POST'])
 def job_type_function_report():
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
     conn = db_connect()
     cur = conn.cursor()
-    user_id = request.cookies.get("cpu_user_id")
-    role = request.cookies.get("cpu_role")
+
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+
     if not user_id:
         return redirect(url_for('auth.authenticate',typ='log'))
-    elif role not in ('1','2','3','4'):
+    elif role not in [1,2,3,4]:
         return render_template("access_error.html")
     if request.method == 'POST':
         pj_id = request.form.get("pj_id")
@@ -794,12 +813,12 @@ def job_type_function_report():
             final_dct[job_type_id[0]] = rmv_no
     else:
         return redirect(url_for('views.home'))
-    if role in ('3','4'):
+    if role in [3,4]:
         cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
     else:
         cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
     project_datas = cur.fetchall()
-    return render_template("monthly_duty.html",all_classes = all_classes,h_datas = [pj_name,dt_text,pj_code],final_dct=final_dct,flt=flt,show_all = show_all,project_datas = project_datas,job_type_function = True)
+    return render_template("monthly_duty.html",all_classes = all_classes,h_datas = [pj_name,dt_text,pj_code],final_dct=final_dct,flt=flt,show_all = show_all,project_datas = project_datas,job_type_function = True, current_role = role)
 
 # @reports.route("/report-by-each-machine",methods=['GET','POST'])
 # def report_by_each_machine():
@@ -902,14 +921,19 @@ def job_type_function_report():
 
 @reports.route("/report-by-each-machine",methods=['GET','POST'])
 def report_by_each_machine():
-    user_id = request.cookies.get("cpu_user_id")
-    role = request.cookies.get("cpu_role")
-    if not user_id:
-        return redirect(url_for('auth.authenticate',typ='log'))
-    elif role not in ('1','2','3','4') or request.method != 'POST':
-        return render_template("access_error.html")
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
     conn = db_connect()
     cur = conn.cursor()
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+    if not user_id:
+        return redirect(url_for('auth.authenticate',typ='log'))
+    elif role not in [1,2,3,4] or request.method != 'POST':
+        return render_template("access_error.html")
     pj_name, pj_code = request.form.get("pj_name").split('_&_')
     pj_id = request.form.get("pj_id")
     start_dt = request.form.get('start_date_for_each')
@@ -917,7 +941,7 @@ def report_by_each_machine():
     print(start_dt)
     print(end_dt)
     print(pj_id)
-    if role in ('3','4'):
+    if role in [3,4]:
         cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
     else:
         cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
@@ -934,7 +958,7 @@ def report_by_each_machine():
     date_datas = cur.fetchall()
     print(date_datas)
     if date_datas == [(None,None)]:
-        return render_template('machine_by_each_duty.html',vehicles_dct={},pj_datas=[pj_name,pj_code],project_datas = project_datas)
+        return render_template('machine_by_each_duty.html',vehicles_dct={},pj_datas=[pj_name,pj_code],project_datas = project_datas,current_role = role)
     start_dt_contain,end_dt_contain = get_max_day(mon,yer,True,date_datas,True)
     query = """ WITH date_range AS (
                     SELECT
@@ -1011,18 +1035,23 @@ def report_by_each_machine():
     total_minutes, total_seconds = divmod(remainder, 60)
     vehicles_dct[temp_machine_name][0].append(f"{int(total_hours):02d}:{int(total_minutes):02d}:{int(total_seconds):02d}")
     vehicles_dct[temp_machine_name][1].append(sum(vehicles_dct[temp_machine_name][1]))
-    return render_template('machine_by_each_duty.html',vehicles_dct=vehicles_dct,date_diff = [int(start_dt_contain.split('-')[2]),int(end_dt_contain.split('-')[2]),(int(end_dt_contain.split('-')[2])-int(start_dt_contain.split('-')[2]))+1,start_dt_contain.split("-")[0] + '/' + start_dt_contain.split("-")[1]],pj_datas=[pj_name,pj_code],project_datas = project_datas)
+    return render_template('machine_by_each_duty.html',vehicles_dct=vehicles_dct,date_diff = [int(start_dt_contain.split('-')[2]),int(end_dt_contain.split('-')[2]),(int(end_dt_contain.split('-')[2])-int(start_dt_contain.split('-')[2]))+1,start_dt_contain.split("-")[0] + '/' + start_dt_contain.split("-")[1]],pj_datas=[pj_name,pj_code],project_datas = project_datas,current_role = role)
 
 @reports.route("/income-expense-report",methods=['GET','POST'])
 def income_expense_report_view():
-    user_id = request.cookies.get('cpu_user_id')
-    role = request.cookies.get('cpu_role')
-    if not role:
-        return redirect(url_for('views.home'))
-    elif role not in ('1','2','3','4','5') or request.method != 'POST':
-        return render_template('access_error.html')
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
     conn = db_connect()
     cur = conn.cursor()
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+    if not role:
+        return redirect(url_for('views.home'))
+    elif role not in [1,2,3,4,5] or request.method != 'POST':
+        return render_template('access_error.html')
     pj_name, pj_code = request.form.get("pj_name").split('_&_')
     pj_id = request.form.get("pj_id")
     start_dt = request.form.get('start_date_for_each')
@@ -1115,6 +1144,7 @@ def income_expense_report_view():
                 <p align='center' line-height='0.2'>{pj_name}</p>
                 <p align='center' line-height='0.2'>{pj_code}</p>
                 <p align='center' line-height='0.5'>{start_dt} - {end_dt}</p>
+                <p align='center'></p>
                 <div>
                     <table border="black">
                         <thead>
@@ -1187,9 +1217,9 @@ def income_expense_report_view():
         # Output the PDF to a file
         pdf.output(pdf_path)
         return send_file(pdf_path,as_attachment=True)
-    if role in ('3','4'):
+    if role in [3,4]:
         cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
     else:
         cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
     project_datas = cur.fetchall()       
-    return render_template("site-reports.html",result_datas=result_datas,extra_datas=extra_datas,project_datas = project_datas)
+    return render_template("site-reports.html",result_datas=result_datas,extra_datas=extra_datas,project_datas = project_datas, current_role = role)

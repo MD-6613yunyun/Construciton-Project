@@ -264,50 +264,6 @@ h1{
     margin: 20px 0;
 }
 
-.cpu-table-sec{
-    width: 99%;
-    max-height: 75vh;
-    margin: 0 auto;
-    overflow: auto;
-}
-
-.cpu-table-sec table{
-    width: max-content;
-    margin: 0 auto;
-}
-
-.cpu-table-sec table thead th{
-    background-color: #2C41AD;
-    padding: 10px 10px;
-    color: white;
-    text-align: center;
-    border-bottom: 1px solid black;
-}
-
-.cpu-table-sec table thead th:nth-child(even){
-    border-left: 1px solid white;
-    border-right: 1px solid white;
-}
-
-.cpu-table-sec table tbody td{
-    text-align: center;
-    border-bottom: 1px solid black;
-    padding: 5px 10px;
-    cursor: pointer;
-}
-
-.cpu-table-sec table tr{
-    width: 100%;
-}
-
-.cpu-table-sec table tbody tr:nth-child(even){
-    background-color: #E2E8DD;
-}
-
-.cpu-table-sec table tbody tr:hover{
-    background-color: #a1aeec;
-}
-
 .edit-btn{
     border: none;
     background-color: #2C41AD;

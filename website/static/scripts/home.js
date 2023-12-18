@@ -8,17 +8,6 @@ document.querySelectorAll('.end_date_for_each').forEach(inp => {
     inp.valueAsDate = current_date
 })
 
-function create_add_machine_input(btn,event){
-    btn.style.display = 'none'
-    btn.nextElementSibling.style.display = ""
-    belowing = Array.from(btn.parentElement.parentElement.parentElement.parentElement.children).map(element => element);
-    event.preventDefault();
-}
-
-function insert_data_and_return_back_button(btn){
-    belowing = []
-}
-
 function giveProjectCodes(idd = 'aboveProjectCodes'){
     let abovePj = document.getElementById(idd)
     if (abovePj && abovePj.innerHTML.trim() == ""){
@@ -269,10 +258,6 @@ function search_and_add(inp,event){
             belowing[i].style.display = ""
         }
     }
-}
-
-function chngInp(btn){
-    btn.parentElement.innerHTML = `<input type="text"  dbTable="${btn.getAttribute('dbTable')}" value="${btn.getAttribute('data-machine')}" idd="${btn.id}" onkeyup="updateEachMachine(this,event)"/>`
 }
 
 function updateEachMachine(inp,event){
@@ -837,7 +822,12 @@ function checkProjectAndReplaceId(inp,idd){
 }
 
 function redirectToProjectStatForm(inp_id,form_id,val){
-    document.getElementById(inp_id).value = val
+    if (form_id == 'edit-configuration-form'){
+        document.getElementById("stat-form-id").value = val.split("||")[1]
+        document.getElementById(inp_id).value = val.split("||")[0]
+    }else{
+        document.getElementById(inp_id).value = val        
+    }
     document.getElementById(form_id).submit()
 }
 
@@ -927,11 +917,28 @@ function checkValidMachine(inp,idd,mandatory=true){
         }
     })
     inp.previousElementSibling.value = found
+    console.log(inp.id)
+    if (inp.id == 'toCheckDuty' && found != ''){
+        let set_date = document.getElementById("set_date").value
+        console.log(set_date)
+        if (set_date.trim() == ''){
+            alert("ရက်စွဲကို မသတ်မှတ်ရသေးပါ...")
+        }else{
+            fetch(`/get-api/duty-amt-check/${found}~~${set_date}`)
+            .then(response => response.json() )
+            .then(result => {
+                if (result.length != 1){
+                    alert("ဂျူတီ ဈေးနှုန်း မသတ်မှတ်ထားသေးသောကြောင့် စက်ကားများ သွင်း၍ မရနိုင်ပါ !!!!")
+                }
+            })
+        }
+    }
     if (found == ""){
         if (mandatory){
             inp.previousElementSibling.setAttribute("required","")
         }
         inp.value = ""
+        alert("မှားယွင်းသော အချက်အလက်များ ဖြည့်သွင်းခြင်း !!!")
     }else{
         inp.previousElementSibling.removeAttribute("required")
     }
@@ -996,31 +1003,29 @@ function searchMachine(inp){
 }
 
 function removeDataFromStatsForm(btn,idd){
-    console.log(btn)
     console.log(btn.classList)
     if (btn.classList.contains("emp")){
-        chosenEmployeeIds.pop(idd)
+        document.querySelector(`input.emp[type=checkbox][value="${idd}"]`).checked = false;
+        document.querySelector(`input.emp[type=checkbox][value="${idd}"]`).nextElementSibling.value = "";
     }else{
-        chosenMachineIds.pop(idd)        
+        document.querySelector(`input.machine[type=checkbox][value="${idd}"]`).checked = false;
     }
-    let typeInput = btn.classList.contains("emp") ? "radio" : "checkbox" 
-    document.querySelector(`input[type="${typeInput}"][value="${idd}"]`).checked = false;
     btn.parentElement.parentElement.remove()
 }
 
-let chosenMachineIds = []
-let chosenEmployeeIds = []
+
 // ထည့်ရန်ခလုတ် function
 function addingMachine(btn){
     const machines = btn.parentElement.previousElementSibling;
     const getMachineList = machines.querySelector("ul").children;
     if(btn.classList.contains("machine-list")){
         const showList = document.getElementById("machinetabletable").children[0];
+        const insertedIds = Array.from(showList.querySelectorAll(".machine-tbody-tobdy input")).map(input => input.value);
         for(let i = 0; i < getMachineList.length; i++){
             if(getMachineList[i].querySelector("input").checked == true){
                 idd = getMachineList[i].getAttribute("getId")
                 typeName = getMachineList[i].getAttribute("getType")
-                if (chosenMachineIds.length == 0 || !chosenMachineIds.includes(idd)){
+                if (insertedIds.length == 0 || !insertedIds.includes(idd)){
                     showList.classList.remove("d-none")
                     const createtd = document.createElement("tr");
                     createtd.innerHTML = `  <td class="text-center">${getMachineList[i].innerText}<input type="number" value="${idd}" class="chosenMachineIds" name="machine_id" hidden/></td>
@@ -1037,27 +1042,25 @@ function addingMachine(btn){
     }
     if(btn.classList.contains("employee-list")){
         const showList = document.getElementById("employeetabletable").children[0];
-        const employeeNum = document.getElementById("employeeNum");
-        let employeeName = "";
-        let idd = ""
+        const insertedIds = Array.from(showList.querySelectorAll(".employee-group-tbody-tobdy input")).map(input => input.value);
+
         for(let i = 0; i < getMachineList.length; i++){
             if(getMachineList[i].querySelector("input").checked == true){
-                employeeName = getMachineList[i].innerText;
                 idd = getMachineList[i].getAttribute("getId")
-                break;
+                let empAmt = getMachineList[i].querySelector("input[type=number]").value
+                if (!insertedIds.includes(idd) && empAmt.trim().length > 0){
+                    showList.classList.remove("d-none");
+                    const createtd = document.createElement("tr");
+                    createtd.innerHTML = `<td class="text-center">${getMachineList[i].innerText}<input type="number" name="employee_group_id" hidden value="${idd}"></td>
+                                        <td class="text-center">${empAmt}<input type="number" name="employee_power" hidden value="${empAmt}"></td>
+                                        <td class="text-center"><button type="button" onclick="removeDataFromStatsForm(this,${idd})" class="btn btn-sm btn-danger emp">Remove</button></td>
+                                        `
+                    showList.querySelector("tbody").appendChild(createtd);
+                    document.getElementsByClassName("employee-choice-modal")[0].click()
+                }else{
+                    getMachineList[i].querySelector("input").checked = false
+                }
             }
-        }
-        if (employeeName.trim() != "" && employeeNum.value.trim() != "" && employeeNum.value.trim() != "0" && idd.trim() != "" && (chosenEmployeeIds.length == 0 || !chosenEmployeeIds.includes(idd))){
-            chosenEmployeeIds.push(idd)
-            showList.classList.remove("d-none");
-            const createtd = document.createElement("tr");
-            createtd.innerHTML = `<td class="text-center">${employeeName}<input type="number" name="employee_group_id" hidden value="${idd}"></td>
-                                <td class="text-center">${employeeNum.value}<input type="number" name="employee_power" hidden value="${employeeNum.value}"></td>
-                                <td class="text-end"><button type="button" onclick="removeDataFromStatsForm(this,${idd})" class="btn btn-sm btn-danger emp">Remove</button></td>
-                                `
-            showList.querySelector("tbody").appendChild(createtd);
-            employeeNum.value = "";
-            document.getElementsByClassName("employee-choice-modal")[0].click()
         }
     }
 }
@@ -1065,21 +1068,111 @@ function addingMachine(btn){
 function editDataShowInput(tr){
     let realValue = tr.querySelector("p")
     let allRequiredFields = document.querySelectorAll(".requiredInpInForm")
-    let editId = tr.getAttribute("idData")
     if (tr.nextElementSibling.children[0].classList.contains("btn-danger")){
-        tr.innerHTML += `<input type="text" name="editsthName" required value="${realValue.textContent.trim()}">
-                         <input type="number" hidden name="editsthId" value="${editId}">`
+        tr.innerHTML += `<input onchange="replaceTextValueInForm(this,'sthName')" type="text" name="editsthName" required value="${realValue.textContent.trim()}">`
         tr.nextElementSibling.children[0].classList.remove("btn-danger")
         tr.nextElementSibling.children[0].classList.add("btn-success")
         tr.nextElementSibling.children[0].textContent = 'Save'
+        tr.nextElementSibling.children[0].setAttribute("onclick",tr.nextElementSibling.children[0].getAttribute("onclick").replace("delete", "update"))
         tr.children[0].classList.add("d-none")
         allRequiredFields.forEach(inp => inp.removeAttribute("required"))
     }else{
-        tr.querySelectorAll("input").forEach(inp => inp.remove())
         tr.children[0].classList.remove("d-none")
+        tr.children[1].remove()
         tr.nextElementSibling.children[0].classList.remove("btn-success")
         tr.nextElementSibling.children[0].classList.add("btn-danger")
         tr.nextElementSibling.children[0].textContent = 'Remove'
+        tr.nextElementSibling.children[0].setAttribute("onclick",tr.nextElementSibling.children[0].getAttribute("onclick").replace("update", "delete"))
     }
+}
 
+function replaceTextValueInForm(inp,idd){
+    document.getElementById(idd).value = inp.value
+}
+
+function replaceValueInForm(crudTxt,idd,crudId,inpId,inpForm){
+    document.getElementById(crudId).value = crudTxt
+    document.getElementById(inpId).value = idd
+    document.getElementById(inpForm).submit()
+}
+
+function deleteFormData(idd,for_what){
+    if (confirm("Are you sure you want to delete!!")){
+        document.getElementById("deleteId").value = idd
+        document.getElementById("forWhat").value = for_what
+        document.getElementById("delete-form-id").submit()
+    }
+}
+
+function showModalToEditDutyPrice(trRow){
+    let tds = trRow.children
+    console.log(tds)
+    let editDatas = trRow.getAttribute("data-id").split(",")
+    document.getElementsByClassName("duty-price-add-btn")[0].click()
+    document.getElementById("duty-price-edit-id").value = editDatas[0]
+    document.getElementById("duty-price-edit-id").removeAttribute("disabled")
+    let machineTypePlace = document.getElementById("machine_type_id")
+    machineTypePlace.nextElementSibling.value = tds[0].textContent.trim()
+    machineTypePlace.value = editDatas[1]
+    document.getElementById("startDate").value = tds[2].textContent.trim()
+    document.getElementById("price").value = tds[4].textContent.trim()
+    document.querySelectorAll("#priceType option").forEach(selectt => {
+        console.log(selectt.value, "h",)
+        if (selectt.value == editDatas[2].trim()){
+            selectt.setAttribute("selected", "")
+        }
+    })
+}
+
+function closeDutyPriceModal(btn){
+    let shellDiv = btn.parentElement.nextElementSibling
+    console.log(shellDiv)
+    shellDiv.querySelectorAll("input:not(.edit-id):not(.stat-form-id)").forEach(inp => {
+        inp.value = ""
+    }) 
+    shellDiv.querySelectorAll("option").forEach(opt => {
+        opt.removeAttribute("selected")
+    })
+}
+
+function editEmployeeGroup(btn,typ='edit'){
+    let editBtn = btn.parentElement
+    if (typ == 'edit'){
+        let temp_val = "";
+        temp_val = editBtn.previousElementSibling.textContent.trim()
+        console.log(editBtn.previousElementSibling.innerText)
+        console.log(editBtn.previousElementSibling.innerHTML.replace(temp_val,''))
+        editBtn.previousElementSibling.innerHTML = editBtn.previousElementSibling.innerHTML.replace(temp_val,'')
+        editBtn.previousElementSibling.children[0].removeAttribute("hidden")
+        editBtn.children[0].classList.replace("btn-warning", "btn-success")
+        btn.setAttribute("onclick", `editEmployeeGroup(this,'update')`)
+        btn.textContent = 'Save'
+        editBtn.innerHTML += `<button onclick="editEmployeeGroup(this,'${temp_val}')" class="emp-data btn btn-sm btn-warning" type="button">Discard</button>`
+    }else if(typ == 'update'){
+        let inputTags =  editBtn.parentElement.getElementsByTagName("input")
+        fetch(`/get-api/employee-group-edit/${inputTags[0].value}~~${inputTags[1].value}`)
+        .then(response => response.json())
+        .then(result => {
+            if (result[0]){
+                let inputHTML = editBtn.previousElementSibling.children[0]
+                inputHTML.setAttribute("hidden", "")
+                inputHTML.value = inputTags[1].value
+                editBtn.previousElementSibling.innerHTML = `${inputTags[1].value} ${inputHTML.outerHTML}` 
+                editBtn.children[0].textContent = 'Edit'
+                editBtn.children[0].classList.replace("btn-success", "btn-warning")
+                editBtn.children[0].setAttribute("onclick", `editEmployeeGroup(this,'edit')`)
+                editBtn.children[2].remove()
+            }else{
+                alert("Error!! While Updating Data..")
+            }
+        })
+    }else{
+        editBtn.previousElementSibling.children[0].value = typ
+        editBtn.children[0].textContent = 'Edit'
+        editBtn.children[0].classList.replace("btn-success", "btn-warning")
+        editBtn.children[0].setAttribute("onclick", `editEmployeeGroup(this,'edit')`)
+        editBtn.previousElementSibling.children[0].setAttribute("hidden","")
+        editBtn.previousElementSibling.innerHTML = `${typ} ${editBtn.previousElementSibling.children[0].outerHTML}` 
+        btn.remove()
+    }
 }

@@ -1,4 +1,4 @@
-from flask import Blueprint,render_template, request, redirect , url_for , jsonify
+from flask import Blueprint,render_template, request, redirect , url_for , jsonify, session
 from website import db_connect,catch_db_insert_error
 from openpyxl import load_workbook
 from psycopg2 import IntegrityError
@@ -7,16 +7,23 @@ dash = Blueprint('dash',__name__)
 
 @dash.route("")
 def dash_home():
-    role = request.cookies.get('cpu_role')
-    user_id:int = request.cookies.get('cpu_user_id')
+
+    conn = db_connect()
+    cur = conn.cursor()
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+
     if not role:
         return redirect(url_for('views.home'))
     else:
-        if int(role) not in (1,2,3,4):
+        if role not in (1,2,3,4):
             return render_template('access_error.html')
-    conn = db_connect()
-    cur = conn.cursor()
-    if role in ('4', '3'):
+    if role in (4, 3):
         project_filter_query = ''
     else:
         project_filter_query = """
@@ -70,4 +77,4 @@ def dash_home():
     query = f"SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj {project_filter_query};"
     cur.execute(query,(user_id,))
     project_datas = cur.fetchall()
-    return render_template('dashboard.html',all_pj_datas = all_pj_datas,project_datas = project_datas)
+    return render_template('dashboard.html',all_pj_datas = all_pj_datas,project_datas = project_datas,current_role = role)

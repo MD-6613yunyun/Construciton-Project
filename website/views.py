@@ -1,8 +1,9 @@
-from flask import Blueprint,render_template, request, redirect , url_for , jsonify
+from flask import Blueprint,render_template, request, redirect , url_for , jsonify, session
 from website import db_connect,catch_db_insert_error
 from openpyxl import load_workbook
 from psycopg2 import IntegrityError
 import calendar
+from datetime import datetime
 
 views = Blueprint('views',__name__)
 
@@ -25,37 +26,47 @@ def get_first_and_last_day(month, year):
 
 @views.route('/')
 def home():
-    user_id = request.cookies.get('cpu_user_id')
-    current_role = request.cookies.get('cpu_role')
-    if user_id and request.cookies.get('cpu_role'):
-        conn = db_connect()
-        cur = conn.cursor()
-        if current_role in ('3','4'):
+    conn = db_connect()
+    cur = conn.cursor()
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    current_role = cur.fetchone()[0]
+    if user_id and current_role:
+        if current_role in [3,4]:
             cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
         else:
             cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
         project_datas = cur.fetchall()
         cur.close()
         conn.close()
-        return render_template('home.html',project_datas = project_datas)
+        return render_template('home.html',project_datas = project_datas, current_role = current_role)
     return render_template('auth.html',typ='log')
 
 @views.route("/transactions/<what>/<mgs>",methods =['GET','POST'])
 @views.route("/transactions/<what>",methods =['GET','POST'])
 def show_transactions(what,mgs=None):
-    role = request.cookies.get('cpu_role')
-    user_id = request.cookies.get("cpu_user_id")
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
+    conn = db_connect()
+    cur = conn.cursor()
+
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+
     if not role:
         return redirect(url_for('views.home'))
     else:
-        if int(role) not in (1,3,4):
+        if role not in (1,3,4):
             return render_template('access_error.html')
-    conn = db_connect()
-    cur = conn.cursor()
     if request.method == 'POST':
         return render_template('access_error.html')
     else:
-        if role in ('3','4'):
+        if role in (3, 4):
             cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
         else:
             cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
@@ -132,23 +143,28 @@ def show_transactions(what,mgs=None):
             datas = []
             name = "Service Query"
             total = 70
-        return render_template("transactions.html",datas=datas,total=total,name=name,mgs=mgs,project_datas = project_datas)
+        return render_template("transactions.html",datas=datas,total=total,name=name,mgs=mgs,project_datas = project_datas, current_role = role)
 
 @views.route("/configurations/<what>/<mgs>",methods=['GET','POST'])
 @views.route("/configurations/<what>",methods=['GET','POST'])
 def configurations(what,mgs=None):
 
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))    
+
     conn = db_connect()
     cur = conn.cursor()
 
-    role = request.cookies.get('cpu_role')
-    user_id = request.cookies.get("cpu_user_id")
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+
     if not role:
         return redirect(url_for('views.home'))
     else:
-        if int(role) not in (1,3,4):
+        if role not in (1,3,4):
             return render_template('access_error.html')
-    if role in ('3','4'):
+    if role in (3,4):
         cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
     else:
         cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
@@ -156,14 +172,13 @@ def configurations(what,mgs=None):
 
     search_wildcard = ""
     extra_datas = ["",False,0]
-
+    project_stat_form_id = None
     if request.method == 'POST':
         if what == 'search':
             search_value = request.form.get('search-value')
             for_what = request.form.get('for-what')
-            print(for_what)
             what_dct = {'Machine List':'machine','Project List':'project','Project Statistics':'project-stat'}
-            what = what_dct.get(for_what)
+            what = what_dct.get(for_what,for_what)
             search_wildcard = search_value.strip()
             if search_wildcard != "":
                 extra_datas[1] = True
@@ -172,16 +187,30 @@ def configurations(what,mgs=None):
             datalist_datas = {}
             if what == 'Machine List':
                 price_type_id = request.form.get("price_type_id")
+                project_stat_form_id = request.form.get("stat-form-id")
                 if price_type_id:
+                    duty_price_edit_id = request.form.get("duty-price-edit-id")
+                    print(duty_price_edit_id)
                     machine_type_id = request.form.get("machine_type_id")
                     start_date = request.form.get("start_date")
+                    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
                     price = request.form.get("price")
-                    cur.execute("SELECT %s::date - 1;",(start_date,))
-                    end_date_for_other = cur.fetchone()
+                    if duty_price_edit_id:
+                        # cur.execute("SELECT ")
+                        pass
                     cur.execute("SELECT id FROM duty_price_history WHERE machine_id = %s AND machine_type_id = %s AND duty_price_type_id = %s AND duty_price = %s AND start_date = %s;",(edit_id,machine_type_id,price_type_id,price,start_date))
                     if not cur.fetchone():
-                        cur.execute("UPDATE duty_price_history SET end_date = %s WHERE machine_id = %s AND end_date IS NULL;",(end_date_for_other,edit_id))
-                        cur.execute("INSERT INTO duty_price_history (machine_id,machine_type_id,duty_price_type_id,duty_price,start_date) VALUES(%s,%s,%s,%s,%s);",(edit_id,machine_type_id,price_type_id,price,start_date))
+                        cur.execute("SELECT MIN(start_date) FROM duty_price_history WHERE machine_id = %s UNION SELECT start_date FROM duty_price_history WHERE machine_id = %s;",(edit_id,edit_id))
+                        datas = cur.fetchall()
+                        if not datas[0][0]:
+                            cur.execute("INSERT INTO duty_price_history (machine_id,machine_type_id,duty_price_type_id,duty_price,start_date) VALUES (%s,%s,%s,%s,%s);",(edit_id,machine_type_id,price_type_id,price,start_date))                
+                        elif start_date < datas[0][0]:
+                            cur.execute("INSERT INTO duty_price_history (machine_id,machine_type_id,duty_price_type_id,duty_price,start_date,end_date) VALUES (%s,%s,%s,%s,%s,(SELECT MIN(start_date) FROM duty_price_history WHERE machine_id = %s)- INTERVAL '1 day');",(edit_id,machine_type_id,price_type_id,price,start_date, edit_id))
+                        elif start_date > datas[1][0]:
+                            cur.execute("UPDATE duty_price_history SET end_date = (SELECT %s::date -1) WHERE machine_id = %s AND end_date IS NULL;",(start_date,edit_id))
+                            cur.execute("INSERT INTO duty_price_history (machine_id,machine_type_id,duty_price_type_id,duty_price,start_date) VALUES (%s,%s,%s,%s,%s);",(edit_id,machine_type_id,price_type_id,price,start_date))
+                        else:
+                            mgs = 'Invalid Start Date or Start Data is already assigned...'
                         conn.commit()
                 cur.execute("SELECT name,id FROM machine_type")
                 datas = cur.fetchall()
@@ -207,7 +236,7 @@ def configurations(what,mgs=None):
                 datas = cur.fetchall()
                 datalist_datas["Owner"] = datas
 
-                cur.execute("""SELECT his.id,mt.name,dtyType.name,his.start_date,his.end_date,his.duty_price FROM duty_price_history AS his
+                cur.execute("""SELECT his.id,mt.name,dtyType.name,his.start_date,his.end_date,his.duty_price,mt.id,dtyType.id FROM duty_price_history AS his
                                 LEFT JOIN machine_type mt ON mt.id = his.machine_type_id
                                 LEFT JOIN duty_price_type dtyType ON dtyType.id = his.duty_price_type_id
                                 WHERE his.machine_id = %s;""",(edit_id,))
@@ -251,18 +280,28 @@ def configurations(what,mgs=None):
                 datalist_datas['name'] = 'Project Edit'
             data = cur.fetchone()
             print(data)
-            return render_template('edit_configurations.html',mgs=mgs,data=data,what=what,project_datas=project_datas,datalist_datas=datalist_datas)
+            print(project_stat_form_id)
+            return render_template('edit_configurations.html',mgs=mgs,data=data,what=what,project_datas=project_datas,datalist_datas=datalist_datas,project_stat_form_id=project_stat_form_id, current_role = role)
             
 
     if what == 'machine':
-        cur.execute("""SELECT fv.machine_name,mt.name,mc.name,rc.name,mcf.name,vb.name,vo.name,fv.id
+        cur.execute("""SELECT pj.name,fv.machine_name,mt.name,mc.name,rc.name,mcf.name,vb.name,vo.name,fv.id
                     FROM fleet_vehicle fv
                     LEFT JOIN machine_type mt ON mt.id = fv.machine_type_id 
                     LEFT JOIN machine_class mc ON mc.id = fv.machine_class_id
                     LEFT JOIN res_company rc ON rc.id = fv.business_unit_id
                     LEFT JOIN fleet_vehicle_model_brand vb ON vb.id = fv.brand_id
                     LEFT JOIN vehicle_owner vo ON vo.id = fv.owner_name_id
-                    LEFT JOIN vehicle_machine_config mcf ON mcf.id = fv.machine_config_id 
+                    LEFT JOIN vehicle_machine_config mcf ON mcf.id = fv.machine_config_id
+                    LEFT JOIN 
+                        ( SELECT project_id,machine_id FROM machines_history 
+                            WHERE CURRENT_TIME >= start_time::time AND 
+                                current_time <= 
+                                    CASE WHEN end_time is NULL THEN current_time ELSE end_time::time END
+                        ) AS history 
+                        ON history.machine_id = fv.id
+                    LEFT JOIN analytic_project_code AS pj
+                        ON pj.id = history.project_id
                     WHERE fv.machine_name ILIKE %s
                     ORDER BY CASE WHEN fv.machine_name = %s THEN 0 ELSE 1 END
                     LIMIT 81;""",('%'+search_wildcard+'%',search_wildcard))
@@ -294,32 +333,16 @@ def configurations(what,mgs=None):
         data = cur.fetchall()
         cur.execute("SELECT count(id) FROM fuel_price_history;")
         extra_datas[2] = cur.fetchone()[0]
-    elif what == 'details':
-        data = {}
-        extra_datas[0] = "Machine Details"
-        cur.execute("SELECT id,name FROM machine_type")
-        datas = cur.fetchall()
-        data["Machine Type"] = datas
-
-        cur.execute("SELECT id,name FROM machine_class")
-        datas = cur.fetchall()
-        data["Machine Class"] = datas
-
-        cur.execute("SELECT id,name FROM res_company")
-        datas = cur.fetchall()
-        data["Business Unit"] = datas
-
-        cur.execute("SELECT id,name FROM vehicle_machine_config")
-        datas = cur.fetchall()
-        data["Machine Capacity"] = datas
-
-        cur.execute("SELECT id,name FROM fleet_vehicle_model_brand")
-        datas = cur.fetchall()
-        data["Machine Brand"] = datas
-
-        cur.execute("SELECT id,name FROM vehicle_owner")
-        datas = cur.fetchall()
-        data["Owner"] = datas
+    elif what in ('type','class','unit','capacity','brand','owner'):
+        query_table_dct = {'type':'machine_type','class':'machine_class','brand':'fleet_vehicle_model_brand',
+                           'unit':'res_company','capacity':'vehicle_machine_config','owner':'vehicle_owner'}
+        table_name_dct = {'type':'Machine Type','class':'Machine Class','brand':'Vehicle Brand',
+                          'unit':'Business Unit','capacity':'Machine Capacity','owner':'Vehicle Owner'}
+        cur.execute(f"SELECT id,name FROM {query_table_dct[what]} WHERE name iLIKE '%{search_wildcard}%' ORDER BY CASE WHEN name = '{search_wildcard}' THEN 0 ELSE 1 END;")
+        data = cur.fetchall()
+        cur.execute(f"SELECT count(id) FROM {query_table_dct[what]};")
+        extra_datas[2] = cur.fetchone()[0]
+        extra_datas[0] = table_name_dct[what]
     elif what == 'project-stat':
         cur.execute(""" SELECT pj.id , pj.name , pj.code , emp.name FROM project_statistics stat 
                     INNER JOIN analytic_project_code pj ON stat.project_id = pj.id 
@@ -358,7 +381,7 @@ def configurations(what,mgs=None):
     cur.close()
     conn.close()
 
-    return render_template('configurations.html',mgs=mgs,datas=data,extra_datas = extra_datas,what=what,project_datas=project_datas)
+    return render_template('configurations.html',mgs=mgs,datas=data,extra_datas = extra_datas,what=what,project_datas=project_datas, current_role = role)
         
 def get_necessary_data_for_imports():
     global mappings,machine_brand_mapping,machine_capacity_mapping,machine_class_mapping,machine_owner_mapping,machine_type_mapping,business_unit_mapping
@@ -395,11 +418,22 @@ def get_necessary_data_for_imports():
 
 @views.route("/upload-machine-details",methods=['GET','POST'])
 def upload_machine_details():
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
     mgs = None
+    conn = db_connect()
+    cur = conn.cursor()
+
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+
     if request.method == 'POST':
         upload_file = request.files["upload_excel_machine_details"]
         excel_file_type = request.form.get('selectedOption')
-        what_dct = {"Machine List":"machine","Project Code":"project"}
+        what_dct = {"Machine List":"machine","Project Code":"project","Machine Details":"unit"}
         if upload_file.filename != '' and upload_file.filename.endswith(".xlsx"):
             workbook = load_workbook(filename=upload_file,data_only=True,read_only=True)
             # Select the worksheet to read from
@@ -411,27 +445,21 @@ def upload_machine_details():
             # GET
             get_necessary_data_for_imports()
             # Iterate over rows in the worksheet
-            conn = db_connect()
-            cur = conn.cursor()
 
             if excel_file_type == "Machine Details":
-                machine_type_query = """INSERT INTO machine_type (name) VALUES """
-                machine_class_query = """INSERT INTO machine_class (name) VALUES """
-                unit_query = """INSERT INTO res_company (name) VALUES """
-                capacity_query = """INSERT INTO vehicle_machine_config (name) VALUES """
-                brand_query = """INSERT INTO fleet_vehicle_model_brand (name) VALUES """
-                owner_query = """INSERT INTO vehicle_owner (name) VALUES """
-
+                query_lst = [
+                    """INSERT INTO res_company (name) VALUES """,
+                    """INSERT INTO machine_type (name) VALUES """,
+                    """INSERT INTO vehicle_machine_config (name) VALUES """,
+                    """INSERT INTO fleet_vehicle_model_brand (name) VALUES """,
+                    """INSERT INTO vehicle_owner (name) VALUES """,
+                    """INSERT INTO machine_class (name) VALUES """
+                ]
                 for row in worksheet.iter_rows(min_row=2):  # Start from the second row (adjust as needed)
                     # Access data for each cell in the row
-                    machine_type_query += f"""('{row[1].value}'),""" if row[1].value else ""
-                    machine_class_query += f"""('{row[5].value}'),""" if row[5].value else ""
-                    unit_query += f"""('{row[0].value}'),""" if row[0].value else ""
-                    capacity_query += f"""('{row[2].value}' ),""" if row[2].value else ""
-                    brand_query += f"""('{row[3].value}'),""" if row[3].value else ""
-                    owner_query += f"""('{row[4].value}'),""" if row[4].value else ""
-
-                queries = [machine_type_query[:-1],machine_class_query[:-1],unit_query[:-1],capacity_query[:-1],brand_query[:-1],owner_query[:-1]]
+                    for idx,row_data in enumerate(row):
+                        query_lst[idx] += f"""('{row_data.value}'),""" if row_data.value and row_data.value.strip() != "" else ""
+                queries = [each_query[:-1] for each_query in query_lst if not each_query.strip().endswith("VALUES")]
                 mgs = catch_db_insert_error(cur,conn,queries)
             elif excel_file_type == "Machine List":
                 machine_list_insert_query = """INSERT INTO fleet_vehicle 
@@ -442,11 +470,10 @@ def upload_machine_details():
                         idd = mapping.get(row[idx].value)
                         if idd is None:
                             mgs = f"Unknown Field or Unknow Value at <strong class='text-danger'>  Row : ({row_counter}) {row[idx].value} <&#47;strong> "
-                            return redirect(url_for('views.machine_details',mgs=mgs))
+                            return redirect(url_for('views.configurations',what='machine',mgs=mgs))
                         else:
                             stng += f"{idd},"
                     machine_list_insert_query += stng + f"'{row[6].value.strip()}'),"
-                print(machine_list_insert_query)
                 mgs = catch_db_insert_error(cur,conn,[machine_list_insert_query[:-1]+ 'ON CONFLICT (machine_name) DO NOTHING;']) 
             elif excel_file_type == 'Work Done':
                 machine_list_insert_query = """ INSERT INTO  project_each_day_work_done 
@@ -463,8 +490,8 @@ def upload_machine_details():
                         machine_list_insert_query += f"('{id[0][0]}','{row[0].value}','{row[2].value}','{unique_constraint_for_work_done}'),"
                 mgs = catch_db_insert_error(cur,conn,[machine_list_insert_query[:-1] + 'ON CONFLICT (constraint_unique_text) DO NOTHING;'])                
             elif excel_file_type == "Project Code":
-                machine_list_insert_query = """INSERT INTO analytic_project_code
-                (code,pj_group,name,type,business_unit_id) VALUES """
+                machine_list_insert_query = ''' INSERT INTO analytic_project_code
+                (code,pj_group,name,type,business_unit_id) VALUES '''
                 for row_counter , row in enumerate(worksheet.iter_rows(min_row=2),start=1):
                     if not row[0].value  or not row[1].value  or  not row[2].value or not row[3].value or not row[4].value:
                         mgs = f"<strong>Blank Field at ROW No. {row_counter}<&#47;strong>"
@@ -485,7 +512,7 @@ def upload_machine_details():
         else:    
             return redirect(url_for('views.configurations',what=what_dct.get(excel_file_type,"project"),mgs="Invalid File Type"))
     else:
-        return render_template("home.html")
+        return render_template("home.html", current_role = role)
 
 @views.route("/get-pj-datas")
 def get_pj_datas():
@@ -756,10 +783,17 @@ def call_api(for_what,data:str):
                         ON car.id = history.machine_id
                         LEFT JOIN machine_type AS tp
                         ON tp.id = car.machine_type_id
-                        WHERE history.project_id = 1669 AND history.end_time IS NULL AND car.machine_name = %s;
+                        WHERE history.project_id = 4 AND history.end_time IS NULL AND car.machine_name = %s;
             """,(data,))
     elif for_what == 'employee-group-check':
         cur.execute("SELECT id,name FROM employee_group WHERE name = %s;",(data,))
+    elif for_what == 'employee-group-edit':
+        edit_id , edit_amt = data.split("~~")
+        cur.execute("UPDATE employee_group_project SET assigned_people = %s WHERE id = %s RETURNING id;",(edit_amt,edit_id))
+        conn.commit()
+    elif for_what == 'duty-amt-check':
+        machine_id, set_date = data.split("~~")
+        cur.execute(""" SELECT id FROM duty_price_history  WHERE machine_id = %s AND %s BETWEEN start_date AND COALESCE(end_date,%s) LIMIT 1;""",(data[0],set_date,set_date))
     elif for_what == 'accountant-supervisor-check':
         sup , acc = data.split("~|~")
         result = []
@@ -770,12 +804,14 @@ def call_api(for_what,data:str):
         return jsonify(result)
     elif for_what == 'delete-machines-histrory':
         cur.execute("UPDATE machines_history SET end_time = NOW() WHERE machine_id =  %s AND end_time IS NULL;",(data,))
-        cur.execute("INSERT INTO machines_history (project_id,machine_id) VALUES(1669,%s);",(data,))
+        cur.execute("INSERT INTO machines_history (project_id,machine_id) VALUES(4,%s);",(data,))
         conn.commit()
+        cur.execute("SELECT 1;")
     elif for_what == 'delete-employee-group-history':
         cur.execute("DELETE FROM employee_group_project WHERE id = %s RETURNING id;",(data,))
         conn.commit()
     elif for_what == 'transfer_machine_project':
+        print(data.split("~~"))
         his_id , project_id , start_time , machine_id = data.split("~~")
         try:
             cur.execute("UPDATE machines_history SET end_time = %s WHERE id = %s;",(start_time,his_id))

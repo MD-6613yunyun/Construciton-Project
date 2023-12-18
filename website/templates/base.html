@@ -7,7 +7,7 @@
     <script src="{{url_for('static',filename='scripts/jquery.min.js')}}"></script>
     <link href="{{url_for('static',filename='styles/main.css')}}" rel="stylesheet"/>
     {% block styles %} {% endblock %}
-    <link rel="icon" type="image/x-icon" href="../static/images/logo_mdmm.ico">
+    <link rel="icon" type="image/x-icon" href="../static/images/web_logo.png">
     <script src="https://kit.fontawesome.com/10bcaa5c11.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/html-duration-picker@latest/dist/html-duration-picker.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -23,10 +23,10 @@
 
             <div id="nav" class="navbar-collapse collapse justify-content-between">
                 <ul class="navbar-nav px-3">
-                    {% if request.cookies.get('cpu_role') in ('1','2','3','4') %}
+                    {% if current_role in [1,2,3,4] %}
                     <li class="nav-item"><a  class="nav-link text-white" href="{{url_for('dash.dash_home')}}" >Dashboard</a></li>
                     {% endif %}
-                    {% if request.cookies.get('cpu_role') not in ('5','2') %}
+                    {% if current_role not in [5,2] %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Transactions</a>
                         <ul class="dropdown-menu">
@@ -39,28 +39,38 @@
                         </ul>
                     </li>
                     {% endif %}
-                    {% if request.cookies.get('cpu_role') not in ('5','2') %}
+                    {% if current_role not in [5,2] %}
                     <li class="nav-item dropdown ">
                         <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-auto-close="outside" data-bs-toggle="dropdown" aria-expanded="false">Configurations</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{url_for('views.configurations',what='machine')}}">Machines</a></li>
                             <li><a class="dropdown-item" href="{{url_for('views.configurations',what='project')}}">Projects</a></li>
                             <li><a class="dropdown-item" href="{{url_for('views.configurations',what='project-stat')}}">Project Statistics</a></li>
+                            <li><a class="dropdown-item" href="{{url_for('views.configurations',what='unit')}}">Business Units</a></li>
                             <li class="dropend">
                                 <a class="dropdown-item dropdown-toggle" data-bs-toggle="dropdown">Setups</a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='details')}}">Machine Details</a></li>    
+                                <ul class="dropdown-menu">   
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='employee')}}">Employees</a></li>  
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='employee-group')}}">Employee Group</a></li>  
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='fuel-price')}}">Fuel Prices</a></li> 
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='ajt')}}">Job Types ( Activity )</a></li>    
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='ajf')}}">Job Function ( Activity )</a></li>    
                                 </ul>
-                            </li>             
+                            </li> 
+                            <li class="dropend">
+                                <a class="dropdown-item dropdown-toggle" data-bs-toggle="dropdown">Machine Settings</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='type')}}">Machine Type</a></li>    
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='class')}}">Machine Class</a></li>  
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='capacity')}}">Machine Capacity</a></li>  
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='brand')}}">Machine Brand</a></li> 
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='owner')}}">Machine Owner</a></li>  
+                                </ul>
+                            </li>            
                         </ul>
                     </li>
                     {% endif %}
-                    {% if request.cookies.get('cpu_role') in ('1','3','4','5') %}
+                    {% if current_role  in [1,3,4,5] %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Sites Imports</a>
                         <ul class="dropdown-menu">
@@ -72,7 +82,7 @@
                     <li class="nav-item dropdown ">
                         <a class="nav-link dropdown-toggle text-white" data-bs-auto-close="outside"  href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Reports</a>
                         <ul class="dropdown-menu">
-                            {% if request.cookies.get('cpu_role') in ('1','2','3','4') %}
+                            {% if current_role  in [1,2,3,4] %}
                             <li><a type="button" onclick="showModalAndGiveProjectCodes('monthly')" class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#monthlyReport">Monthly</a></li>
                             <li><a class="dropdown-item" onclick="showModalAndGiveProjectCodes('summary')" type="button"  data-bs-toggle="modal" data-bs-target="#monthlyReport">Summary</a></li>
                             <li><a class="dropdown-item" onclick="showModalAndGiveProjectCodes('job_type_function')" type="button"  data-bs-toggle="modal" data-bs-target="#monthlyReport">Job Type & Job Function</a></li>
@@ -81,15 +91,15 @@
                             <li><a class="dropdown-item" href="#" class="dropdown-item" onclick="showModalAndGiveProjectCodes()" data-bs-toggle="modal" data-bs-target="#monthlyReport">Income Expense</a></li>
                         </ul>
                     </li>
-                    {% if request.cookies.get('cpu_role') == '4' %}
+                    {% if current_role == 4 %}
                     <li class="nav-item"><a  class="nav-link text-white" href="{{url_for('auth.admin_panel')}}" >Admin Panel</a></li>
                     {% endif %}
                 </ul>
             <form class="d-flex justify-content-center p-2" role="search"  action="{{url_for('auth.logout')}}">
                 <input value="Nani" hidden>
-                {% if request.cookies.get('cpu_username') %}
+                {% if session['cpu_username'] %}
                 <span class="navbar-text text-white font-monospace me-3">
-                    Hello {{request.cookies.get('cpu_username')}} !!
+                    Hello {{session['cpu_username']}}!!
                 </span>
                 {% endif %}
                 <button class="btn btn-danger" type="submit">Log Out</button>

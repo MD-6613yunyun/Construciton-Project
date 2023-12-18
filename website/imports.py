@@ -1,4 +1,4 @@
-from flask import Blueprint,render_template,request,redirect,url_for,jsonify
+from flask import Blueprint,render_template,request,redirect,url_for,jsonify, session
 from website import db_connect,catch_db_insert_error
 from psycopg2 import IntegrityError
 from itertools import zip_longest
@@ -20,15 +20,21 @@ def get_id_from_table(cur, table_name,value):
 @imports.route("/<what>/<mgs>")
 @imports.route("/<what>",methods=['GET','POST'])
 def import_data(what,mgs=None):
-    role = request.cookies.get('cpu_role')
-    user_id = request.cookies.get('cpu_user_id')
+    conn = db_connect()
+    cur = conn.cursor()
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+
     if not role:
         return redirect(url_for('views.home'))
     else:
         if int(role) not in (1,3,4,5):
             return render_template('access_error.html')
-    conn = db_connect()
-    cur = conn.cursor()
     data = {}
     if request.method == 'POST':
         if what == 'project_stat_form':
@@ -49,6 +55,58 @@ def import_data(what,mgs=None):
                             INNER JOIN fleet_vehicle car ON car.id = his.machine_id INNER JOIN machine_type 
                             type ON car.machine_type_id = type.id WHERE his.project_id = %s AND 
                             his.end_time IS NULL;""",(pj_id,))
+                cur.execute(""" SELECT  his.id , car.id , car.machine_name , type.name , 
+                                        price.duty_price , duty_price_type.name
+                                    FROM machines_history his 
+                                INNER JOIN fleet_vehicle car 
+                                    ON car.id = his.machine_id 
+                                INNER JOIN machine_type type 
+                                    ON car.machine_type_id = type.id
+                                LEFT JOIN (
+                                    SELECT 
+                                        machine_id,
+                                        COALESCE(duty_price, '0') AS duty_price,
+                                        duty_price_type_id
+                                    FROM 
+                                        duty_price_history AS price
+                                    WHERE 
+                                        machine_id IN (
+                                            SELECT machine_id 
+                                            FROM machines_history 
+                                            WHERE project_id = %s AND end_time IS NULL
+                                        )
+                                        AND 
+                                            (
+                                                ( %s BETWEEN price.start_date AND price.end_date )
+                                                    OR
+                                                ( %s >= price.start_date AND price.end_date IS NULL )
+                                            )
+                                    UNION
+                                    SELECT 
+                                        machine_id,
+                                        '0' AS duty_price,
+                                        '0' AS duty_price_type_id
+                                    FROM 
+                                        machines_history
+                                    WHERE 
+                                        project_id = %s AND end_time IS NULL
+                                        AND NOT EXISTS (
+                                            SELECT 1
+                                            FROM duty_price_history AS price
+                                            WHERE 
+                                                machines_history.machine_id = price.machine_id
+                                                AND 
+                                                    ( 
+                                                        ( %s BETWEEN price.start_date AND price.end_date)
+                                                         OR 
+                                                        ( %s >= price.start_date  AND price.end_date IS NULL )
+                                                    )
+                                        )
+                                            ) AS price 
+                                ON price.machine_id = car.id
+                                LEFT JOIN duty_price_type
+                                ON duty_price_type.id = price.duty_price_type_id
+                                WHERE his.project_id = %s AND his.end_time IS NULL; """,(pj_id,stat_datas[2],stat_datas[2],pj_id,stat_datas[2],stat_datas[2],pj_id))
                 history_datas = cur.fetchall()
                 cur.execute(""" SELECT emp.id , emp_gp.id , emp_gp.name , emp.assigned_people FROM employee_group_project 
                             emp INNER JOIN employee_group emp_gp ON emp_gp.id = emp.employee_group_id 
@@ -58,7 +116,7 @@ def import_data(what,mgs=None):
                 data['Project Code'] = cur.fetchall()
                 cur.execute("SELECT code || ' | ' || name FROM analytic_project_code;")
                 data['All Project Code'] = cur.fetchall()
-                cur.execute("SELECT machine_name FROM fleet_vehicle WHERE id IN (SELECT machine_id FROM machines_history WHERE end_time is NULL AND project_id = 1669);")
+                cur.execute("SELECT machine_name FROM fleet_vehicle WHERE id IN (SELECT machine_id FROM machines_history WHERE end_time is NULL AND project_id = 4);")
                 data['Machine'] = cur.fetchall()
                 cur.execute("SELECT name FROM employee_group;")
                 data['group'] = cur.fetchall()
@@ -66,7 +124,7 @@ def import_data(what,mgs=None):
                 data['accountants'] = cur.fetchall()
                 cur.execute("SELECT id,name FROM employee;")        
                 data['supervisors'] = cur.fetchall()
-                return render_template("import_data.html",name='Project Statistics Edit',data=data,stat_datas=stat_datas,history_datas=history_datas,emp_datas=emp_datas,project_stat_edit=True,mgs=mgs)
+                return render_template("import_data.html",name='Project Statistics Edit',data=data,stat_datas=stat_datas,history_datas=history_datas,emp_datas=emp_datas,project_stat_edit=True,mgs=mgs, current_role = role)
         elif what == 'income_expense_edit_form':
             income_expense_id = request.form.get('income_expense_id')
             if income_expense_id:
@@ -82,16 +140,17 @@ def import_data(what,mgs=None):
                                 ON emp_two.id = stat.supervisor_id
                                 WHERE form.id = %s;""",(income_expense_id,))
                 form_datas = cur.fetchone()
-                cur.execute("SELECT line.id,income_expense_id,description,invoice_no,qty,price,amt,remark,COALESCE(car.machine_name,'') FROM income_expense_line AS line LEFT JOIN fleet_vehicle AS car ON line.machine_id = car.id WHERE income_expense_id = %s;",(income_expense_id,))
+                cur.execute("SELECT line.id,income_expense_id,description,invoice_no,qty,price,amt,remark,COALESCE(car.machine_name,''),COALESCE(car.id,0) FROM income_expense_line AS line LEFT JOIN fleet_vehicle AS car ON line.machine_id = car.id WHERE income_expense_id = %s;",(income_expense_id,))
                 line_datas = cur.fetchall()
+                total_sum = sum([data[6] for data in line_datas])
                 cur.execute("SELECT car.machine_name,car.id FROM machines_history LEFT JOIN fleet_vehicle AS car ON car.id = machines_history.machine_id WHERE project_id = %s AND end_time IS NULL;",(form_datas[10],))
                 machine_datas = cur.fetchall()
-                if role in ('3','4'):
+                if role in (3, 4):
                     cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
                 else:
                     cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
                 project_datas = cur.fetchall()
-            return render_template("income_expense.html",form_datas=form_datas,line_datas=line_datas,machine_datas=machine_datas,template_type = 'Edit List',project_datas = project_datas)
+            return render_template("income_expense.html",form_datas=form_datas,line_datas=line_datas,machine_datas=machine_datas,template_type = 'Edit List',project_datas = project_datas,current_role = role, total_sum = total_sum)
         elif what == 'daily_activity_edit_form':
             daily_activity_id =  request.form.get('income_expense_id')
             cur.execute(""" SELECT pj.code,emp_one.name,pj.name,stat.location,stat.pj_start_date,emp_two.name,estimate_day,estimate_feet,estimate_sud,estimate_duty,estimate_fuel,estimate_expense,pj.id,
@@ -188,12 +247,12 @@ def import_data(what,mgs=None):
                             ON form_table.project_id = expense_table.project_id
                             WHERE form_table.project_id = %s;""",(pj_id,))
             history_datas = cur.fetchone()
-            if role in ('3','4'):
+            if role in (3, 4):
                 cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
             else:
                 cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
             project_datas = cur.fetchall()
-            return render_template("daily-table.html",extra_datas = extra_datas,form_datas = form_datas,machine_datas=machine_datas,activity_jobs=[activity_job_types,activity_job_functions],history_datas=history_datas,line_datas = line_datas,template_type = 'Edit List',project_datas = project_datas)
+            return render_template("daily-table.html",daily_activity_id=daily_activity_id,extra_datas = extra_datas,form_datas = form_datas,machine_datas=machine_datas,activity_jobs=[activity_job_types,activity_job_functions],history_datas=history_datas,line_datas = line_datas,template_type = 'Edit List',project_datas = project_datas, current_role = role)
         elif what == 'emp':
             code = request.form.get("code")
             name = request.form.get("empName")
@@ -227,16 +286,20 @@ def import_data(what,mgs=None):
                 mgs = str(err)
                 conn.rollback()
             return redirect(url_for('views.configurations',what='fuel-price'))
-        elif what == 'ajt' or what == 'ajf':
+        elif what in ('ajt','ajf','type','class','unit','capacity','brand','owner'):
             sth_name = request.form.get("sthName")
-            sth_edit_id = request.form.get("editsthId")
-            db = {'ajt':'activity_job_type','ajf':'activity_job_function'}
+            sth_edit_id = request.form.get("sthId")
+            crud = request.form.get("crud")
+            db = {'ajt':'activity_job_type','ajf':'activity_job_function','type':'machine_type',
+                  'class':'machine_class','brand':'fleet_vehicle_model_brand','unit':'res_company',
+                  'capacity':'vehicle_machine_config','owner':'vehicle_owner'}
             try:
-                if sth_edit_id:
-                    sth_edit_name = request.form.get("editsthName")
-                    cur.execute(f"UPDATE {db[what]}  SET name = '{sth_edit_name}' WHERE id = '{sth_edit_id}';")
-                else:
+                if crud == 'create':
                     cur.execute(f"INSERT INTO {db[what]} (name) VALUES('{sth_name.upper()}');")
+                elif crud == 'update':
+                    cur.execute(f"UPDATE {db[what]}  SET name = '{sth_name}' WHERE id = '{sth_edit_id}';")
+                elif crud == 'delete':
+                    cur.execute(f"DELETE FROM {db[what]} WHERE id =  '{sth_edit_id}';")
                 conn.commit()
             except IntegrityError as err:
                 mgs = str(err)
@@ -245,7 +308,7 @@ def import_data(what,mgs=None):
         else:
             return render_template('not_found.html')
     else:
-        if role == '5':
+        if role == 5:
             return render_template('access_error.html')
         if what == 'machine':
             cur.execute("SELECT name FROM machine_type")
@@ -291,7 +354,7 @@ def import_data(what,mgs=None):
                 ON his.machine_id = car.id
                 LEFT JOIN machine_type AS type
                 ON type.id = car.machine_type_id
-                WHERE his.project_id = 1669 AND his.end_time IS NULL;
+                WHERE his.project_id = 4 AND his.end_time IS NULL;
             """)
             data['Machine'] = cur.fetchall()
             cur.execute("SELECT id,name FROM employee_group;")
@@ -303,7 +366,7 @@ def import_data(what,mgs=None):
             name = 'Project Statistics Line'
         else:
             return render_template('not_found.html')
-        return render_template("import_data.html",data = data,name=name,mgs=mgs)
+        return render_template("import_data.html",data = data,name=name,mgs=mgs,current_role = role)
 
 @imports.route("/upload-each-machine-details",methods=['GET','POST'])
 def upload_each():
@@ -343,6 +406,7 @@ def upload_each_data():
         query = ""
         if db == 'analytic_project_code':
             pj_datas = request.form.getlist('pj-datas')
+            edit_id = request.form.get("edit-id")
             print(pj_datas)
             cur.execute("SELECT id FROM res_company where name = %s",(pj_datas[-1],))
             bi_id = cur.fetchall()
@@ -354,7 +418,10 @@ def upload_each_data():
             pj_group_id = cur.fetchone()[0]
             pj_datas[2] = pj_group_id
             pj_datas[3] = pj_type_id
-            query = f""" INSERT INTO {db} (code,name,pj_group_id,pj_type_id,business_unit_id) VALUES ({",".join(["'{}'".format(item) for item in pj_datas[:-1]])},'{bi_id[0][0]}');"""
+            if edit_id:
+                query = f""" UPDATE {db} SET code = '{pj_datas[0]}' , name = '{pj_datas[1]}' , pj_group_id = '{pj_datas[2]}' , pj_type_id = '{pj_datas[3]}' ,business_unit_id = '{bi_id[0][0]}' WHERE id = '{edit_id}';"""
+            else:
+                query = f""" INSERT INTO {db} (code,name,pj_group_id,pj_type_id,business_unit_id) VALUES ({",".join(["'{}'".format(item) for item in pj_datas[:-1]])},'{bi_id[0][0]}');"""
             what = 'project'
         elif db == 'duty_odoo_report':
             dty_datas = request.form.getlist('duty-datas')
@@ -472,7 +539,12 @@ def return_dropdown_data(mgs):
 
 @imports.route("/site-imports/<typ>",methods=['POST'])
 def site_imports(typ):
-    created_username = request.cookies.get("cpu_username")
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+        
+    user_id = session["cpu_user_id"]
+    created_username = session["cpu_username"]
     if request.method == 'POST':
         conn = db_connect()
         cur = conn.cursor()
@@ -480,13 +552,13 @@ def site_imports(typ):
             income_expense = request.form.get("work")
             income_status = True if  income_expense == 'incomes' else False
             if income_status:
-                cur.execute("SELECT 'DCI/' || RIGHT(EXTRACT(YEAR FROM NOW())::TEXT,2) || '/' || TO_CHAR(EXTRACT(MONTH FROM NOW()),'FM00') || '/' || COALESCE((SELECT TO_CHAR(id + 1, 'FM000000') FROM income_expense WHERE income_status = TRUE ORDER BY id DESC LIMIT 1),'000001');")
+                cur.execute("SELECT 'DCI/' || RIGHT(EXTRACT(YEAR FROM NOW())::TEXT,2) || '/' || TO_CHAR(EXTRACT(MONTH FROM NOW()),'FM00') || '/' || COALESCE((SELECT TO_CHAR(SPLIT_PART(income_expense_no,'/',4)::int + 1, 'FM000000') FROM income_expense WHERE income_status = TRUE ORDER BY income_expense_no DESC LIMIT 1),'000001');")
             else:
-                cur.execute("SELECT 'DCO/' || RIGHT(EXTRACT(YEAR FROM NOW())::TEXT,2) || '/' || TO_CHAR(EXTRACT(MONTH FROM NOW()),'FM00') || '/' || COALESCE((SELECT TO_CHAR(id + 1, 'FM000000') FROM income_expense WHERE income_status = FALSE ORDER BY id DESC LIMIT 1),'000001');")
+                cur.execute("SELECT 'DCO/' || RIGHT(EXTRACT(YEAR FROM NOW())::TEXT,2) || '/' || TO_CHAR(EXTRACT(MONTH FROM NOW()),'FM00') || '/' || COALESCE((SELECT TO_CHAR(SPLIT_PART(income_expense_no,'/',4)::int + 1, 'FM000000') FROM income_expense WHERE income_status = FALSE ORDER BY income_expense_no DESC LIMIT 1),'000001');")
             report_no = cur.fetchone()[0]
             import_date = request.form.get("import_date")
             pj_id = request.form.get("pj_id")
-            cur.execute("INSERT INTO income_expense (income_status,income_expense_no,set_date,project_id,created_name) VALUES (%s,%s,%s,%s,%s) RETURNING id;",(income_status,report_no,import_date,pj_id,created_username))
+            cur.execute("INSERT INTO income_expense (income_status,income_expense_no,set_date,project_id,created_name,user_id) VALUES (%s,%s,%s,%s,%s,%s) RETURNING id;",(income_status,report_no,import_date,pj_id,created_username,user_id))
             income_expense_id = cur.fetchone()[0]
             descriptions = request.form.getlist("description")[:-1]
             invoice_nos = request.form.getlist("invoice_no")[:-1]
@@ -495,16 +567,19 @@ def site_imports(typ):
             amts = request.form.getlist("amt")[:-1]
             remarks = request.form.getlist("remark")[:-1]
             machine_ids = request.form.getlist("machine_id")[:-1]
-            query = "INSERT INTO income_expense_line (income_expense_id,description,invoice_no,qty,price,amt,remark,machine_id) VALUES "
             for data in zip(descriptions,invoice_nos,qtys,prices,amts,remarks,machine_ids):
-                query += f"('{income_expense_id}','{data[0]}','{data[1]}','{data[2] if data[2] != '' else 0.0}','{data[3] if data[3] != '' else 0.0}','{data[4]}','{data[5]}',{data[6] if data[6] != '' else 'Null'}),"
-            cur.execute(query[:-1]+';')
+                if data[6].strip() != '':
+                    cur.execute('''INSERT INTO income_expense_line (income_expense_id,description,invoice_no,qty,price,amt,remark,machine_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s);''',(income_expense_id,data[0],data[1],data[2] if data[2] != '' else 0.0,data[3] if data[3] != '' else 0.0,data[4],data[5],data[6]))
+                else:
+                    cur.execute('''INSERT INTO income_expense_line (income_expense_id,description,invoice_no,qty,price,amt,remark) VALUES (%s,%s,%s,%s,%s,%s,%s);''',(income_expense_id,data[0],data[1],data[2] if data[2] != '' else 0.0,data[3] if data[3] != '' else 0.0,data[4],data[5]))
             conn.commit()
             cur.close()
             conn.close()
             return redirect(url_for("site_imports.income_expense",typ='view'))
         elif typ == 'income-expense-edit':
             form_id = request.form.get("form_id")
+            income_or_expense = request.form.get("work")
+            income_date = request.form.get("import_date")
             descriptions = request.form.getlist("description")[:-1]
             invoice_nos = request.form.getlist("invoice_no")[:-1]
             qtys = request.form.getlist("qty")[:-1]
@@ -513,11 +588,24 @@ def site_imports(typ):
             remarks = request.form.getlist("remark")[:-1]
             machine_ids = request.form.getlist("machine_id")[:-1]
             print(form_id)
+            cur.execute("SELECT income_status FROM income_expense WHERE id = %s;",(form_id,))
+            income_original_status = cur.fetchone()[0]
+            income_status = True if  income_or_expense == 'incomes' else False
+            if income_status != income_original_status:
+                if income_status:
+                    cur.execute("SELECT 'DCI/' || RIGHT(EXTRACT(YEAR FROM NOW())::TEXT,2) || '/' || TO_CHAR(EXTRACT(MONTH FROM NOW()),'FM00') || '/' || COALESCE((SELECT TO_CHAR(SPLIT_PART(income_expense_no,'/',4)::int + 1, 'FM000000') FROM income_expense WHERE income_status = TRUE ORDER BY income_expense_no DESC LIMIT 1),'000001');")
+                else:
+                    cur.execute("SELECT 'DCO/' || RIGHT(EXTRACT(YEAR FROM NOW())::TEXT,2) || '/' || TO_CHAR(EXTRACT(MONTH FROM NOW()),'FM00') || '/' || COALESCE((SELECT TO_CHAR(SPLIT_PART(income_expense_no,'/',4)::int + 1, 'FM000000') FROM income_expense WHERE income_status = FALSE ORDER BY income_expense_no DESC LIMIT 1),'000001');")
+                report_no = cur.fetchone()[0]
+                cur.execute("UPDATE income_expense SET  income_status = %s , income_expense_no = %s , set_date = %s WHERE id = %s;",(income_status, report_no,income_date,form_id))
+            else:
+                cur.execute("UPDATE income_expense SET  set_date = %s WHERE id = %s;",(income_date,form_id))
             cur.execute("DELETE FROM income_expense_line WHERE income_expense_id = %s;",(form_id,))
-            query = "INSERT INTO income_expense_line (income_expense_id,description,invoice_no,qty,price,amt,remark,machine_id) VALUES "
             for data in zip(descriptions,invoice_nos,qtys,prices,amts,remarks,machine_ids):
-                query += f"('{form_id}','{data[0]}','{data[1]}','{data[2] if data[2] != '' else 0.0}','{data[3] if data[3] != '' else 0.0}','{data[4]}','{data[5]}',{data[6] if data[6] != '' else 'Null'}),"
-            cur.execute(query[:-1]+';')
+                if data[6] != '0' and data[6].strip() != '':
+                    cur.execute(''' INSERT INTO income_expense_line (income_expense_id,description,invoice_no,qty,price,amt,remark,machine_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s);''',(form_id,data[0],data[1],data[2] if data[2] != '' else 0.0,data[3] if data[3] != '' else 0.0,data[4],data[5],data[6]))
+                else:
+                    cur.execute(''' INSERT INTO income_expense_line (income_expense_id,description,invoice_no,qty,price,amt,remark) VALUES (%s,%s,%s,%s,%s,%s,%s);''',(form_id,data[0],data[1],data[2] if data[2] != '' else 0.0,data[3] if data[3] != '' else 0.0,data[4],data[5]))
             conn.commit()
             cur.close()
             conn.close()
@@ -531,12 +619,15 @@ def site_imports(typ):
             wealther_affect = request.form.get("wealtherAff")
             complete_feet = request.form.get("completeFeet")
             complete_sud = request.form.get("completeSud")
-            cur.execute("SELECT 'DCA/' || RIGHT(EXTRACT(YEAR FROM NOW())::TEXT,2) || '/' || TO_CHAR(EXTRACT(MONTH FROM NOW()),'FM00') || '/' || COALESCE((SELECT TO_CHAR(id + 1, 'FM000000') FROM daily_activity ORDER BY id DESC LIMIT 1),'000001');")
-            report_no = cur.fetchone()[0]
-            cur.execute("SELECT id FROM daily_activity")
-            cur.execute("INSERT INTO daily_activity (daily_activity_no,working_status,remark_for_not_working,set_date,project_id,wealther_effect_percent,complete_feet,complete_sud,created_name) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id;",(report_no,work_staus,reason_for_not_working,set_date,pj_id,wealther_affect,complete_feet,complete_sud,created_username))
+            daily_activity_edit_report_no = request.form.get("daily_acitivty_edit_report_no")
+            if not daily_activity_edit_report_no:
+                cur.execute("SELECT 'DCA/' || RIGHT(EXTRACT(YEAR FROM NOW())::TEXT,2) || '/' || TO_CHAR(EXTRACT(MONTH FROM NOW()),'FM00') || '/' || COALESCE((SELECT TO_CHAR(id + 1, 'FM000000') FROM daily_activity ORDER BY id DESC LIMIT 1),'000001');")
+                report_no = cur.fetchone()[0]
+            else:
+                report_no = daily_activity_edit_report_no
+            cur.execute('''INSERT INTO daily_activity (daily_activity_no,working_status,remark_for_not_working,set_date,project_id,wealther_effect_percent,complete_feet,complete_sud,created_name,user_id) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id;''',(report_no,work_staus,reason_for_not_working,set_date,pj_id,wealther_affect,complete_feet,complete_sud,created_username,user_id))
             daily_activity_id = cur.fetchone()[0]
-
+            daily_activity_edit_id = request.form.get('daily-activity-edit-id')
             machine_ids = request.form.getlist("machine_id")[:-1]
             job_type_ids = request.form.getlist("job_type_id")[:-1]
             job_function_ids = request.form.getlist("job_function_id")[:-1]
@@ -554,11 +645,12 @@ def site_imports(typ):
                                     FROM duty_price_history AS his
                                     INNER JOIN duty_price_type AS type
                                     ON his.duty_price_type_id = type.id WHERE machine_id = %s AND %s BETWEEN start_date AND COALESCE(end_date,%s);""",(data[3],data[4],data[0],set_date,set_date))
-                    duty_amt = cur.fetchone()[0]
-                    fuel_amt = round(fuel_price*(Decimal(data[5])*Decimal('4.54')),2)
-                    print(duty_amt)
-                    print(fuel_amt)
-                    cur.execute("INSERT INTO daily_activity_lines(daily_activity_id,machine_id,job_type_id,job_function_id,duty_hour,used_fuel,description,duty_amt,fuel_amt,way) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);",(daily_activity_id,data[0],data[1],data[2],f'{data[3]} hours {data[4]}  minutes',data[5],data[6],duty_amt,fuel_amt,data[7]))
+                    duty_amt = cur.fetchone()[0]       
+                    fuel_qty = round(Decimal(data[5]) / Decimal(4.54),2)
+                    fuel_amt = round(fuel_price*(Decimal(fuel_qty)*Decimal('4.54')),2)
+                    ways = 0 if data[7].strip() == "" else data[7]
+                    print(ways)
+                    cur.execute('''INSERT INTO daily_activity_lines(daily_activity_id,machine_id,job_type_id,job_function_id,duty_hour,used_fuel,description,duty_amt,fuel_amt,way) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);''',(daily_activity_id,data[0],data[1],data[2],f'{data[3]} hours {data[4]}  minutes',fuel_qty,data[6],duty_amt,fuel_amt,ways))
             # manpower & equipment
             man_amt = request.form.getlist("manpower_amt")
             man_id = request.form.getlist("manpower_id")
@@ -574,7 +666,8 @@ def site_imports(typ):
             hasAccidents = request.form.getlist("hasAccident")[:-1]
             for data in zip(acc_machine_ids,acc_descriptions,hasAccidents):
                 if data[0].strip() != '' and data[1].strip() != '':
-                    cur.execute("INSERT INTO daily_activity_accident_lines(daily_activity_id,machine_id,description,accident_status) VALUES(%s,%s,%s,%s);",(daily_activity_id,data[0],data[1],int(data[2])))
+                    acc_status = 't' if data[2] == '1' else 'f'
+                    cur.execute('''INSERT INTO daily_activity_accident_lines(daily_activity_id,machine_id,description,accident_status) VALUES(%s,%s,%s,%s);''',(daily_activity_id,data[0],data[1],acc_status))
             print(man_amt)
             print(man_id)
             print(type_amt)
@@ -584,6 +677,13 @@ def site_imports(typ):
             print(acc_descriptions)
             print(hasAccidents)
 
+            if daily_activity_edit_id:
+                cur.execute("DELETE FROM daily_activity_accident_lines WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
+                cur.execute("DELETE FROM daily_activity_lines WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
+                cur.execute("DELETE FROM employee_group_project_line WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
+                cur.execute("DELETE FROM machines_history_project WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
+                cur.execute("DELETE FROM daily_activity WHERE id = %s;",(daily_activity_edit_id,))
+                
             print(machine_ids)
             print(job_type_ids)
             print(job_function_ids)
@@ -597,4 +697,48 @@ def site_imports(typ):
         return redirect(url_for("views.home"))
     
 
+@imports.route("/delete-form",methods=["POST"])
+def delete_form():
+    for_what = request.form.get("for_what")
+    delete_id = request.form.get("delete_id")
+    conn = db_connect()
+    cur = conn.cursor()
+    url_for_name , typ = "" , ""
+    mgs = "Succesfully Deleted..."
+    print(for_what)
+    try:
+        if for_what == "daily_activity":
+            url_for_name , typ = 'site_imports.daily_activity' , 'view' 
+            cur.execute("DELETE FROM daily_activity_accident_lines WHERE daily_activity_id = %s;",(delete_id,))
+            cur.execute("DELETE FROM daily_activity_lines WHERE daily_activity_id = %s;",(delete_id,))
+            cur.execute("DELETE FROM employee_group_project_line WHERE daily_activity_id = %s;",(delete_id,))
+            cur.execute("DELETE FROM machines_history_project WHERE daily_activity_id = %s;",(delete_id,))
+            cur.execute("DELETE FROM daily_activity WHERE id = %s;",(delete_id,))
+        elif for_what == 'income_expense':
+            url_for_name , typ = 'site_imports.income_expense' , 'view' 
+            cur.execute("DELETE FROM income_expense_line WHERE income_expense_id = %s;",(delete_id,))
+            cur.execute("DELETE FROM income_expense WHERE id = %s;",(delete_id,))
+        elif for_what == 'project_stat':
+            url_for_name , typ = 'views.configurations' , 'project-stat'
+            cur.execute("DELETE FROM employee_group_project WHERE project_id = %s;",(delete_id,))
+            cur.execute("DELETE FROM machines_history WHERE project_id = %s;",(delete_id,))
+            cur.execute("DELETE FROM project_statistics WHERE project_id = %s;",(delete_id,))
+        elif for_what == 'project':
+            url_for_name , typ = 'views.configurations' , 'project' 
+            cur.execute("DELETE FROM analytic_project_code WHERE id = %s;",(delete_id,))
+        elif for_what == 'machine':
+            url_for_name , typ = 'views.configurations' , 'machine' 
+            cur.execute("DELETE FROM fleet_vehicle WHERE id = %s;",(delete_id,))
+        elif for_what == 'user_account':
+            cur.execute("DELETE FROM project_user_access WHERE user_id = %s;",(delete_id,))
+            cur.execute("DELETE FROM user_auth WHERE id = %s;",(delete_id,))
+        conn.commit()
+    except IntegrityError as err:
+        print(err)
+        mgs = str(err)
 
+    if for_what in ('project','machine','project_stat'):    
+        return redirect(url_for(url_for_name,what=typ,mgs=mgs)) 
+    elif for_what == 'user_account':
+        return redirect(url_for('auth.admin_panel',mgs=mgs))
+    return redirect(url_for(url_for_name,typ=typ,mgs=mgs))

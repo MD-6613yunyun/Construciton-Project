@@ -1,4 +1,4 @@
-from flask import Blueprint,render_template,redirect,request,url_for
+from flask import Blueprint,render_template,redirect,request,url_for, session
 from itertools import zip_longest
 from website import db_connect
 from decimal import Decimal
@@ -9,13 +9,19 @@ site_imports = Blueprint('site_imports',__name__)
 def home():
     return "Hello"
 
+@site_imports.route("income-expense/<typ>/<mgs>",methods=['GET','POST'])
 @site_imports.route("income-expense/<typ>",methods=['GET','POST'])
-def income_expense(typ):
+def income_expense(typ,mgs=None):
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
     conn = db_connect()
     cur = conn.cursor()
-    user_id = request.cookies.get("cpu_user_id")
-    current_role = request.cookies.get("cpu_role")
-    if current_role not in ('1','3','4','5'):
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    current_role = cur.fetchone()[0]
+    if current_role not in [1,3,4,5]:
         return render_template('access_error.html')
     elif not user_id:
         return redirect(url_for('auth.authenticate',typ='log'))
@@ -35,17 +41,17 @@ def income_expense(typ):
         form_datas = cur.fetchone()
         cur.execute("SELECT car.machine_name,car.id FROM machines_history LEFT JOIN fleet_vehicle AS car ON car.id = machines_history.machine_id WHERE project_id = %s AND end_time IS NULL;",(pj_id,))
         machine_datas = cur.fetchall()
-        if current_role in ('3','4'):
+        if current_role in [3,4]:
             cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
         else:
             cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
         project_datas = cur.fetchall()
         cur.close()
         conn.close()
-        return render_template("income_expense.html",cur_date = cur_date,form_datas = form_datas,machine_datas = machine_datas,template_type = 'Import',project_datas = project_datas)
+        return render_template("income_expense.html",cur_date = cur_date,form_datas = form_datas,machine_datas = machine_datas,template_type = 'Import',project_datas = project_datas, current_role = current_role)
     else:
         ##
-        if current_role in ('4', '3'):
+        if current_role in [3,4]:
             project_filter_query = ''
         else:
             project_filter_query = """
@@ -75,15 +81,22 @@ def income_expense(typ):
         project_datas = cur.fetchall()
         cur.close()
         conn.close()
-        return render_template("income_expense.html",result=result,template_type = 'Report List',extra_datas=extra_datas,project_datas=project_datas)
+        return render_template("income_expense.html",result=result,template_type = 'Report List',extra_datas=extra_datas,project_datas=project_datas,mgs=mgs, current_role = current_role)
 
+@site_imports.route("daily-activity/<typ>/<mgs>",methods=['GET','POST'])
 @site_imports.route("daily-activity/<typ>",methods=['GET','POST'])
-def daily_activity(typ):
+def daily_activity(typ,mgs=None):
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
     conn = db_connect()
     cur = conn.cursor()
-    user_id = request.cookies.get("cpu_user_id")
-    current_role = request.cookies.get("cpu_role")
-    if current_role not in ('1','3','4','5'):
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    current_role = cur.fetchone()[0]
+
+    if current_role not in [1,3,4,5]:
         return render_template('access_error.html')
     elif not user_id:
         return redirect(url_for('auth.authenticate',typ='log'))
@@ -153,7 +166,7 @@ def daily_activity(typ):
                         ON form_table.project_id = expense_table.project_id
                         WHERE form_table.project_id = %s;""",(pj_id,))
         history_datas = cur.fetchone()
-        if current_role in ('3','4'):
+        if current_role in [3,4]:
             cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
         else:
             cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
@@ -163,9 +176,9 @@ def daily_activity(typ):
         if not history_datas:
             history_datas = (Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'))
         print(history_datas)
-        return render_template("daily-table.html",extra_datas = extra_datas,form_datas = form_datas,machine_datas=machine_datas,activity_jobs=[activity_job_types,activity_job_functions],history_datas=history_datas,template_type = 'create',project_datas = project_datas)
+        return render_template("daily-table.html",extra_datas = extra_datas,form_datas = form_datas,machine_datas=machine_datas,activity_jobs=[activity_job_types,activity_job_functions],history_datas=history_datas,template_type = 'create',project_datas = project_datas,mgs=mgs, current_role = current_role)
     else:
-        if current_role in ('4', '3'):
+        if current_role in [4,3]:
             project_filter_query = ''
         else:
             project_filter_query = """
@@ -239,7 +252,7 @@ def daily_activity(typ):
         extra_datas = []
         cur.execute("SELECT count(*) FROM daily_activity;")
         extra_datas.append(cur.fetchone())
-        if current_role in ('3','4'):
+        if current_role in [3,4]:
             cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
         else:
             cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
@@ -247,5 +260,5 @@ def daily_activity(typ):
         cur.close()
         conn.close()
         print(result)
-        return render_template("daily-table.html",project_datas=project_datas,result=result,extra_datas = extra_datas,template_type='view')
+        return render_template("daily-table.html",project_datas=project_datas,result=result,extra_datas = extra_datas,template_type='view',mgs=mgs,current_role = current_role)
     

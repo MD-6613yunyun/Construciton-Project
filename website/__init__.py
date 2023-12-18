@@ -39,6 +39,7 @@ def catch_db_insert_error(cur,con,queries):
 def create_app():
     app = Flask(__name__)
     app.config['secret_key'] = "1j2djeijfksdjfk22r90d9flk2-xspwp2-d90r8*90898(*W)"
+    app.secret_key = app.config['secret_key']
 
     from .views import views
     from .reports import reports

@@ -159,7 +159,7 @@ th{
 }
 
 .activities-table, .estimate-result-table, .manpower-equiment-table , .repair-maintainace-table{
-    width: 80%;
+    width: 85%;
     overflow: auto;
 }
 
@@ -173,7 +173,8 @@ th{
 }
 
 .activities-table table{
-    max-width: 95%;
+    width: 100%;
+    margin: 0 auto;
 }
 
 .activities-table input{
