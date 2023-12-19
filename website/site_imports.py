@@ -9,8 +9,9 @@ site_imports = Blueprint('site_imports',__name__)
 def home():
     return "Hello"
 
+@site_imports.route("income-expense/<typ>/<mgs>",methods=['GET','POST'])
 @site_imports.route("income-expense/<typ>",methods=['GET','POST'])
-def income_expense(typ):
+def income_expense(typ,mgs=None):
     conn = db_connect()
     cur = conn.cursor()
     user_id = request.cookies.get("cpu_user_id")
@@ -75,10 +76,11 @@ def income_expense(typ):
         project_datas = cur.fetchall()
         cur.close()
         conn.close()
-        return render_template("income_expense.html",result=result,template_type = 'Report List',extra_datas=extra_datas,project_datas=project_datas)
+        return render_template("income_expense.html",result=result,template_type = 'Report List',extra_datas=extra_datas,project_datas=project_datas,mgs=mgs)
 
+@site_imports.route("daily-activity/<typ>/<mgs>",methods=['GET','POST'])
 @site_imports.route("daily-activity/<typ>",methods=['GET','POST'])
-def daily_activity(typ):
+def daily_activity(typ,mgs=None):
     conn = db_connect()
     cur = conn.cursor()
     user_id = request.cookies.get("cpu_user_id")
@@ -163,7 +165,7 @@ def daily_activity(typ):
         if not history_datas:
             history_datas = (Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'))
         print(history_datas)
-        return render_template("daily-table.html",extra_datas = extra_datas,form_datas = form_datas,machine_datas=machine_datas,activity_jobs=[activity_job_types,activity_job_functions],history_datas=history_datas,template_type = 'create',project_datas = project_datas)
+        return render_template("daily-table.html",extra_datas = extra_datas,form_datas = form_datas,machine_datas=machine_datas,activity_jobs=[activity_job_types,activity_job_functions],history_datas=history_datas,template_type = 'create',project_datas = project_datas,mgs=mgs)
     else:
         if current_role in ('4', '3'):
             project_filter_query = ''
@@ -247,5 +249,5 @@ def daily_activity(typ):
         cur.close()
         conn.close()
         print(result)
-        return render_template("daily-table.html",project_datas=project_datas,result=result,extra_datas = extra_datas,template_type='view')
+        return render_template("daily-table.html",project_datas=project_datas,result=result,extra_datas = extra_datas,template_type='view',mgs=mgs)
     

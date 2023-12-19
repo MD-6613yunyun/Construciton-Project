@@ -79,9 +79,10 @@ def checkforget(name,email):
         return [1]
     else:
         return [0]
-   
+
+@auth.route("/admin/<mgs>",methods=['GET','POST']) 
 @auth.route("/admin",methods=['GET','POST'])
-def admin_panel():
+def admin_panel(mgs=None):
     conn = db_connect()
     cur = conn.cursor()
     role = request.cookies.get('cpu_role')
@@ -93,7 +94,7 @@ def admin_panel():
             return render_template('access_error.html')
     if request.method == 'POST':
         user_id = request.form.get("income_expense_id")
-        cur.execute("SELECT users.id,users.name,users.mail,access.name FROM user_auth AS users LEFT JOIN user_access access ON users.user_access_id = access.id WHERE users.id = %s;",(user_id,))
+        cur.execute("SELECT users.id,users.name,users.mail,access.name,access.id FROM user_auth AS users LEFT JOIN user_access access ON users.user_access_id = access.id WHERE users.id = %s;",(user_id,))
         user_data = cur.fetchone()
         cur.execute("SELECT id,code,name FROM analytic_project_code")
         pj_datas = cur.fetchall()
@@ -101,7 +102,12 @@ def admin_panel():
         access_datas = cur.fetchall()
         cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
         project_datas = cur.fetchall()
-        return render_template('admin_panel.html',not_tree=True,user_data=user_data,pj_datas=pj_datas,access_datas=access_datas,project_datas=project_datas)
+        if user_data[4] == 4:
+            user_projects = project_datas
+        else:
+            cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+            user_projects = cur.fetchall()
+        return render_template('admin_panel.html',not_tree=True,user_data=user_data,pj_datas=pj_datas,access_datas=access_datas,project_datas=project_datas,user_projects=user_projects)
     else:
         cur.execute("SELECT id,name,mail FROM user_auth ORDER BY name LIMIT 81;")
         all_users = cur.fetchall()
@@ -110,7 +116,7 @@ def admin_panel():
         cur.execute("SELECT pj.id,code,name FROM analytic_project_code AS pj;")
         project_datas = cur.fetchall()
     
-    return render_template("admin_panel.html",all_users=all_users,total=all_users_count,project_datas=project_datas)
+    return render_template("admin_panel.html",all_users=all_users,total=all_users_count,project_datas=project_datas,mgs=mgs)
 
 @auth.route("/add-remove-projects/<typ>",methods=['POST'])
 def add_remove_pj(typ):
@@ -135,15 +141,16 @@ def add_remove_pj(typ):
         pj_datas = cur.fetchall()
         cur.execute("SELECT id,name FROM user_access;")
         access_datas = cur.fetchall()
-        if current_role in ('3','4'):
-            cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
-        else:
-            cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+        if current_role != '4':
+            return render_template("access_error.html")
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
         project_datas = cur.fetchall()
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+        user_projects = cur.fetchall()
         conn.commit()
         cur.close()
         conn.close()
-        return render_template('admin_panel.html',not_tree=True,user_data=user_data,pj_datas=pj_datas,access_datas=access_datas,project_datas=project_datas)
+        return render_template('admin_panel.html',not_tree=True,user_data=user_data,pj_datas=pj_datas,access_datas=access_datas,project_datas=project_datas,user_projects = user_projects)
 
 @auth.route("/change-user-access",methods=['POST'])
 def change_user_access():

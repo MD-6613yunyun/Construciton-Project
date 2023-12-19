@@ -1,7 +1,8 @@
  
-                <p align='center' line-height='0.2'>Shan - Yet Souk - Kyine Kham Ta Man (23-24) </p>
-                <p align='center' line-height='0.2'> PTG-23-24-001</p>
-                <p align='center' line-height='0.5'>2023-10-01 - 2023-10-14</p>
+                <p align='center' line-height='0.2'>MDY - Nyaung Oo - Mya Kan Ta Man - Taung Pon Wa Chaung </p>
+                <p align='center' line-height='0.2'> SPD-23-24-002</p>
+                <p align='center' line-height='0.5'>2023-12-01 - 2023-12-16</p>
+                <p align='center'></p>
                 <div>
                     <table border="black">
                         <thead>
@@ -17,49 +18,49 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td >2023-10-14</td>
+                                <td >2023-12-10</td>
                                 <td >Opening လက်ကျန်ငွေ</td>
                                 <td ></td>
                                 <td ></td>
                                 <td ></td>
-                                <td >0.00</td>
+                                <td >27,289.00</td>
                                 <td ></td>
                             </tr> 
                                          
                 <tr>
-                    <td >2023-10-14</td>
-                    <td >ထမင်းစရိတ်</td>
-                    <td >tt-1</td>
+                    <td >2023-12-10</td>
+                    <td >ရုံးချုပ်မှရငွေ</td>
+                    <td ></td>
+                    <td align="right">300,000.00</td>
                     <td align="right">0.0</td>
-                    <td align="right">6,150.00</td>
-                    <td align="right">-6,150.00</td>
+                    <td align="right">327,289.00</td>
                     <td ></td>
                 </tr>              
                 <tr>
-                    <td >2023-10-14</td>
-                    <td >စက်ပြင်စရိတ်</td>
-                    <td >tt-2</td>
+                    <td >2023-12-10</td>
+                    <td >ထမင်းစားရိတ်</td>
+                    <td >Vr-001</td>
                     <td align="right">0.0</td>
-                    <td align="right">50,000.00</td>
-                    <td align="right">-56,150.00</td>
+                    <td align="right">12,500.00</td>
+                    <td align="right">314,789.00</td>
                     <td ></td>
                 </tr>              
                 <tr>
-                    <td >2023-10-14</td>
-                    <td >ရုံးချုပ်မှ ရငွေ</td>
-                    <td >tt-223`</td>
-                    <td align="right">100,000.00</td>
+                    <td >2023-12-10</td>
+                    <td >ရေဘူးဖိုး</td>
+                    <td >Vr-002</td>
                     <td align="right">0.0</td>
-                    <td align="right">43,850.00</td>
+                    <td align="right">4,000.00</td>
+                    <td align="right">310,789.00</td>
                     <td ></td>
                 </tr> 
                             <tr>
                                 <td >စုစုပေါင်း</td>
                                 <td ></td>
                                 <td ></td>
-                                <td align="right">100,000.00</td>
-                                <td align="right">56,150.00</td>
-                                <td align="right">43,850.00</td>
+                                <td align="right">300,000.00</td>
+                                <td align="right">16,500.00</td>
+                                <td align="right">310,789.00</td>
                                 <td ></td>
                             </tr>                             
                         </tbody>

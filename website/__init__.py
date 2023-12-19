@@ -3,7 +3,7 @@ import psycopg2
     
 def db_connect():
     # Database connection details
-    host = 'localhost'
+    host = '192.168.0.48'
     port = '5432'  # Default PostgreSQL port
     database = 'mmm_cpu'
     # database = 'mmm_cpu_test'

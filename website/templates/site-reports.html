@@ -17,16 +17,13 @@
     <button type="submit" class="btn btn-sm btn-outline-dark m-1 d-inline" onclick="{document.getElementById('for_what_type').value = 'pdf'}"><i class="fas fa-print"></i> PDF Print</button>
 </form>
 <div id="inExReport">
-    <div class="inExRow " onclick="showDrop(this)">
+    <div class="inExRow" onclick="showDrop(this)">
         <ul id="totalRow">
             <li class="fs-3"><b>စုစုပေါင်း</b></li>
             <li>Opening လက်ကျန်ငွေ<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][0]}}</b></li>
             <li>အဝင်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][1]}}</b></li>
             <li>အထွက်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][2]}}</b></li>
             <li>လက်ကျန်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][3]}}</b></li>
-            {% if result_datas|length != 0 %}
-            <li class="fs-3"><i class="fa-solid fa-caret-right"></i></li>
-            {% endif %}
         </ul>
         {% if result_datas|length != 0 %}
             <div class="dropBox">

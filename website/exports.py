@@ -79,6 +79,7 @@ def download_data():
                 WHERE pj.id = %s AND form.set_date BETWEEN %s AND %s
                 ORDER BY form.project_id,form.set_date DESC;""",(pj_id,start_dt,end_dt))
             table_header = ['Date','No','Project Code','Project Name','Cash Type','Description','Machine Name','Invoice No','Qty','Price','Amount','Remark']
+            db_model = db_model.replace(' ','')
         elif db_model == 'Duty Query':
             cur.execute(""" SELECT 
                             dty.duty_date,pj.code,pj.name,fv.machine_name,dty.operator_name,dty.morg_start,dty.morg_end,
@@ -124,7 +125,7 @@ def download_data():
                         ORDER BY pj.id,form.set_date;""",(pj_id,start_dt,end_dt))
             table_header = ['Date','Project Code','Project Name','Report No.','Machine Name','Description','Accident Status']
         datas = cur.fetchall()
-        excel_path = os.path.join(base_directory, f"static\downloadable_files\{db_model}.xlsx")
+        excel_path = os.path.join(base_directory, f"static/downloadable_files/{db_model}.xlsx")
         workbook = xlsxwriter.Workbook(excel_path)
         worksheet = workbook.add_worksheet(db_model)
         merge_format = workbook.add_format(

@@ -20,6 +20,8 @@ input_path = os.path.join(base_directory, "static/php/input.txt")
 
 # some php
 php_script = os.path.join(base_directory, "static/php/test_rabbit_text.php")
+## for linux
+# php_exe = r'/usr/bin/php'
 php_exe = r'C:\xampp\php\php.exe'
 
 # font path
@@ -1115,6 +1117,7 @@ def income_expense_report_view():
                 <p align='center' line-height='0.2'>{pj_name}</p>
                 <p align='center' line-height='0.2'>{pj_code}</p>
                 <p align='center' line-height='0.5'>{start_dt} - {end_dt}</p>
+                <p align='center'></p>
                 <div>
                     <table border="black">
                         <thead>

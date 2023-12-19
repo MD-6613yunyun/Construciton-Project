@@ -846,10 +846,10 @@ html.under-construction {
 }
 
 .machine-name-container .machine-name-table{
-    max-height: 200px;
+    /* min-height: 200px; */
+    max-height: 400px;
     overflow: auto;
 }
-
 
 .machine-name-container .machine-name-table table thead{
     position: sticky;
@@ -896,6 +896,10 @@ html.under-construction {
     border-bottom: 1px solid black;
     padding: 5px 10px;
     cursor: pointer;
+}
+
+.cpu-table-sec table tbody td p{
+    margin: 0;
 }
 
 .cpu-table-sec table tbody tr:nth-child(even){
@@ -1009,5 +1013,12 @@ html.under-construction {
         font-size: 10px;
         padding: 5px;
     }
+}
 
+#backgroundImage{
+    height: 85vh;
+}
+
+#backgroundImage img{
+    /* height: 100%; */
 }

@@ -7,11 +7,11 @@
     <script src="{{url_for('static',filename='scripts/jquery.min.js')}}"></script>
     <link href="{{url_for('static',filename='styles/main.css')}}" rel="stylesheet"/>
     {% block styles %} {% endblock %}
-    <link rel="icon" type="image/x-icon" href="../static/images/logo_mdmm.ico">
+    <link rel="icon" type="image/x-icon" href="../static/images/web_logo.png">
     <script src="https://kit.fontawesome.com/10bcaa5c11.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/html-duration-picker@latest/dist/html-duration-picker.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <title> CPU | {% block title %}{% endblock %}</title>
+    <title>CPU | {% block title %}{% endblock %}</title>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg" style="background-color: #2C41AD; box-shadow: 1px 0px 15px .5px rgba(0, 0, 0, 1);position: sticky;top: 0;z-index: 1000;">
@@ -46,17 +46,27 @@
                             <li><a class="dropdown-item" href="{{url_for('views.configurations',what='machine')}}">Machines</a></li>
                             <li><a class="dropdown-item" href="{{url_for('views.configurations',what='project')}}">Projects</a></li>
                             <li><a class="dropdown-item" href="{{url_for('views.configurations',what='project-stat')}}">Project Statistics</a></li>
+                            <li><a class="dropdown-item" href="{{url_for('views.configurations',what='unit')}}">Business Units</a></li>
                             <li class="dropend">
                                 <a class="dropdown-item dropdown-toggle" data-bs-toggle="dropdown">Setups</a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='details')}}">Machine Details</a></li>    
+                                <ul class="dropdown-menu">   
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='employee')}}">Employees</a></li>  
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='employee-group')}}">Employee Group</a></li>  
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='fuel-price')}}">Fuel Prices</a></li> 
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='ajt')}}">Job Types ( Activity )</a></li>    
                                     <li><a class="dropdown-item" href="{{url_for('views.configurations',what='ajf')}}">Job Function ( Activity )</a></li>    
                                 </ul>
-                            </li>             
+                            </li> 
+                            <li class="dropend">
+                                <a class="dropdown-item dropdown-toggle" data-bs-toggle="dropdown">Machine Settings</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='type')}}">Machine Type</a></li>    
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='class')}}">Machine Class</a></li>  
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='capacity')}}">Machine Capacity</a></li>  
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='brand')}}">Machine Brand</a></li> 
+                                    <li><a class="dropdown-item" href="{{url_for('views.configurations',what='owner')}}">Machine Owner</a></li>  
+                                </ul>
+                            </li>            
                         </ul>
                     </li>
                     {% endif %}

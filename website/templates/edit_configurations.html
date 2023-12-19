@@ -4,9 +4,34 @@
 
 <h1 class="text-center mt-2">{{datalist_datas['name']}}</h1>
 
+<form action="{{url_for('imports.delete_form')}}" hidden id="delete-form-id" method="post">
+    <input type="text" value="" name="for_what" id="forWhat"/> 
+    <input type="number" value="" name="delete_id" id="deleteId"/>
+</form>
+
 <div class="container">
+    {% if datalist_datas['name'] == 'Machine Edit' %}
+        {% if project_stat_form_id %}
+        <form id="hidden-project-stat-form" action="{{url_for('imports.import_data',what='project_stat_form')}}" method="post">
+            <input type="number" name="project_id" id="hidden-project-id" value="{{project_stat_form_id}}" hidden>
+            <button class="btn shadow shadow-sm" type="button" onclick="editConfigStatis(this,'machine-box-holder')" style="background-color: #2C41AD;color: white;">Edit</button>
+            <button type="submit" style="display: inline;" class="btn btn-danger shadow-sm">Discard</button>
+        </form>            
+        {% else %}
+        <button class="btn shadow shadow-sm" onclick="editConfigStatis(this,'machine-box-holder')" style="background-color: #2C41AD;color: white;">Edit</button>
+        <a class="nav-item" href="{{url_for('views.configurations',what='machine')}}">
+            <button onclick="" class="btn btn-danger shadow-sm">Discard</button>
+        </a> 
+        <button class="btn btn-danger" style="float: right;" onclick="deleteFormData('{{data[7]}}','machine')">ဖျက်ပစ်ရန်</button>       
+        {% endif %}
+
+    {% else %}
     <button class="btn shadow shadow-sm" onclick="editConfigStatis(this,'machine-box-holder')" style="background-color: #2C41AD;color: white;">Edit</button>
-    <a  class="nav-item"><button onclick="{window.history.back()}" class="btn btn-danger shadow-sm">Discard</button></a>
+    <a class="nav-item" href="{{url_for('views.configurations',what='project')}}">
+        <button onclick="" class="btn btn-danger shadow-sm">Discard</button>
+    </a>
+    <button class="btn btn-danger" style="float: right;" onclick="deleteFormData('{{data[5]}}','project')">ဖျက်ပစ်ရန်</button> 
+    {% endif %}
 </div>
 
 {% if datalist_datas['name'] == 'Machine Edit' %}
@@ -87,7 +112,7 @@
         </thead>
         <tbody>
             {% for dta in datalist_datas['history'] %}
-            <tr>
+            <tr ondblclick="showModalToEditDutyPrice(this)" data-id="{{dta[0]}},{{dta[6]}},{{dta[7]}}">
                 <td class="text-start">{{dta[1]}}</td>
                 <td class="text-start">{{dta[2]}}</td>
                 <td class="text-start">{{dta[3]}}</td>
@@ -104,15 +129,19 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5>Duty Price Import</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button"  onclick="closeDutyPriceModal(this)"  class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="card card-body" style="background-color:#2C41AD">
                     <form class="row gx-3 gy-2 align-items-center ms-4 me-4 mt-2" action="{{url_for('views.configurations',what='Machine List')}}" method="POST">
                             <div class="col-sm-5 col-md-3 form-floating">
-                                <input type="number" hidden class="" value="{{data[7]}}" name="edit-id"/>
-                                <input type="number" hidden value="" name="machine_type_id"/>
+                                <input type="number" hidden class="edit-id" value="{{data[7]}}" name="edit-id"/>
+                                <input type="number" hidden id="duty-price-edit-id" value="" name="duty-price-edit-id" disabled/>
+                                <input type="number" id="machine_type_id" hidden value="" name="machine_type_id"/>
                                 <input type="text" required onchange="checkValidMachine(this,'typeList')" id="machineType" class="form-control" list="typeList" placeholder="Type" autocomplete="off">
+                                {% if project_stat_form_id %}
+                                <input type="number" class="stat-form-id" name="stat-form-id" value="{{project_stat_form_id}}" hidden/>
+                                {% endif %}
                                 <datalist id="typeList">
                                     {% for dta in datalist_datas['Machine Type'] %}
                                         <option getId="{{dta[1]}}" value="{{dta[0]}}">
@@ -127,7 +156,7 @@
                             <div class="col-sm-5 col-md-3 form-floating">
                                 <select id="priceType" required type="text" name="price_type_id" class="form-control" placeholder="Price Type" autocomplete="off">
                                     {% for dta in datalist_datas['price_type'] %}
-                                        <option value="{{dta[0]}}">{{dta[1]}}</option> 
+                                        <option  value="{{dta[0]}}">{{dta[1]}}</option> 
                                     {% endfor %}
                                 </select>
                                 <label for="priceType" class="ms-2">Price Type</label>

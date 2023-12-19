@@ -159,7 +159,7 @@ th{
 }
 
 .activities-table, .estimate-result-table, .manpower-equiment-table , .repair-maintainace-table{
-    width: 80%;
+    width: 85%;
     overflow: auto;
 }
 
@@ -173,7 +173,8 @@ th{
 }
 
 .activities-table table{
-    max-width: 95%;
+    width: 100%;
+    margin: 0 auto;
 }
 
 .activities-table input{
@@ -240,6 +241,10 @@ tbody tr button{
     width: 97%;
 }
 
+.add-table{
+    width: 85%;
+}
+
 @media screen and (max-width: 2010px){
     h3:before, h3:after{
         width: 600px;
@@ -248,22 +253,16 @@ tbody tr button{
 
 @media screen and (max-width: 1100px){
     .activities-table{
-        width: 600px;
         overflow: auto;
     }
 
     .repair-maintainace-table{
-        width: 600px;
         overflow: auto;
     }
 
 }
 
 @media screen and (max-width: 1080px) {
-    .project-status-section{
-        width: 60%;
-    }
-
     .activities-table input{
         width: 100px;
     }
@@ -276,21 +275,9 @@ tbody tr button{
     h3:before, h3:after{
         content: none;
     } 
-
-    .manpower{
-        width: 80%;
-    }
 }
 
 @media screen and (max-width: 860px){
-    .project-status-section{
-        width: 70%;
-    }
-
-    .manpower{
-        width: 80%;
-    }
-
     h3{
         width: 100%;
         border-radius: unset;
@@ -302,11 +289,6 @@ tbody tr button{
 }
 
 @media screen and (max-width: 780px){
-
-    .activities-table{
-        width: 90%;
-    }
-
     .first-div input[type="text"]{
         margin-right: 15px;
         width: 150px;
@@ -318,10 +300,6 @@ tbody tr button{
 }
 
 @media screen and (max-width: 660px){
-    .project-status-section{
-        width: 80%;
-    }
-
     span, td{
         font-size: 15px;
     }
@@ -333,7 +311,6 @@ tbody tr button{
     }
 
     .repair-maintainace-table{
-        max-width: 500px;
         overflow: auto;
     }
 
@@ -349,7 +326,6 @@ tbody tr button{
     
     .repair-maintainace-table{
         font-size: 10px;
-        max-width: 400px;
         overflow: auto;
     }
 }
@@ -376,7 +352,6 @@ tbody tr button{
     }
 
     .project-status-section{
-        width: 90%;
     }
 
     .estimate-result-table th, 
@@ -401,7 +376,6 @@ tbody tr button{
 
     .repair-maintainace-table{
         font-size: 10px;
-        max-width: 350px;
         overflow: auto;
     }
 }
@@ -409,7 +383,6 @@ tbody tr button{
 @media screen and (max-width: 380px){
     .repair-maintainace-table{
         font-size: 6px;
-        max-width: 300px;
         overflow: auto;
     }
 }
@@ -417,7 +390,6 @@ tbody tr button{
 @media screen and (max-width: 320px){
     .repair-maintainace-table{
         font-size: 6px;
-        max-width: 100%;
         overflow: auto;
         padding: 0;
     }

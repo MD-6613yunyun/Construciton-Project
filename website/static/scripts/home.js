@@ -1,4 +1,11 @@
 let belowing = []
+randomImg = ['../static/images/3.jpg', '../static/images/4.jpg', '../static/images/5.jpg', '../static/images/6.jpg', '../static/images/7.jpg', '../static/images/9.jpg', '../static/images/1.jpg']
+let rannum = Math.floor(Math.random() * randomImg.length);
+
+const backgroundImage = document.getElementById("backgroundImage").querySelector("img");
+console.log(rannum);
+console.log(backgroundImage.src);
+backgroundImage.src = randomImg[rannum];
 
 let current_date = new Date();
 document.querySelectorAll('.start_date_for_each').forEach(inp => {
@@ -7,17 +14,6 @@ document.querySelectorAll('.start_date_for_each').forEach(inp => {
 document.querySelectorAll('.end_date_for_each').forEach(inp => {
     inp.valueAsDate = current_date
 })
-
-function create_add_machine_input(btn,event){
-    btn.style.display = 'none'
-    btn.nextElementSibling.style.display = ""
-    belowing = Array.from(btn.parentElement.parentElement.parentElement.parentElement.children).map(element => element);
-    event.preventDefault();
-}
-
-function insert_data_and_return_back_button(btn){
-    belowing = []
-}
 
 function giveProjectCodes(idd = 'aboveProjectCodes'){
     let abovePj = document.getElementById(idd)
@@ -99,13 +95,10 @@ function checkSupervisor(){
 }
 
 function showDrop(selectRow){
-    const dropIcn = selectRow.children[0].children[5].children[0];
     if(selectRow.children[1].style.maxHeight == 0){
         selectRow.children[1].style.maxHeight = "60vh";
-        dropIcn.style.transform = "rotate(90deg)";
     }else{
         selectRow.children[1].style.maxHeight = null;
-        dropIcn.style.transform = "rotate(360deg)";
     }
 }
 
@@ -271,10 +264,6 @@ function search_and_add(inp,event){
     }
 }
 
-function chngInp(btn){
-    btn.parentElement.innerHTML = `<input type="text"  dbTable="${btn.getAttribute('dbTable')}" value="${btn.getAttribute('data-machine')}" idd="${btn.id}" onkeyup="updateEachMachine(this,event)"/>`
-}
-
 function updateEachMachine(inp,event){
     if (event.keyCode == 13){
         fetch(`/import/update-each-machine-details/${inp.getAttribute("dbTable")}/${inp.getAttribute("idd")}/${inp.value.trim()}`)
@@ -338,6 +327,7 @@ function replaceTableData(result) {
 }  
 
 function getShops(inp){
+    console.log("work");
     dropperDiv = inp.nextElementSibling
     if (inp.value.length !== 0){
         dropperDiv.style.display = "";
@@ -730,7 +720,6 @@ function saveMachineToProjectStats(save){
     const machineName = save.parentElement.children[0].value.replace("/","thisIsSlash").trim();
     console.log(save.parentElement.children[1].value,typeof save.parentElement.children[1].value)
     const manPower = save.parentElement.children[1].value.replace("e","").trim();
-    console.log(manPower)
     if(inputTr.children[0].classList.contains("mechanicianInp")){
         if(!machineName == "" && manPower > 0){
             fetch(`/get-api/employee-group-check/${machineName}`)            
@@ -837,7 +826,12 @@ function checkProjectAndReplaceId(inp,idd){
 }
 
 function redirectToProjectStatForm(inp_id,form_id,val){
-    document.getElementById(inp_id).value = val
+    if (form_id == 'edit-configuration-form'){
+        document.getElementById("stat-form-id").value = val.split("||")[1]
+        document.getElementById(inp_id).value = val.split("||")[0]
+    }else{
+        document.getElementById(inp_id).value = val        
+    }
     document.getElementById(form_id).submit()
 }
 
@@ -996,31 +990,29 @@ function searchMachine(inp){
 }
 
 function removeDataFromStatsForm(btn,idd){
-    console.log(btn)
     console.log(btn.classList)
     if (btn.classList.contains("emp")){
-        chosenEmployeeIds.pop(idd)
+        document.querySelector(`input.emp[type=checkbox][value="${idd}"]`).checked = false;
+        document.querySelector(`input.emp[type=checkbox][value="${idd}"]`).nextElementSibling.value = "";
     }else{
-        chosenMachineIds.pop(idd)        
+        document.querySelector(`input.machine[type=checkbox][value="${idd}"]`).checked = false;
     }
-    let typeInput = btn.classList.contains("emp") ? "radio" : "checkbox" 
-    document.querySelector(`input[type="${typeInput}"][value="${idd}"]`).checked = false;
     btn.parentElement.parentElement.remove()
 }
 
-let chosenMachineIds = []
-let chosenEmployeeIds = []
+
 // ထည့်ရန်ခလုတ် function
 function addingMachine(btn){
     const machines = btn.parentElement.previousElementSibling;
     const getMachineList = machines.querySelector("ul").children;
     if(btn.classList.contains("machine-list")){
         const showList = document.getElementById("machinetabletable").children[0];
+        const insertedIds = Array.from(showList.querySelectorAll(".machine-tbody-tobdy input")).map(input => input.value);
         for(let i = 0; i < getMachineList.length; i++){
             if(getMachineList[i].querySelector("input").checked == true){
                 idd = getMachineList[i].getAttribute("getId")
                 typeName = getMachineList[i].getAttribute("getType")
-                if (chosenMachineIds.length == 0 || !chosenMachineIds.includes(idd)){
+                if (insertedIds.length == 0 || !insertedIds.includes(idd)){
                     showList.classList.remove("d-none")
                     const createtd = document.createElement("tr");
                     createtd.innerHTML = `  <td class="text-center">${getMachineList[i].innerText}<input type="number" value="${idd}" class="chosenMachineIds" name="machine_id" hidden/></td>
@@ -1037,27 +1029,25 @@ function addingMachine(btn){
     }
     if(btn.classList.contains("employee-list")){
         const showList = document.getElementById("employeetabletable").children[0];
-        const employeeNum = document.getElementById("employeeNum");
-        let employeeName = "";
-        let idd = ""
+        const insertedIds = Array.from(showList.querySelectorAll(".employee-group-tbody-tobdy input")).map(input => input.value);
+
         for(let i = 0; i < getMachineList.length; i++){
             if(getMachineList[i].querySelector("input").checked == true){
-                employeeName = getMachineList[i].innerText;
                 idd = getMachineList[i].getAttribute("getId")
-                break;
+                let empAmt = getMachineList[i].querySelector("input[type=number]").value
+                if (!insertedIds.includes(idd) && empAmt.trim().length > 0){
+                    showList.classList.remove("d-none");
+                    const createtd = document.createElement("tr");
+                    createtd.innerHTML = `<td class="text-center">${getMachineList[i].innerText}<input type="number" name="employee_group_id" hidden value="${idd}"></td>
+                                        <td class="text-center">${empAmt}<input type="number" name="employee_power" hidden value="${empAmt}"></td>
+                                        <td class="text-center"><button type="button" onclick="removeDataFromStatsForm(this,${idd})" class="btn btn-sm btn-danger emp">Remove</button></td>
+                                        `
+                    showList.querySelector("tbody").appendChild(createtd);
+                    document.getElementsByClassName("employee-choice-modal")[0].click()
+                }else{
+                    getMachineList[i].querySelector("input").checked = false
+                }
             }
-        }
-        if (employeeName.trim() != "" && employeeNum.value.trim() != "" && employeeNum.value.trim() != "0" && idd.trim() != "" && (chosenEmployeeIds.length == 0 || !chosenEmployeeIds.includes(idd))){
-            chosenEmployeeIds.push(idd)
-            showList.classList.remove("d-none");
-            const createtd = document.createElement("tr");
-            createtd.innerHTML = `<td class="text-center">${employeeName}<input type="number" name="employee_group_id" hidden value="${idd}"></td>
-                                <td class="text-center">${employeeNum.value}<input type="number" name="employee_power" hidden value="${employeeNum.value}"></td>
-                                <td class="text-end"><button type="button" onclick="removeDataFromStatsForm(this,${idd})" class="btn btn-sm btn-danger emp">Remove</button></td>
-                                `
-            showList.querySelector("tbody").appendChild(createtd);
-            employeeNum.value = "";
-            document.getElementsByClassName("employee-choice-modal")[0].click()
         }
     }
 }
@@ -1065,21 +1055,86 @@ function addingMachine(btn){
 function editDataShowInput(tr){
     let realValue = tr.querySelector("p")
     let allRequiredFields = document.querySelectorAll(".requiredInpInForm")
-    let editId = tr.getAttribute("idData")
     if (tr.nextElementSibling.children[0].classList.contains("btn-danger")){
-        tr.innerHTML += `<input type="text" name="editsthName" required value="${realValue.textContent.trim()}">
-                         <input type="number" hidden name="editsthId" value="${editId}">`
+        tr.innerHTML += `<input onchange="replaceTextValueInForm(this,'sthName')" type="text" name="editsthName" required value="${realValue.textContent.trim()}">`
         tr.nextElementSibling.children[0].classList.remove("btn-danger")
         tr.nextElementSibling.children[0].classList.add("btn-success")
         tr.nextElementSibling.children[0].textContent = 'Save'
+        tr.nextElementSibling.children[0].setAttribute("onclick",tr.nextElementSibling.children[0].getAttribute("onclick").replace("delete", "update"))
         tr.children[0].classList.add("d-none")
         allRequiredFields.forEach(inp => inp.removeAttribute("required"))
     }else{
-        tr.querySelectorAll("input").forEach(inp => inp.remove())
         tr.children[0].classList.remove("d-none")
+        tr.children[1].remove()
         tr.nextElementSibling.children[0].classList.remove("btn-success")
         tr.nextElementSibling.children[0].classList.add("btn-danger")
         tr.nextElementSibling.children[0].textContent = 'Remove'
+        tr.nextElementSibling.children[0].setAttribute("onclick",tr.nextElementSibling.children[0].getAttribute("onclick").replace("update", "delete"))
     }
+}
 
+function replaceTextValueInForm(inp,idd){
+    document.getElementById(idd).value = inp.value
+}
+
+function replaceValueInForm(crudTxt,idd,crudId,inpId,inpForm){
+    document.getElementById(crudId).value = crudTxt
+    document.getElementById(inpId).value = idd
+    document.getElementById(inpForm).submit()
+}
+
+function deleteFormData(idd,for_what){
+    if (confirm("Are you sure you want to delete!!")){
+        document.getElementById("deleteId").value = idd
+        document.getElementById("forWhat").value = for_what
+        document.getElementById("delete-form-id").submit()
+    }
+}
+
+function showModalToEditDutyPrice(trRow){
+    let tds = trRow.children
+    console.log(tds)
+    let editDatas = trRow.getAttribute("data-id").split(",")
+    document.getElementsByClassName("duty-price-add-btn")[0].click()
+    document.getElementById("duty-price-edit-id").value = editDatas[0]
+    document.getElementById("duty-price-edit-id").removeAttribute("disabled")
+    let machineTypePlace = document.getElementById("machine_type_id")
+    machineTypePlace.nextElementSibling.value = tds[0].textContent.trim()
+    machineTypePlace.value = editDatas[1]
+    document.getElementById("startDate").value = tds[2].textContent.trim()
+    document.getElementById("price").value = tds[4].textContent.trim()
+    document.querySelectorAll("#priceType option").forEach(selectt => {
+        console.log(selectt.value, "h",)
+        if (selectt.value == editDatas[2].trim()){
+            selectt.setAttribute("selected", "")
+        }
+    })
+}
+
+function closeDutyPriceModal(btn){
+    let shellDiv = btn.parentElement.nextElementSibling
+    console.log(shellDiv)
+    shellDiv.querySelectorAll("input:not(.edit-id):not(.stat-form-id)").forEach(inp => {
+        inp.value = ""
+    }) 
+    shellDiv.querySelectorAll("option").forEach(opt => {
+        opt.removeAttribute("selected")
+    })
+}
+
+function editEmployeeGroup(btn,typ='edit'){
+    if (typ == 'edit'){
+        let editBtn = btn.parentElement
+        let temp_val = "";
+        temp_val = editBtn.previousElementSibling.textContent.trim()
+        editBtn.previousElementSibling.children[0].removeAttribute("hidden")
+        btn.classList.remove("btn-warning")
+        btn.classList.add("btn-success")
+        btn.setAttribute("onclick", `editEmployeeGroup(this,'${temp_val}')` )
+        // btn.
+    }else if(typ == 'update'){
+        let = ''
+    }else{
+        let = ''
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 // Include the Rabbit class
-require_once('Rabbit.php');
+require_once('rabbit.php');
 
 
 $currentDirectory = __DIR__;
