@@ -47,6 +47,7 @@
                     <strong class="text-danger fw-bolder">{{mgs}}</strong>
                     {% endif %}
                     <div>
+<<<<<<< HEAD
                         <input type="text" autocomplete="off" placeholder="အမည်" name="username" class="userNameInput" required/>
                     </div>
                     <div>
@@ -64,6 +65,24 @@
                     <a href="{{url_for('auth.authenticate',typ='log')}}">အကောင့် ဝင်ရောက်ရန် | </a>  
                     <a href="{{url_for('auth.authenticate',typ='forgot')}}">စကားဝှက် ချိန်းရန်  | </a>
                     <a href="{{url_for('auth.authenticate',typ='help')}}">အကူအညီ ရယူရန် </a>
+=======
+                        <!-- <label for="userName">Username</label> -->
+                        <input type="text" placeholder="Username" autocomplete="off" name="username" class="userNameInput" required/>
+                    </div>
+                    <div>
+                        <!-- <label for="userName">Email</label> -->
+                        <input type="email" placeholder="Email" autocomplete="off" name="email" class="userNameInput" required/>
+                    </div>
+                    <div>
+                        <!-- <label for="userName">Password</label> -->
+                        <input type="password" placeholder="Password" name="password" class="passwordInput" required/>
+                    </div>
+                    <div>
+                        <!-- <label for="userName">Confirm Password</label> -->
+                        <input type="password" placeholder="ConfirmPassword" name="confirmPassword" class="passwordInput" required/>
+                    </div>
+                    <button id="signUpBtn">Sign Up</button>
+>>>>>>> master
                 </div>
             </form>
             {% elif typ == 'forgot' %}

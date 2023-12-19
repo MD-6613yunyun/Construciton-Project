@@ -935,6 +935,7 @@ function setDbAndGiveProjectCodes(for_what){
     document.getElementById("db_model").value = for_what.trim()
 }
 
+<<<<<<< HEAD
 
 
 function createEmp(btn){
@@ -1138,3 +1139,5 @@ function editEmployeeGroup(btn,typ='edit'){
         let = ''
     }
 }
+=======
+>>>>>>> master

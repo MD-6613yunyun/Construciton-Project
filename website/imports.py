@@ -335,6 +335,7 @@ def import_data(what,mgs=None):
             cur.execute("SELECT name FROM project_group;")
             data["Project Group"] = cur.fetchall()
 
+<<<<<<< HEAD
             cur.execute("SELECT name FROM project_type;")
             data["Project Type"] = cur.fetchall()
             name = 'Project Line'
@@ -360,6 +361,20 @@ def import_data(what,mgs=None):
         else:
             return render_template('not_found.html')
         return render_template("import_data.html",data = data,name=name,mgs=mgs)
+=======
+        cur.execute("SELECT name FROM project_type;")
+        data["Project Type"] = cur.fetchall()
+        name = 'Project Line'
+    elif what == 'project_stat':
+        cur.execute("SELECT name || ' | ' || code FROM analytic_project_code;")
+        data['Project Code'] = cur.fetchall()
+        cur.execute("SELECT machine_name || ' | ' || id FROM fleet_vehicle;")
+        data['Machine'] = cur.fetchall()
+        name = 'Project Statistics Line'
+        print("nani")
+
+    return render_template("import_data.html",data = data,name=name,mgs=mgs)
+>>>>>>> master
 
 @imports.route("/upload-each-machine-details",methods=['GET','POST'])
 def upload_each():

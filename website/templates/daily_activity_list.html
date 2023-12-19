@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" integrity="sha512-uKQ39gEGiyUJl4AI6L+ekBdGKpGw4xJ55+xyJG7YFlJokPNYegn9KwQ3P8A7aFQAUtUsAQHep+d/lrGqrbPIDQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="../static/styles/table.css">
+    <title>Daily Activity</title>
+</head>
+<body>
+    <h1 class="text-center">Daily Activity List</h1>
+    <div class="text-center m-3">
+        <div class="row">
+            <div class="col d-flex">
+                <form role="search">
+                    <div class="input-group">
+                        <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </div>
+                </form>
+                <button class="btn btn-secondary text-white ms-2"><i class="fa-solid fa-download"></i></button>
+                <button class="btn btn-success text-white ms-2">Create</button>
+            </div>
+            <div class="col text-end">
+                <div class="btn-group" role="group" aria-label="Basic example">
+                    <button type="button" class="btn btn-primary">Prev</button>
+                    <button type="button" class="btn btn-outline-dark" disabled> 1-81 / 14444</button>
+                    <button type="button" class="btn btn-primary">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>  
+        <div class="table-sec">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Project Code</th>
+                        <th>Project Name</th>
+                        <th>Daily Report Number</th>
+                        <th>Project Status</th>
+                        <th>Reason</th>
+                        <th>Weather%</th>
+                        <th>Feet</th>
+                        <th>Sud</th>
+                        <th>Hours</th>
+                        <th>Use Diesel</th>
+                        <th>Manpower</th>
+                        <th>Equipment</th>
+                        <th>R & M</th>
+                        <th>Accident</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-end">1/9/2023</td>
+                        <td class="text-start">PTG-22-23-005</td>
+                        <td class="text-wrap text-start"
+                            title="AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar"
+                        >AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar AYA-Solar
+                        </td>
+                        <td class="text-start">DCA/23/09/00001</td>
+                        <td class="text-start">Working</td>
+                        <td class="text-start">Aung La</td>
+                        <td class="text-end">80%</td>
+                        <td class="text-end">10</td>
+                        <td class="text-end">10</td>
+                        <td class="text-end">50:00</td>
+                        <td class="text-end">100</td>
+                        <td class="text-end">5</td>
+                        <td class="text-end">10</td>
+                        <td class="text-end">3</td>
+                        <td><span class="bg-danger text-light rounded-5 py-1 px-2">False</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+</body>
+</html>

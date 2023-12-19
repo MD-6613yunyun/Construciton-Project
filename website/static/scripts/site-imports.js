@@ -83,7 +83,7 @@ function notWork(){
 }
 
 function showUnderDisplay(btn){
-    let underTable = btn.parentElement.nextElementSibling
+    let underTable = btn.parentElement.nextElementSibling;
     if (underTable.classList.contains("toggle-table")){
         underTable.classList.remove("toggle-table")
         btn.classList.replace("fa-plus","fa-minus")
@@ -224,6 +224,7 @@ function roundToTwoDecimalPlaces(number) {
     return Math.round(number * 100) / 100;
 }
 
+<<<<<<< HEAD
 function addValueToCheckBox(checkBox){
     checkBox.nextElementSibling.value = 0
     if (checkBox.checked){
@@ -275,4 +276,169 @@ function addValueToTraceFuel(cls,parentIdd,targetCls,classNameForReplacer){
     }
     document.getElementsByClassName(targetCls)[0].value = resultValue
     calculateInlineValueFromOther(document.getElementsByClassName(targetCls)[0],classNameForReplacer)
+=======
+function addInput(addBtn){
+    const getTbody = addBtn.parentElement.parentElement.parentElement;
+    if(addBtn.classList.contains("addMachine")){
+        const inputTr = document.createElement("tr");
+        inputTr.classList.add("stick");
+        if(addBtn.parentElement.classList.contains("men-power")){
+            addBtn.parentElement.innerHTML = `<button class="btn btn-md btn-danger text-white" type="button" onclick="discardInp(this)">Discard<i class="fa-solid fa-xmark ms-2"></i></button>`
+            inputTr.innerHTML = `
+                                <td colspan="3" class="bg-secondary mechanicianInp">
+                                    <div class="input-group px-5 z-0">
+                                        <input type="text" class="form-control w-50" placeholder="Enter Machine Name" list="machinelistOptions">
+                                        <input type="number" class="form-control" placeholder="Enter Mans Power">
+                                        <button type="button" class="btn btn-dark px-5 text-white" onclick="saveMachine(this)">Save</button>
+                                    </div>
+                                </td>
+                                `;
+            getTbody.insertBefore(inputTr , getTbody.lastElementChild);
+        }else{
+            addBtn.parentElement.innerHTML = `<button class="btn btn-md btn-danger text-white"  type="button" onclick="discardInp(this)">Discard<i class="fa-solid fa-xmark ms-2"></i></button>`
+            inputTr.innerHTML = `
+                                <td colspan="3" class="bg-secondary meName">
+                                    <div class="input-group px-5 z-0">
+                                        <input type="text" class="form-control w-50" placeholder="Enter Machine Name" list="machinelistOptions">
+                                        <button type="button" class="btn btn-dark px-5 text-white" onclick="saveMachine(this)">Save</button>
+                                    </div>
+                                </td>
+                                `;
+            getTbody.insertBefore(inputTr , getTbody.lastElementChild);
+        }
+    }
+    if(addBtn.classList.contains("searchMachine")){
+        const inputTr = document.createElement("tr");
+        inputTr.classList.add("stick");
+        addBtn.parentElement.innerHTML = `<button class="btn btn-md btn-danger text-white" type="button" onclick="discardInp(this)">Discard<i class="fa-solid fa-xmark ms-2"></i></button>`
+        inputTr.innerHTML = `
+                                <td colspan="3" class="bg-secondary mechanicianInp">
+                                    <div class="input-group px-5 z-0">
+                                        <input id="searchInput" type="text" class="form-control w-50" placeholder="Search Machine Name">
+                                        <button type="button" class="btn btn-dark px-5 text-white" onclick="searchMachine()">Search</button>
+                                    </div>
+                                </td>
+                                `;
+        getTbody.insertBefore(inputTr , getTbody.lastElementChild);
+    }
+}
+
+// searching machine
+function searchMachine(){
+    const inpValue = document.getElementById("searchInput");
+    const getBody = inpValue.parentElement.parentElement.parentElement.parentElement;       
+        if(!inpValue.value.trim()){
+            window.alert("search something baby");
+        }else{           
+            for(let i = 0; i < getBody.children.length - 2; i++){
+                let mcName = getBody.children[i].children[0];
+                console.log(mcName);
+                if(mcName.parentElement.classList.contains = "d-none"){
+                    mcName.parentElement.classList.remove("d-none")
+                };
+                if(!mcName.innerText.toUpperCase().includes(inpValue.value.toUpperCase())){
+                    mcName.parentElement.classList.add("d-none");
+                }
+            }
+        }
+}
+
+function discardInp(discardBtn){
+    const getTbody = discardBtn.parentElement.parentElement.parentElement;   
+
+    getTbody.children[getTbody.children.length - 2].remove();
+    for(let i = 0; i < getTbody.children.length - 1; i++){
+        if(getTbody.children[i].classList.contains = "d-none"){
+            getTbody.children[i].classList.remove("d-none");
+        }
+    } 
+    discardBtn.parentElement.innerHTML = `
+                                            <button class="btn btn-md btn-primary text-white addMachine"  type="button" onclick="addInput(this)">Add Machine<i class="fa-solid fa-plus ms-2"></i></button>
+                                            <button class="btn btn-md btn-primary text-white searchMachine"  type="button" onclick="addInput(this)">Search<i class="fa-solid fa-magnifying-glass ms-2"></i></button>
+                                        `
+}
+
+function saveMachine(save){
+    const tbody = save.parentElement.parentElement.parentElement.parentElement;
+    const inputTr = save.parentElement.parentElement.parentElement;
+    const machineName = save.parentElement.children[0].value;
+    const manPower = save.parentElement.children[1].value;
+    if(inputTr.children[0].classList.contains("mechanicianInp")){
+        if(!machineName == "" && manPower > 0){
+                const newTr = document.createElement("tr");
+                newTr.className = "text-center fs-6";
+                newTr.innerHTML = `
+                                <td>${machineName}</td>
+                                <td>${manPower}</td>
+                                <td><button class="btn btn-sm btn-success me-2" data-bs-toggle="modal" data-bs-target="#transferModal" type="button">Transfer</button><button class="btn btn-sm btn-danger">Remove</button></td>    
+                                `
+                tbody.insertBefore(newTr, inputTr);
+                save.parentElement.children[0].value = "";
+                save.parentElement.children[1].value = "";
+            }else{
+                alert("fill the machine name baby");
+            }
+    }else if(inputTr.children[0].classList.contains("meName")){
+        if(!machineName == ""){
+            const newTr = document.createElement("tr");
+            newTr.className = "text-center fs-6";
+            newTr.innerHTML = `
+                            <td>${machineName}</td>
+                            <td>Budozer</td>
+                            <td><button class="btn btn-sm btn-success me-2" data-bs-toggle="modal" data-bs-target="#transferModal" type="button">Transfer</button><button class="btn btn-sm btn-danger">Remove</button></td>    
+                            `
+            tbody.insertBefore(newTr, inputTr);
+            save.parentElement.children[0].value = "";
+            save.parentElement.children[1].value = "";
+        }else{
+            alert("fill the machine name baby");
+        }
+    };
+}
+
+function editPrjStatis(editBtn){
+    const prjStatis = document.querySelector("#prjStatis");
+    const getInp = prjStatis.getElementsByTagName("input");
+    const getBtn = prjStatis.getElementsByTagName("button");
+    const discardBtn = document.getElementById("prjDiscard");
+    for(let i = 0; i < getInp.length; i++){
+        if(getInp[i].disabled){
+            getInp[i].disabled = false;
+        }
+    }
+    for(let x = 0; x < getBtn.length; x++){
+        if(getBtn[x].disabled){
+            getBtn[x].disabled = false;
+        }
+    }
+    editBtn.classList.add("d-none");
+    discardBtn.classList.remove("d-none");
+}
+
+function savePrjStatis(saveBtn){
+    location.reload();
+}
+
+//daily activites edit 
+function editDaily(btn){
+    const getForm = document.getElementsByClassName("body-for-daily-table");
+    const getDiscard = document.getElementById("discardBtn");
+    const allInput = getForm[0].getElementsByTagName("input");
+    for(let i=0; i < allInput.length; i++){
+        allInput[i].disabled = false;
+    }
+    btn.classList.add("d-none");
+    getDiscard.classList.remove("d-none");
+}
+
+function discard(btn){
+    const getForm = document.getElementsByClassName("body-for-daily-table");
+    const getEdit = document.getElementById("editBtn");
+    const allInput = getForm[0].getElementsByTagName("input");
+    for(let i=0; i < allInput.length; i++){
+        allInput[i].disabled = true;
+    }
+    btn.classList.add("d-none");
+    getEdit.classList.remove("d-none");
+>>>>>>> master
 }

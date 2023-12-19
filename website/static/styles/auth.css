@@ -67,7 +67,11 @@ body{
 }
 
 .inputContainer div{
+<<<<<<< HEAD
     margin-bottom: 10px;
+=======
+    margin-bottom: 15px;
+>>>>>>> master
     width: 90%;
 }
 

@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap');
 @import url(https://fonts.googleapis.com/css?family=Audiowide:400,700&subset=latin,latin-ext);
+body{
+    *{
+        box-sizing: border-box;
+    }
+}
+
 /* CSS Button */
 .button-83 {
     appearance: button;
@@ -599,6 +605,7 @@ color: white;
     .home-page{
         height: 50vh;
     }
+
     .groupby-report{
         margin-left: 20px;
     }
@@ -846,8 +853,12 @@ html.under-construction {
 }
 
 .machine-name-container .machine-name-table{
+<<<<<<< HEAD
     /* min-height: 200px; */
     max-height: 400px;
+=======
+    max-height: 300px;
+>>>>>>> master
     overflow: auto;
 }
 
@@ -856,6 +867,7 @@ html.under-construction {
     top: 0;
 }
 
+<<<<<<< HEAD
 #machineListForProjectStats tr th {
     position: sticky;
     top: 0;
@@ -1022,3 +1034,23 @@ html.under-construction {
 #backgroundImage img{
     /* height: 100%; */
 }
+=======
+#machineListForProjectStats{
+    position: relative;
+}
+
+#machineListForProjectStats .stick{
+    position: sticky;
+    bottom: 45px;
+}
+
+@media(max-width: 705px) {
+    .prj-statis .mechanni-table{
+        width: max-content;
+    }
+
+    .prj-statis form label{
+        font-size: 10px;
+    }
+}
+>>>>>>> master
