@@ -163,7 +163,11 @@ def configurations(what,mgs=None):
             search_value = request.form.get('search-value')
             for_what = request.form.get('for-what')
             what_dct = {'Machine List':'machine','Project List':'project','Project Statistics':'project-stat'}
+<<<<<<< HEAD
             what = what_dct.get(for_what,for_what)
+=======
+            what = what_dct.get(for_what,what)
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2
             search_wildcard = search_value.strip()
             if search_wildcard != "":
                 extra_datas[1] = True
@@ -180,9 +184,12 @@ def configurations(what,mgs=None):
                     start_date = request.form.get("start_date")
                     start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
                     price = request.form.get("price")
+<<<<<<< HEAD
                     if duty_price_edit_id:
                         # cur.execute("SELECT ")
                         pass
+=======
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2
                     cur.execute("SELECT id FROM duty_price_history WHERE machine_id = %s AND machine_type_id = %s AND duty_price_type_id = %s AND duty_price = %s AND start_date = %s;",(edit_id,machine_type_id,price_type_id,price,start_date))
                     if not cur.fetchone():
                         cur.execute("SELECT MIN(start_date) FROM duty_price_history WHERE machine_id = %s UNION SELECT start_date FROM duty_price_history WHERE machine_id = %s;",(edit_id,edit_id))

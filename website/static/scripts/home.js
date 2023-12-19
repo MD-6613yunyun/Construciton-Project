@@ -1082,6 +1082,7 @@ function replaceValueInForm(crudTxt,idd,crudId,inpId,inpForm){
     document.getElementById(crudId).value = crudTxt
     document.getElementById(inpId).value = idd
     document.getElementById(inpForm).submit()
+<<<<<<< HEAD
 }
 
 function deleteFormData(idd,for_what){
@@ -1141,3 +1142,6 @@ function editEmployeeGroup(btn,typ='edit'){
 }
 =======
 >>>>>>> master
+=======
+}
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2

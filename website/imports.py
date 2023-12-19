@@ -649,11 +649,19 @@ def site_imports(typ):
                                     INNER JOIN duty_price_type AS type
                                     ON his.duty_price_type_id = type.id WHERE machine_id = %s AND %s BETWEEN start_date AND COALESCE(end_date,%s);""",(data[3],data[4],data[0],set_date,set_date))
                     duty_amt = cur.fetchone()[0]
+<<<<<<< HEAD
                     fuel_qty = round(Decimal(data[5]) / Decimal(4.54),2)
                     fuel_amt = round(fuel_price*(Decimal(fuel_qty)*Decimal('4.54')),2)
                     ways = 0 if data[7].strip() == "" else data[7]
                     print(ways)
                     cur.execute('''INSERT INTO daily_activity_lines(daily_activity_id,machine_id,job_type_id,job_function_id,duty_hour,used_fuel,description,duty_amt,fuel_amt,way) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);''',(daily_activity_id,data[0],data[1],data[2],f'{data[3]} hours {data[4]}  minutes',fuel_qty,data[6],duty_amt,fuel_amt,ways))
+=======
+                    fuel_amt = round(fuel_price*(Decimal(data[5])*Decimal('4.54')),2)
+                    print(duty_amt)
+                    print(fuel_amt)
+                    ways = 0 if data[7].strip() == "" else data[7]
+                    cur.execute("INSERT INTO daily_activity_lines(daily_activity_id,machine_id,job_type_id,job_function_id,duty_hour,used_fuel,description,duty_amt,fuel_amt,way) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);",(daily_activity_id,data[0],data[1],data[2],f'{data[3]} hours {data[4]}  minutes',data[5],data[6],duty_amt,fuel_amt,ways))
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2
             # manpower & equipment
             man_amt = request.form.getlist("manpower_amt")
             man_id = request.form.getlist("manpower_id")
@@ -670,7 +678,11 @@ def site_imports(typ):
             for data in zip(acc_machine_ids,acc_descriptions,hasAccidents):
                 if data[0].strip() != '' and data[1].strip() != '':
                     acc_status = 't' if data[2] == 1 else 'f'
+<<<<<<< HEAD
                     cur.execute('''INSERT INTO daily_activity_accident_lines(daily_activity_id,machine_id,description,accident_status) VALUES(%s,%s,%s,%s);''',(daily_activity_id,data[0],data[1],acc_status))
+=======
+                    cur.execute("INSERT INTO daily_activity_accident_lines(daily_activity_id,machine_id,description,accident_status) VALUES(%s,%s,%s,%s);",(daily_activity_id,data[0],data[1],acc_status))
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2
             print(man_amt)
             print(man_id)
             print(type_amt)
@@ -681,12 +693,21 @@ def site_imports(typ):
             print(hasAccidents)
 
             if daily_activity_edit_id:
+<<<<<<< HEAD
                 cur.execute("DELETE FROM daily_activity_accident_lines WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
                 cur.execute("DELETE FROM daily_activity_lines WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
                 cur.execute("DELETE FROM employee_group_project_line WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
                 cur.execute("DELETE FROM machines_history_project WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
                 cur.execute("DELETE FROM daily_activity WHERE id = %s;",(daily_activity_edit_id,))
                 
+=======
+                cur.execute("DELETE FROM daily_activity WHERE id = %s;",(daily_activity_edit_id,))
+                cur.execute("DELETE FROM daily_activity_lines WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
+                cur.execute("DELETE FROM employee_group_project_line WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
+                cur.execute("DELETE FROM machines_history_project WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
+                
+
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2
             print(machine_ids)
             print(job_type_ids)
             print(job_function_ids)

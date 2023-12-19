@@ -10,6 +10,10 @@
 </form>
 
 <div class="container">
+<<<<<<< HEAD
+=======
+    
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2
     {% if datalist_datas['name'] == 'Machine Edit' %}
         {% if project_stat_form_id %}
         <form id="hidden-project-stat-form" action="{{url_for('imports.import_data',what='project_stat_form')}}" method="post">
@@ -19,6 +23,7 @@
         </form>            
         {% else %}
         <button class="btn shadow shadow-sm" onclick="editConfigStatis(this,'machine-box-holder')" style="background-color: #2C41AD;color: white;">Edit</button>
+<<<<<<< HEAD
         <a class="nav-item" href="{{url_for('views.configurations',what='machine')}}">
             <button onclick="" class="btn btn-danger shadow-sm">Discard</button>
         </a> 
@@ -31,6 +36,17 @@
         <button onclick="" class="btn btn-danger shadow-sm">Discard</button>
     </a>
     <button class="btn btn-danger" style="float: right;" onclick="deleteFormData('{{data[5]}}','project')">ဖျက်ပစ်ရန်</button> 
+=======
+            <a class="nav-item" href="{{url_for('views.configurations',what='machine')}}">
+                <button onclick="" class="btn btn-danger shadow-sm">Discard</button>
+            </a>       
+        {% endif %}
+
+    {% else %}
+    <a class="nav-item" href="{{url_for('views.configurations',what='project')}}">
+        <button onclick="" class="btn btn-danger shadow-sm">Discard</button>
+    </a>
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2
     {% endif %}
 </div>
 
@@ -140,7 +156,11 @@
                                 <input type="number" id="machine_type_id" hidden value="" name="machine_type_id"/>
                                 <input type="text" required onchange="checkValidMachine(this,'typeList')" id="machineType" class="form-control" list="typeList" placeholder="Type" autocomplete="off">
                                 {% if project_stat_form_id %}
+<<<<<<< HEAD
                                 <input type="number" class="stat-form-id" name="stat-form-id" value="{{project_stat_form_id}}" hidden/>
+=======
+                                <input type="number" name="stat-form-id" value="{{project_stat_form_id}}" hidden/>
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2
                                 {% endif %}
                                 <datalist id="typeList">
                                     {% for dta in datalist_datas['Machine Type'] %}

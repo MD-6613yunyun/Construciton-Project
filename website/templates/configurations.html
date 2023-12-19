@@ -2,8 +2,13 @@
 {% block title %} Configurations {% endblock %}
 {% block content %}
 
+<<<<<<< HEAD
 {% if what not in ('project-stat','employee','ajt','ajf','fuel-price','employee-group') %}
 <div class="col-md-12 px-3 mt-1 mb-3 modal fade" style="margin-top:70px;" id="uploadExcelBox">
+=======
+{% if what not in ('employee','ajt','ajf','fuel-price','employee-group','type','class','capacity','brand','owner') %}
+<div class="col-md-12 px-3 mt-1 mb-3" style="margin-top:70px;">
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2
     <form method="POST" action="/upload-machine-details" enctype="multipart/form-data">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -113,7 +118,11 @@
         </thead>
         <tbody>
         {% for machine_data in datas %}
+<<<<<<< HEAD
         <tr id="{{machine_data[8]}}" class="machine-list-changeable"  onclick="redirectToProjectStatForm('edit-id','edit-configuration-form-sth','{{machine_data[8]}}')">
+=======
+        <tr id="{{machine_data[7]}}" class="machine-list-changeable"  onclick="redirectToProjectStatForm('edit-id','edit-configuration-form-sth','{{machine_data[7]}}')">
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2
             <td class="text-start">{{machine_data[0]}}</td>
             <td class="text-start">{{machine_data[1]}}</td>
             <td class="text-start">{{machine_data[2]}}</td>
@@ -283,7 +292,11 @@
                             <p>{{data[1]}}</p>
                         </td>
                         <td>
+<<<<<<< HEAD
                             <button onclick="replaceValueInForm('delete','{{data[0]}}','crud','sthId','configCrudForm')" class="btn btn-sm btn-danger rounded-3 p-1" onclick="changeValueInCrudInput('delete')"  type="submit">Remove</button>
+=======
+                            <button onclick="replaceValueInForm('delete','{{data[0]}}','crud','sthId','configCrudForm')" class="btn btn-danger rounded-0" onclick="changeValueInCrudInput('delete')"  type="submit">Remove</button>
+>>>>>>> bee687fdb11b034dc03d88b274efa657a66b13a2
                         </td>
                     </tr>
                     {% endfor %}
