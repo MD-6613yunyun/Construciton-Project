@@ -295,8 +295,8 @@ def get_max_day(monthh,yearr,only_end_day=False,start_end_dates = [(None,None)],
             if in_one_month:
                 if start_end_dates[0][0].month != start_end_dates[0][1].month:
                     return f"{yearr}-{mnt}-{start_end_dates[0][0].day}",f"{yearr}-{mnt}-{maxx}"                    
-            print(start_end_dates[0][0].month,start_end_dates[0][0].day)
-            print(start_end_dates[0][1].month,start_end_dates[0][1].day)
+            # print(start_end_dates[0][0].month,start_end_dates[0][0].day)
+            # print(start_end_dates[0][1].month,start_end_dates[0][1].day)
             return f"{yearr}-{mnt}-{start_end_dates[0][0].day}",f"{yearr}-{mnt}-{start_end_dates[0][1].day}"
         return f"{yearr}-{mnt}-01",f"{yearr}-{mnt}-{maxx}"
     start_date = start_end_dates[0][0].day if start_end_dates[0][0] else 1
@@ -329,14 +329,14 @@ def get_the_previous_data(temp,fst_temp,optionGroupBy):
             overall_temps[2] += tmp[2]
     else:
         overall_temps = ['Daily Overall',timedelta(0),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),0,0]
-        print(temp)
+        # print(temp)
         for tmp in temp:
             overall_temps[1] += tmp[1]
             overall_temps[2] += tmp[2]
             overall_temps[3] += tmp[4]
             overall_temps[4] += tmp[5]
         overall_temps[5] = fst_temp[0][0]
-        print(overall_temps)
+        # print(overall_temps)
         overall_temps[6] = overall_temps[3] + overall_temps[4] + overall_temps[5]
         overall_temps[7] = fst_temp[0][1]
         if overall_temps[7] != Decimal(0):
@@ -593,7 +593,7 @@ def get_monthly_duty():
                     WHERE form.project_id = '{pj_id}' ORDER BY mc.name;"""
         cur.execute(query)
         all_classes = cur.fetchall()
-        print(all_classes)
+        # print(all_classes)
         final_dct = {}
         counter = 0
         ## get work done
@@ -678,12 +678,12 @@ def get_monthly_duty():
                 expense = all_exp_datas[idx_for_wd][1]
             consump = decimal.Decimal(0.0)
             cost = Decimal('0.0')
-            print("what is this",optionGroupByTwo)
+            # print("what is this",optionGroupByTwo)
             if optionGroupByTwo == "qty":
-                for item in lst:
-                    print(item)
-                    if isinstance(item,str):
-                        print(("",timedelta(seconds=0),decimal.Decimal(0.0)))
+                # for item in lst:
+                #     # print(item)
+                #     if isinstance(item,str):
+                #         print(("",timedelta(seconds=0),decimal.Decimal(0.0)))
                 rmv_no = [("",timedelta(seconds=0),decimal.Decimal(0.0)) if isinstance(item,str) else item for item in lst]
                 total_fuel = sum(item[2] for item in rmv_no)
                 if work_done != decimal.Decimal(0.0):
@@ -709,9 +709,9 @@ def get_monthly_duty():
                 rmv_next = overall_temps
             else:
                 result = []
-                print("next and no")
-                print(rmv_no)
-                print(rmv_next)
+                # print("next and no")
+                # print(rmv_no)
+                # print(rmv_next)
                 for item_1, item_2 in zip(rmv_no, rmv_next):
                     result_tuple = []
                     for i in range(len(item_1)):
@@ -938,9 +938,9 @@ def report_by_each_machine():
     pj_id = request.form.get("pj_id")
     start_dt = request.form.get('start_date_for_each')
     end_dt = request.form.get('end_date_for_each')
-    print(start_dt)
-    print(end_dt)
-    print(pj_id)
+    # print(start_dt)
+    # print(end_dt)
+    # print(pj_id)
     if role in [3,4]:
         cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
     else:
@@ -956,7 +956,7 @@ def report_by_each_machine():
                         FROM daily_activity WHERE project_id = %s
                         AND set_date >= %s AND set_date <= %s;""",(pj_id,start_dt,end_dt))
     date_datas = cur.fetchall()
-    print(date_datas)
+    # print(date_datas)
     if date_datas == [(None,None)]:
         return render_template('machine_by_each_duty.html',vehicles_dct={},pj_datas=[pj_name,pj_code],project_datas = project_datas,current_role = role)
     start_dt_contain,end_dt_contain = get_max_day(mon,yer,True,date_datas,True)
@@ -1057,7 +1057,7 @@ def income_expense_report_view():
     start_dt = request.form.get('start_date_for_each')
     end_dt = request.form.get('end_date_for_each')
     for_what_type = request.form.get("for_what_type")
-    print(pj_name,pj_code,pj_id,start_dt,end_dt,for_what_type)
+    # print(pj_name,pj_code,pj_id,start_dt,end_dt,for_what_type)
     if pj_id == "" or start_dt == "" or end_dt == "" or pj_name == "":
         return redirect(url_for('views.home',mgs=f"Incomplete Field For Project Name - Project Code."))
     extra_datas = [pj_name,pj_code,start_dt,end_dt]
@@ -1198,7 +1198,7 @@ def income_expense_report_view():
 
         # Extract the captured output (the converted text)
         zawgyiText = result.stdout.strip()
-        print(zawgyiText)
+        # print(zawgyiText)
 
         with open(output_path,'r',encoding='utf-8') as file:
             datas = file.readlines()

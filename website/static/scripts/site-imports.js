@@ -167,6 +167,7 @@ function checkInpNumber(inp,min,max){
 function newRow(btn){
     let fstRow = btn.parentElement.parentElement
     let allowedNewRow = true
+    let blank_field = ""
     console.log("..")
     if (fstRow.previousElementSibling){
         console.log("hhd")
@@ -174,9 +175,12 @@ function newRow(btn){
         for (inp of inputsInTd){
             if (inp.value.trim() == ""){
                 allowedNewRow = false
+                blank_field = inp.getAttribute("data-field-name")
+                break
             }
         }
     }
+    console.log(blank_field)
     if (allowedNewRow){
         console.log("papi")
         let cloneRow = btn.parentElement.parentElement.nextElementSibling.cloneNode(true)
@@ -186,7 +190,7 @@ function newRow(btn){
         let tableContainer =  btn.parentElement.parentElement.parentElement
         tableContainer.insertBefore(cloneRow,tableContainer.rows[tableContainer.rows.length - 2])
     }else{
-        alert("အချက်အလက်များ မပြည့်စုံသောကြောင့် ထပ်မံ ဖြည့်သွင်း၍ မရပါ , အချက်အလက်များ ပြည့်စုံအောင် ဦးစွာ စစ်ဆေးပေးပါ !!!!!!")
+        alert(` ( ${blank_field} ) အချက်အလက် မပြည့်စုံသောကြောင့် ထပ်မံ ဖြည့်သွင်း၍ မရပါ , အချက်အလက်များ ပြည့်စုံအောင် ဦးစွာ စစ်ဆေးပေးပါ !!!!!!`)
     }
 
 }

@@ -337,12 +337,12 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="submitMachineTransferForStatCloseBtn" data-bs-dismiss="modal">Close</button>
-                    <button type="button" onclick="submitMachineTransferForStat()" class="btn btn-success">Transfer</button>
+                    <button type="button" onclick="submitMachineTransferForStat(this)" class="btn btn-success">Transfer</button>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Transfer Model -->
+    <!-- Car Remove Model -->
     <div class="modal fade" id="removeModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -351,14 +351,15 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center d-flex flex-column">
+                    <p class="text-warning"> သတိပေးချက်။  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;။ စက်ကားများအား ဒါးသိမ်း သို့ ပြောင်းရွှေ့ခြင်းသည် ဂျူတီ ဈေးနှုန်း အကျုံးဝင်သော ရက်စွဲအား ပြုပြင်ပါလိမ့်မည်။ </p>
                     <input type="text" hidden value="remove_machine_project" name="db"/>
-                    <input type="number" hidden value="" id="source-machine-id" name="source-machine-id"/>
-                    <label for="">Trasfer Time</label>
-                    <input type="datetime" id="transfer_machine_stat" name="transfer_machine_stat" class="">
+                    <input type="number" hidden id="transfer_project_id_for_stat" name="transfer_project_id_for_stat" value="4"/>
+                    <label for="">Trasfer Date to Default Location</label>
+                    <input type="datetime-local" id="transfer_machine_stat" name="transfer_machine_stat">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="submitMachineTransferForStatCloseBtn" data-bs-dismiss="modal">Close</button>
-                    <button type="button" onclick="submitMachineTransferForStat()" class="btn btn-success">Transfer</button>
+                    <button type="button" onclick="submitMachineTransferForStat(this)" class="btn btn-success">Remove</button>
                 </div>
             </div>
         </div>
@@ -386,60 +387,65 @@
         </div>
         <!-- <button class="btn text-white py-0 mb-2 bg-danger d-none" onclick="savePrjStatis(this)" id="prjDiscard">Discard</button></a> -->
         <div class="card card-body shadow-sm" style="background-color: #3E517A;">
-            <form class="row gx-3 gy-2 align-items-center m-2" action="{{url_for('imports.upload_each_data')}}" method="POST">
-                <input type="text" hidden name="db" value="project_stats_edit">
-                <input type="number"  id="project_id_for_stat" hidden name="project_id" value="{{stat_datas[12]}}"/>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ဆိုဒ် ကုဒ် / ဆိုဒ်အမည်</label>
-                    <input class="form-control" disabled value="{{stat_datas[0]}}" onchange="checkProjectAndReplaceId(this,'project_id_for_stat')" list="datalistOptions"  id="projectCode"  required autocomplete="off">
-                    <datalist id="datalistOptions" style="height: 100px;">
-                        {% for dta in  data['Project Code'] %}
-                            <option value="{{dta[0]}}">
-                        {% endfor %}
-                    </datalist>
-                    <datalist id="alldatalistOptions" style="height: 100px;">
-                        {% for dta in  data['All Project Code'] %}
-                            <option value="{{dta[0]}}">
-                        {% endfor %}
-                    </datalist>
-                </div>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ဆိုဒ် တည်နေရာ</label>
-                    <input disabled type="text" name="location" value="{{stat_datas[1]}}" class="form-control"  required autocomplete="off">
-                </div>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ဆိုဒ် စတင်ရက်</label>
-                    <input disabled type="date" value="{{stat_datas[2]}}" name="pj_start_date" class="form-control"  required autocomplete="off"></div>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ဆိုဒ် တာဝန်ခံ</label>
-                    <input type="text" name="supervisor_id" id="site-supervisors-id" value="{{stat_datas[13]}}"  hidden autocomplete="off">
-                    <input type="text" disabled class="form-control site-supervisors" value="{{stat_datas[3]}}" list="supervisors" onchange="checkValidMachine(this,'supervisors')"  required autocomplete="off">
-                </div>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ပမာဏပေ</label>
-                    <input disabled type="number" value="{{stat_datas[4]}}" name="estimate_feet" class="form-control"  required autocomplete="off"></div>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ပမာဏကျင်း</label>
-                    <input disabled type="number" value="{{stat_datas[5]}}" name="will_sud" class="form-control"  required autocomplete="off"></div>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ဆောင်ရွက်မည့်ကျင်း</label>
-                    <input disabled type="number" value="{{stat_datas[6]}}" name="estimate_sud" class="form-control"  required autocomplete="off"></div>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ခန့်မှန်း ဂျူတီ</label>
-                    <input disabled type="number" value="{{stat_datas[7]}}" step=".01" name="estimate_duty" class="form-control"  required autocomplete="off"></div>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ခန့်မှန်း ဆီ</label>
-                    <input disabled type="number" value="{{stat_datas[8]}}" step=".01" name="estimate_fuel" class="form-control" required autocomplete="off"></div>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ခန့်မှန်း အသုံးစရိတ်</label>
-                    <input disabled type="number" value="{{stat_datas[9]}}" step=".01" name="estimate_expense" class="form-control" required autocomplete="off"></div>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ခန့်မှန်း ကြာချိန် ( ရက် ) </label>
-                    <input disabled type="number" value="{{stat_datas[10]}}" step=".01" name="estimate_day" class="form-control"  required autocomplete="off"></div>
-                <div class="col-sm-3">
-                    <label class="mb-1 text-white">ရုံးချုပ် စာရင်းကိုင်</label>
-                    <input type="text"name="ho_acc_id" value="{{stat_datas[14]}}" id="ho-account-id" hidden placeholder="ရုံးစာရင်းကိုင်" required autocomplete="off">
-                    <input type="text"  disabled value="{{stat_datas[11]}}" class="form-control hoAccount" list="accountants"  onchange="checkValidMachine(this,'accountants')" required autocomplete="off">
+            <form class="" action="{{url_for('imports.upload_each_data')}}" method="POST">
+                <button class="btn btn-primary mb-1 w-100"  type="button" data-bs-toggle="collapse" data-bs-target="#projectStatsEditSiteDatas">
+                    Site Details
+                </button>
+                <div class="row gx-3 gy-2 align-items-center m-2 collapse" id="projectStatsEditSiteDatas">
+                    <input type="text" hidden name="db" value="project_stats_edit">
+                    <input type="number"  id="project_id_for_stat" hidden name="project_id" value="{{stat_datas[12]}}"/>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ဆိုဒ် ကုဒ် / ဆိုဒ်အမည်</label>
+                        <input class="form-control" disabled value="{{stat_datas[0]}}" onchange="checkProjectAndReplaceId(this,'project_id_for_stat')" list="datalistOptions"  id="projectCode"  required autocomplete="off">
+                        <datalist id="datalistOptions" style="height: 100px;">
+                            {% for dta in  data['Project Code'] %}
+                                <option value="{{dta[0]}}">
+                            {% endfor %}
+                        </datalist>
+                        <datalist id="alldatalistOptions" style="height: 100px;">
+                            {% for dta in  data['All Project Code'] %}
+                                <option value="{{dta[0]}}">
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ဆိုဒ် တည်နေရာ</label>
+                        <input disabled type="text" name="location" value="{{stat_datas[1]}}" class="form-control"  required autocomplete="off">
+                    </div>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ဆိုဒ် စတင်ရက်</label>
+                        <input disabled type="date" value="{{stat_datas[2]}}" name="pj_start_date" class="form-control"  required autocomplete="off"></div>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ဆိုဒ် တာဝန်ခံ</label>
+                        <input type="text" name="supervisor_id" id="site-supervisors-id" value="{{stat_datas[13]}}"  hidden autocomplete="off">
+                        <input type="text" disabled class="form-control site-supervisors" value="{{stat_datas[3]}}" list="supervisors" onchange="checkValidMachine(this,'supervisors')"  required autocomplete="off">
+                    </div>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ပမာဏပေ</label>
+                        <input disabled type="number" value="{{stat_datas[4]}}" name="estimate_feet" class="form-control"  required autocomplete="off"></div>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ပမာဏကျင်း</label>
+                        <input disabled type="number" value="{{stat_datas[5]}}" name="will_sud" class="form-control"  required autocomplete="off"></div>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ဆောင်ရွက်မည့်ကျင်း</label>
+                        <input disabled type="number" value="{{stat_datas[6]}}" name="estimate_sud" class="form-control"  required autocomplete="off"></div>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ခန့်မှန်း ဂျူတီ</label>
+                        <input disabled type="number" value="{{stat_datas[7]}}" step=".01" name="estimate_duty" class="form-control"  required autocomplete="off"></div>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ခန့်မှန်း ဆီ</label>
+                        <input disabled type="number" value="{{stat_datas[8]}}" step=".01" name="estimate_fuel" class="form-control" required autocomplete="off"></div>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ခန့်မှန်း အသုံးစရိတ်</label>
+                        <input disabled type="number" value="{{stat_datas[9]}}" step=".01" name="estimate_expense" class="form-control" required autocomplete="off"></div>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ခန့်မှန်း ကြာချိန် ( ရက် ) </label>
+                        <input disabled type="number" value="{{stat_datas[10]}}" step=".01" name="estimate_day" class="form-control"  required autocomplete="off"></div>
+                    <div class="col-sm-3">
+                        <label class="mb-1 text-white">ရုံးချုပ် စာရင်းကိုင်</label>
+                        <input type="text"name="ho_acc_id" value="{{stat_datas[14]}}" id="ho-account-id" hidden placeholder="ရုံးစာရင်းကိုင်" required autocomplete="off">
+                        <input type="text"  disabled value="{{stat_datas[11]}}" class="form-control hoAccount" list="accountants"  onchange="checkValidMachine(this,'accountants')" required autocomplete="off">
+                    </div>
                 </div>
                 <div class="machine-name-container">
                     <div class="row table-div">
@@ -456,14 +462,14 @@
                                     </thead>
                                     <tbody id="machineListForProjectStats" style="position: relative;">
                                         {% for data in history_datas %}
-                                            <tr class="text-center fs-6">
+                                            <tr class="text-center fs-6" machine-data-id="{{data[1]}}">
                                                 <td style="cursor: pointer;" id="{{data[0]}}" onclick="redirectToProjectStatForm('edit-id','edit-configuration-form','{{data[1]}}||{{stat_datas[12]}}')">{{data[2]}}</td>
                                                 <td>{{data[3]}}</td>
                                                 <td>{{data[4]}}</td>
                                                 <td>{{data[5]}}</td>
                                                 <td>
                                                     <button data-bs-toggle="modal" data-bs-target="#transferModal" class="btn btn-sm btn-success me-2" disabled onclick="replaceIdInTheTransferModal('{{data[0]}}','{{data[1]}}')" type='button'>Transfer</button>
-                                                    <button disabled class="btn btn-sm btn-danger" type='button' onclick="directlyremoveTdRow('{{data[1]}}',this)">Remove</button>
+                                                    <button data-bs-toggle="modal" data-bs-target="#removeModal"   class="btn btn-sm btn-danger"       disabled onclick="replaceIdInTheTransferModal('{{data[0]}}','{{data[1]}}')" type='button' >Remove</button>
                                                 </td> 
                                             </tr>
                                         {% endfor %}

@@ -135,7 +135,7 @@
             <div class="modal-body">
                 <div class="card card-body" style="background-color:#2C41AD">
                     <form class="row gx-3 gy-2 align-items-center ms-4 me-4 mt-2" action="{{url_for('views.configurations',what='Machine List')}}" method="POST">
-                            <div class="col-sm-5 col-md-3 form-floating">
+                            <div class="col-sm-2 col-md-3 form-floating">
                                 <input type="number" hidden class="edit-id" value="{{data[7]}}" name="edit-id"/>
                                 <input type="number" hidden id="duty-price-edit-id" value="" name="duty-price-edit-id" disabled/>
                                 <input type="number" id="machine_type_id" hidden value="" name="machine_type_id"/>
@@ -150,11 +150,15 @@
                                 </datalist>
                                 <label for="machineType" class="ms-2">Type</span>
                             </div>
-                            <div class="col-sm-5 col-md-3 form-floating">
+                            <div class="col-sm-2 col-md-3 form-floating">
                                 <input id="startDate" required type="date" name="start_date" class="form-control" placeholder="Start-Date" autocomplete="off">
                                 <label for="startDate" class="ms-2">Start Date</label>
                             </div>
-                            <div class="col-sm-5 col-md-3 form-floating">
+                            <div class="col-sm-2 col-md-3 form-floating">
+                                <input id="endDate"  type="date" name="end_date" class="form-control" placeholder="End-Date" autocomplete="off">
+                                <label for="endDate" class="ms-2">End Date</label>
+                            </div>
+                            <div class="col-sm-2 col-md-3 form-floating">
                                 <select id="priceType" required type="text" name="price_type_id" class="form-control" placeholder="Price Type" autocomplete="off">
                                     {% for dta in datalist_datas['price_type'] %}
                                         <option  value="{{dta[0]}}">{{dta[1]}}</option> 
@@ -162,8 +166,8 @@
                                 </select>
                                 <label for="priceType" class="ms-2">Price Type</label>
                             </div>
-                            <div class="col-sm-5 col-md-3 form-floating">
-                                <input id="price" required type="text" name="price" class="form-control" placeholder="Price" autocomplete="off">
+                            <div class="col-sm-2 col-md-3 form-floating">
+                                <input id="price" required type="number" name="price" class="form-control" placeholder="Price" autocomplete="off">
                                 <label for="price" class="ms-2">Price</label>
                             </div>
                             <div class="col-auto">
@@ -225,6 +229,46 @@
             </div>
         </form>
     </div>
+</div>
+<div class="mx-5 mt-3" id="">
+    <ul class="nav nav-pills nav-fill">
+        <li class="nav-item" onclick="switchTab(this)">
+          <a class="nav-link active" href="#">Current Working Machines</a>
+        </li>
+        <li class="nav-item" onclick="switchTab(this)">
+          <a class="nav-link" href="#">Machines History</a>
+        </li>
+    </ul>
+</div>
+<div class="mx-5 bg-light mb-4" id="currentWorkingMachine">
+    {% for data in datalist_datas['history'][0] %}
+    <div class="p-3">
+        <h6>Machine Name</h6>
+        <h6>Start Date</h6>
+        <h6>Price Type</h6>
+        <h6>Duty Price</h6>
+        <span>{{data[1]}}</span>
+        <span>{{data[2]}}</span>
+        <span>{{data[3]}}</span>
+        <span>{{data[4]}}</span>
+    </div>
+    {% endfor %}
+</div>
+<div class="mx-5 bg-light mb-4" id="historyWorkingMachine" style="display: none;">
+    {% for data in datalist_datas['history'][1] %}
+    <div class="p-3">
+        <h6>Machine Name</h6>
+        <h6>Start Date</h6>
+        <h6>End Date</h6>
+        <h6>Price Type</h6>
+        <h6>Duty Price</h6>
+        <span>{{data[1]}}</span>
+        <span>{{data[2]}}</span>
+        <span>{{data[3]}}</span>
+        <span>{{data[4]}}</span>
+        <span>{{data[5]}}</span>
+    </div>
+    {% endfor %}
 </div>
 
 {% endif %}

@@ -58,92 +58,109 @@ def show_transactions(what,mgs=None):
     cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
     role = cur.fetchone()[0]
 
+    search_wildcard = ""
+
     if not role:
         return redirect(url_for('views.home'))
     else:
         if role not in (1,3,4):
             return render_template('access_error.html')
     if request.method == 'POST':
-        return render_template('access_error.html')
-    else:
-        if role in (3, 4):
-            cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
+        if what == 'search':
+            search_value = request.form.get('search-value')
+            for_what = request.form.get('for-what').strip()
+            # print(for_what)
+            what_dct = {'Income Expense Query':'income-expense','Duty Query':'duty','Expenses Query':'expense'}
+            what = what_dct.get(for_what,for_what)
+            search_wildcard = search_value.strip()
+            # print(what_dct)
+            # print(what)
         else:
-            cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
-        project_datas = cur.fetchall()
-        if what == 'duty':
-            query = """ SELECT 
-                            dty.duty_date,pj.code,pj.name,fv.machine_name,dty.operator_name,dty.morg_start,dty.morg_end,
-                            dty.aftn_start,dty.aftn_end,dty.evn_start,dty.evn_end,dty.total_hr,dty.hrper_rate,
-                            dty.totaluse_fuel,dty.fuel_price,dty.duty_amt,dty.fuel_amt,dty.total_amt,dty.way,
-                            dty.complete_feet, dty.complete_sud 
-                        FROM duty_odoo_report dty
-                            LEFT JOIN fleet_vehicle fv ON fv.id = dty.machine_id
-                            LEFT JOIN analytic_project_code pj ON pj.id = dty.project_id ORDER BY dty.duty_date ASC LIMIT 81"""
-            cur.execute(query)
-            datas = cur.fetchall()
-            cur.execute("SELECT count(*) FROM duty_odoo_report;")
-            total = cur.fetchall()[0][0]
-            name = "Duty Query"
-        elif what == 'expense':
-            query = """ SELECT
-                            exp.duty_date,pj.code,pj.name,bi.name,exp.expense_amt
-                        FROM expense_prepaid AS exp
-                        INNER JOIN analytic_project_code AS pj
-                        ON pj.id = exp.project_id
-                        INNER JOIN res_company bi
-                        ON bi.id = exp.res_company_id
-                        LIMIT 81; """
-            cur.execute(query)
-            datas = cur.fetchall()
-            cur.execute("SELECT count(*) FROM expense_prepaid;")
-            total = cur.fetchall()[0][0]
-            name = "Expenses Query"
-        elif what == 'income-expense':
-            cur.execute(""" 
-                SELECT form.set_date,form.income_expense_no,pj.code,pj.name,
-                CASE WHEN form.income_status = 't' THEN 'Income' ELSE 'Expense' END,
-                line.description,car.machine_name,line.invoice_no,line.qty,line.price,line.amt,line.remark 
-                FROM income_expense_line line 
-                LEFT JOIN income_expense form 
-                ON line.income_expense_id  = form.id
-                LEFT JOIN analytic_project_code pj
-                ON pj.id = form.project_id
-                LEFT JOIN fleet_vehicle car
-                ON car.id = line.machine_id
-                ORDER BY form.project_id,form.set_date DESC;""")
-            datas = cur.fetchall()
-            cur.execute("SELECT count(id) FROM income_expense_line;")
-            total = cur.fetchall()[0][0]
-            name = "Income Expense Query"
-        elif what == 'machine-activity':
-            cur.execute(""" SELECT form.set_date,pj.code,pj.name,form.daily_activity_no,car.machine_name,ajt.name,ajf.name,line.duty_hour,line.used_fuel,line.description,COALESCE(line.way,0.0) FROM daily_activity_lines AS line 
-                        LEFT JOIN daily_activity AS form ON line.daily_activity_id = form.id 
-                        LEFT JOIN analytic_project_code AS pj ON pj.id = form.project_id 
-                        LEFT JOIN fleet_vehicle AS car ON car.id = line.machine_id 
-                        LEFT JOIN activity_job_type AS ajt ON ajt.id = line.job_type_id 
-                        LEFT JOIN activity_job_function AS ajf ON ajf.id = line.job_function_id 
-                        ORDER BY pj.id,form.set_date;""")
-            datas = cur.fetchall()
-            cur.execute("SELECT count(*) FROM daily_activity_lines;")
-            total = cur.fetchone()[0]
-            name = "Machine Activities Query"
-        elif what == 'repair-activity':
-            cur.execute(""" SELECT form.set_date,pj.code,pj.name,form.daily_activity_no,car.machine_name,line.description,line.accident_status 
-                        FROM daily_activity_accident_lines AS line 
-                        LEFT JOIN daily_activity AS form ON line.daily_activity_id = form.id 
-                        LEFT JOIN analytic_project_code AS pj ON pj.id = form.project_id 
-                        LEFT JOIN fleet_vehicle AS car ON car.id = line.machine_id
-                        ORDER BY pj.id,form.set_date; """)
-            datas = cur.fetchall()
-            cur.execute("SELECT count(*) FROM daily_activity_accident_lines;")
-            total = cur.fetchone()[0]
-            name = "Repair Activities Query"
-        elif what == 'service':
-            datas = []
-            name = "Service Query"
-            total = 70
-        return render_template("transactions.html",datas=datas,total=total,name=name,mgs=mgs,project_datas = project_datas, current_role = role)
+            return render_template('access_error.html')
+
+    if role in (3, 4):
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
+    else:
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+    project_datas = cur.fetchall()
+    if what == 'duty':
+        query = """ SELECT 
+                        dty.duty_date,pj.code,pj.name,fv.machine_name,dty.operator_name,dty.morg_start,dty.morg_end,
+                        dty.aftn_start,dty.aftn_end,dty.evn_start,dty.evn_end,dty.total_hr,dty.hrper_rate,
+                        dty.totaluse_fuel,dty.fuel_price,dty.duty_amt,dty.fuel_amt,dty.total_amt,dty.way,
+                        dty.complete_feet, dty.complete_sud 
+                    FROM duty_odoo_report dty
+                        LEFT JOIN fleet_vehicle fv ON fv.id = dty.machine_id
+                        LEFT JOIN analytic_project_code pj ON pj.id = dty.project_id ORDER BY dty.duty_date ASC LIMIT 81"""
+        cur.execute(query)
+        datas = cur.fetchall()
+        cur.execute("SELECT count(*) FROM duty_odoo_report;")
+        total = cur.fetchall()[0][0]
+        name = "Duty Query"
+    elif what == 'expense':
+        query = """ SELECT
+                        exp.duty_date,pj.code,pj.name,bi.name,exp.expense_amt
+                    FROM expense_prepaid AS exp
+                    INNER JOIN analytic_project_code AS pj
+                    ON pj.id = exp.project_id
+                    INNER JOIN res_company bi
+                    ON bi.id = exp.res_company_id
+                    LIMIT 81; """
+        cur.execute(query)
+        datas = cur.fetchall()
+        cur.execute("SELECT count(*) FROM expense_prepaid;")
+        total = cur.fetchall()[0][0]
+        name = "Expenses Query"
+    elif what == 'income-expense':
+        cur.execute(""" 
+            SELECT form.set_date,form.income_expense_no,pj.code,pj.name,
+            CASE WHEN form.income_status = 't' THEN 'Income' ELSE 'Expense' END,
+            line.description,car.machine_name,line.invoice_no,line.qty,line.price,line.amt,line.remark 
+            FROM income_expense_line line 
+            LEFT JOIN income_expense form 
+            ON line.income_expense_id  = form.id
+            LEFT JOIN analytic_project_code pj
+            ON pj.id = form.project_id
+            LEFT JOIN fleet_vehicle car
+            ON car.id = line.machine_id
+            WHERE pj.code ILIKE %s OR pj.name ILIKE %s
+            ORDER BY 
+                CASE 
+                    WHEN pj.name = %s THEN 0 WHEN pj.code = %s 
+                    THEN 0 ELSE 1 
+                END,form.project_id,form.set_date DESC;""",('%'+search_wildcard+'%','%'+search_wildcard+'%',search_wildcard,search_wildcard))
+        datas = cur.fetchall()
+        cur.execute("SELECT count(id) FROM income_expense_line;")
+        total = cur.fetchall()[0][0]
+        name = "Income Expense Query"
+    elif what == 'machine-activity':
+        cur.execute(""" SELECT form.set_date,pj.code,pj.name,form.daily_activity_no,car.machine_name,ajt.name,ajf.name,line.duty_hour,line.used_fuel,line.description,COALESCE(line.way,0.0) FROM daily_activity_lines AS line 
+                    LEFT JOIN daily_activity AS form ON line.daily_activity_id = form.id 
+                    LEFT JOIN analytic_project_code AS pj ON pj.id = form.project_id 
+                    LEFT JOIN fleet_vehicle AS car ON car.id = line.machine_id 
+                    LEFT JOIN activity_job_type AS ajt ON ajt.id = line.job_type_id 
+                    LEFT JOIN activity_job_function AS ajf ON ajf.id = line.job_function_id 
+                    ORDER BY pj.id,form.set_date;""")
+        datas = cur.fetchall()
+        cur.execute("SELECT count(*) FROM daily_activity_lines;")
+        total = cur.fetchone()[0]
+        name = "Machine Activities Query"
+    elif what == 'repair-activity':
+        cur.execute(""" SELECT form.set_date,pj.code,pj.name,form.daily_activity_no,car.machine_name,line.description,line.accident_status 
+                    FROM daily_activity_accident_lines AS line 
+                    LEFT JOIN daily_activity AS form ON line.daily_activity_id = form.id 
+                    LEFT JOIN analytic_project_code AS pj ON pj.id = form.project_id 
+                    LEFT JOIN fleet_vehicle AS car ON car.id = line.machine_id
+                    ORDER BY pj.id,form.set_date; """)
+        datas = cur.fetchall()
+        cur.execute("SELECT count(*) FROM daily_activity_accident_lines;")
+        total = cur.fetchone()[0]
+        name = "Repair Activities Query"
+    elif what == 'service':
+        datas = []
+        name = "Service Query"
+        total = 70
+    return render_template("transactions.html",datas=datas,total=total,name=name,mgs=mgs,project_datas = project_datas, current_role = role)
 
 @views.route("/configurations/<what>/<mgs>",methods=['GET','POST'])
 @views.route("/configurations/<what>",methods=['GET','POST'])
@@ -171,6 +188,7 @@ def configurations(what,mgs=None):
     project_datas = cur.fetchall()
 
     search_wildcard = ""
+    where_filter_clause = "         "
     extra_datas = ["",False,0]
     project_stat_form_id = None
     if request.method == 'POST':
@@ -179,7 +197,59 @@ def configurations(what,mgs=None):
             for_what = request.form.get('for-what')
             what_dct = {'Machine List':'machine','Project List':'project','Project Statistics':'project-stat'}
             what = what_dct.get(for_what,for_what)
-            search_wildcard = search_value.strip()
+            where_filter_clause = "WHERE"
+            if what == 'project':
+                pj_name = request.form.get('pj-name').strip()
+                if pj_name != '':
+                    where_filter_clause += f" ( pj.code ilike '%{pj_name}%' or pj.name ilike '%{pj_name}%' ) AND   "
+                pj_group = request.form.get('pj-group').strip()
+                if pj_group != '':
+                    where_filter_clause += f" p_group.name ilike '%{pj_group}%' AND   "
+                pj_type = request.form.get('pj-type').strip()
+                if pj_type != '':
+                    where_filter_clause += f" p_type.name ilike '%{pj_type}%' AND   "
+                unit = request.form.get('unit').strip()
+                if unit != '':
+                    where_filter_clause += f" bi.name ilike '%{unit}%' AND   "
+            elif what == 'project-stat':
+                pj_name = request.form.get('pj-name').strip()
+                if pj_name != '':
+                    where_filter_clause += f" ( pj.code ilike '%{pj_name}%' or pj.name ilike '%{pj_name}%' ) AND   "
+                emp = request.form.get('supervisor').strip()
+                if emp != '':
+                    where_filter_clause += f" emp.name ilike '%{emp}%' AND   "
+                loc = request.form.get('location').strip()
+                if loc != '':
+                    where_filter_clause += f" stat.location ilike '%{loc}%' AND   "
+                start_dt = request.form.get('start-dt').strip()
+                if start_dt != '':
+                    where_filter_clause += f" stat.pj_start_date ilike '%{start_dt}%' AND   "                    
+            elif what == 'machine':
+                pj_name = request.form.get('pj-name').strip()
+                if pj_name != '':
+                    where_filter_clause += f" ( pj.code ilike '%{pj_name}%' or pj.name ilike '%{pj_name}%' ) AND   "
+                machine_name = request.form.get("name").strip()
+                if machine_name != '':
+                    where_filter_clause += f" fv.machine_name ilike '%{machine_name}%' AND   "
+                machine_type = request.form.get("type").strip()
+                if machine_type != '':
+                    where_filter_clause += f" mt.name ilike '%{machine_type}%' AND   "
+                machine_class = request.form.get("class").strip()
+                if machine_class != '':
+                    where_filter_clause += f" mc.name ilike '%{machine_class}%' AND   "
+                unit  = request.form.get("unit").strip()
+                if unit != '':
+                    where_filter_clause += f" rc.name ilike '%{unit}%' AND   "
+                capacity = request.form.get("capacity").strip()
+                if capacity != '':
+                    where_filter_clause += f" mcf.name ilike '%{capacity}%' AND   "
+                brand = request.form.get("brand").strip()
+                if brand != '':
+                    where_filter_clause += f" vb.name ilike '%{brand}%' AND   "
+                owner = request.form.get("owner").strip()
+                if owner != '':
+                    where_filter_clause += f" vo.name ilike '%{owner}%' AND   "
+            search_wildcard = search_value
             if search_wildcard != "":
                 extra_datas[1] = True
         else:
@@ -190,28 +260,69 @@ def configurations(what,mgs=None):
                 project_stat_form_id = request.form.get("stat-form-id")
                 if price_type_id:
                     duty_price_edit_id = request.form.get("duty-price-edit-id")
-                    print(duty_price_edit_id)
+                    # print(duty_price_edit_id)
                     machine_type_id = request.form.get("machine_type_id")
                     start_date = request.form.get("start_date")
+                    end_date = request.form.get("end_date")
+                    end_date = None if end_date.strip() == "" else datetime.strptime(end_date, '%Y-%m-%d').date()
                     start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
                     price = request.form.get("price")
-                    if duty_price_edit_id:
-                        # cur.execute("SELECT ")
-                        pass
-                    cur.execute("SELECT id FROM duty_price_history WHERE machine_id = %s AND machine_type_id = %s AND duty_price_type_id = %s AND duty_price = %s AND start_date = %s;",(edit_id,machine_type_id,price_type_id,price,start_date))
-                    if not cur.fetchone():
-                        cur.execute("SELECT MIN(start_date) FROM duty_price_history WHERE machine_id = %s UNION SELECT start_date FROM duty_price_history WHERE machine_id = %s;",(edit_id,edit_id))
-                        datas = cur.fetchall()
-                        if not datas[0][0]:
-                            cur.execute("INSERT INTO duty_price_history (machine_id,machine_type_id,duty_price_type_id,duty_price,start_date) VALUES (%s,%s,%s,%s,%s);",(edit_id,machine_type_id,price_type_id,price,start_date))                
-                        elif start_date < datas[0][0]:
-                            cur.execute("INSERT INTO duty_price_history (machine_id,machine_type_id,duty_price_type_id,duty_price,start_date,end_date) VALUES (%s,%s,%s,%s,%s,(SELECT MIN(start_date) FROM duty_price_history WHERE machine_id = %s)- INTERVAL '1 day');",(edit_id,machine_type_id,price_type_id,price,start_date, edit_id))
-                        elif start_date > datas[1][0]:
-                            cur.execute("UPDATE duty_price_history SET end_date = (SELECT %s::date -1) WHERE machine_id = %s AND end_date IS NULL;",(start_date,edit_id))
-                            cur.execute("INSERT INTO duty_price_history (machine_id,machine_type_id,duty_price_type_id,duty_price,start_date) VALUES (%s,%s,%s,%s,%s);",(edit_id,machine_type_id,price_type_id,price,start_date))
+                    duty_price_history_id = duty_price_edit_id if duty_price_edit_id else 0
+                    if end_date:
+                        cur.execute("""  
+                                    SELECT COUNT(*)
+                                        FROM duty_price_history
+                                    WHERE 
+                                        machine_id = %s AND id <> %s AND
+                                        (
+                                            (start_date <= %s AND end_date >= %s) OR (start_date <= %s AND end_date >= %s) OR
+                                            (start_date >= %s AND end_date <= %s)
+                                        )
+                                    ;
+                                """,(edit_id,duty_price_history_id,start_date,start_date,end_date,end_date,start_date,end_date))
+                    else:
+                        cur.execute(""" 
+                            SELECT COUNT(*) FROM duty_price_history
+                                WHERE 
+                                    machine_id = %s AND id <> %s AND
+                                    (
+                                        (%s BETWEEN start_date AND  end_date) 
+                                        OR  (%s >= start_date AND %s < COALESCE(end_date,%s::date-1)) 
+                                        OR (start_date = %s)
+                                    )
+                                    ;
+                        """,(edit_id,duty_price_history_id,start_date,start_date,start_date,start_date,start_date))
+                    duplicate = cur.fetchone()[0]
+                    if duplicate != 0 or (end_date and end_date < start_date):
+                        mgs = "Invalid Dates!! Please Double Check Dates .."
+                    cur.execute("SELECT id FROM duty_price_history WHERE machine_id = %s AND machine_type_id = %s AND duty_price_type_id = %s AND duty_price = %s AND start_date = %s AND end_date = %s;",(edit_id,machine_type_id,price_type_id,price,start_date,end_date))
+                    if not cur.fetchone() and mgs is None:
+                        if duty_price_edit_id:
+                            cur.execute("SELECT start_date,COALESCE(end_date,start_date) FROM duty_price_history WHERE id = %s;",(duty_price_edit_id,))
+                            origin_dates = cur.fetchone()
+                            if start_date > origin_dates[0] or (end_date and end_date < origin_dates[1]):
+                                mgs = "You can't shrink dates while deleting!!"
+                            else:
+                                cur.execute("UPDATE duty_price_history SET machine_type_id = %s, duty_price_type_id = %s , duty_price = %s , start_date = %s , end_date = %s WHERE id = %s;",(machine_type_id, price_type_id, price, start_date, end_date, duty_price_edit_id))
                         else:
-                            mgs = 'Invalid Start Date or Start Data is already assigned...'
+                            cur.execute("SELECT MIN(start_date) FROM duty_price_history WHERE machine_id = %s UNION ( SELECT start_date FROM duty_price_history WHERE machine_id = %s ORDER BY start_date);",(edit_id,edit_id))
+                            datas = cur.fetchall()
+                            # print(start_date)
+                            # print(datas)
+                            if not datas[0][0]:
+                                cur.execute("INSERT INTO duty_price_history (machine_id,machine_type_id,duty_price_type_id,duty_price,start_date,end_date) VALUES (%s,%s,%s,%s,%s,%s);",(edit_id,machine_type_id,price_type_id,price,start_date,end_date))                
+                            elif start_date < datas[0][0]:
+                                if end_date:
+                                    cur.execute("INSERT INTO duty_price_history (machine_id,machine_type_id,duty_price_type_id,duty_price,start_date,end_date) VALUES (%s,%s,%s,%s,%s,%s);",(edit_id,machine_type_id,price_type_id,price,start_date,end_date))
+                                else:
+                                    cur.execute("INSERT INTO duty_price_history (machine_id,machine_type_id,duty_price_type_id,duty_price,start_date,end_date) VALUES (%s,%s,%s,%s,%s,(SELECT MIN(start_date) FROM duty_price_history WHERE machine_id = %s)- INTERVAL '1 day');",(edit_id,machine_type_id,price_type_id,price,start_date, edit_id))
+                            else:
+                                if start_date > datas[-1][0]:
+                                    cur.execute("UPDATE duty_price_history SET end_date = (SELECT %s::date -1) WHERE machine_id = %s AND end_date IS NULL;",(start_date,edit_id))
+                                cur.execute("INSERT INTO duty_price_history (machine_id,machine_type_id,duty_price_type_id,duty_price,start_date,end_date) VALUES (%s,%s,%s,%s,%s,%s);",(edit_id,machine_type_id,price_type_id,price,start_date,end_date))
                         conn.commit()
+                    else:
+                        mgs = "Same Datas are existed!!!"
                 cur.execute("SELECT name,id FROM machine_type")
                 datas = cur.fetchall()
                 datalist_datas["Machine Type"] = datas
@@ -236,10 +347,12 @@ def configurations(what,mgs=None):
                 datas = cur.fetchall()
                 datalist_datas["Owner"] = datas
 
-                cur.execute("""SELECT his.id,mt.name,dtyType.name,his.start_date,his.end_date,his.duty_price,mt.id,dtyType.id FROM duty_price_history AS his
+                cur.execute("""SELECT his.id,mt.name,dtyType.name,his.start_date,his.end_date,his.duty_price,mt.id,dtyType.id 
+                                FROM duty_price_history AS his
                                 LEFT JOIN machine_type mt ON mt.id = his.machine_type_id
                                 LEFT JOIN duty_price_type dtyType ON dtyType.id = his.duty_price_type_id
-                                WHERE his.machine_id = %s;""",(edit_id,))
+                                WHERE his.machine_id = %s
+                                ORDER BY start_date DESC;""",(edit_id,))
                 datas = cur.fetchall()
                 datalist_datas['history'] = datas
 
@@ -267,6 +380,57 @@ def configurations(what,mgs=None):
                 cur.execute("SELECT name FROM project_type;")
                 datalist_datas["Project Type"] = cur.fetchall()
 
+                datalist_datas['history'] = []
+
+                cur.execute("""
+                    SELECT DISTINCT ON (car.id,his.start_time)
+                        his.id,
+                        car.machine_name,
+                        his.start_time::date AS project_start_date,
+                        type.name,
+                        price_his.duty_price AS duty_price
+                    FROM
+                        machines_history AS his
+                    INNER JOIN
+                        fleet_vehicle AS car ON his.machine_id = car.id
+                    LEFT JOIN
+                        duty_price_history AS price_his ON price_his.machine_id = his.machine_id 
+                    LEFT JOIN 
+	                    duty_price_type AS type ON type.id = price_his.duty_price_type_id
+                    WHERE
+                        his.project_id = %s AND his.end_time IS  NULL 
+                            AND (
+                            his.start_time::date BETWEEN price_his.start_date AND COALESCE(price_his.end_date,CURRENT_DATE)
+                            OR his.end_time::date BETWEEN price_his.start_date AND COALESCE(price_his.end_date,CURRENT_DATE)
+                        ) ORDER BY his.start_time DESC;
+                """,(edit_id,))
+                datalist_datas['history'].append(cur.fetchall())
+
+                cur.execute("""
+                    SELECT DISTINCT ON (car.id,his.start_time)
+                        his.id,
+                        car.machine_name,
+                        his.start_time::date AS project_start_date,
+                        his.end_time::date AS project_end_date,
+                        type.name,
+                        price_his.duty_price AS duty_price
+                    FROM
+                        machines_history AS his
+                    INNER JOIN
+                        fleet_vehicle AS car ON his.machine_id = car.id
+                    LEFT JOIN
+                        duty_price_history AS price_his ON price_his.machine_id = his.machine_id 
+                    LEFT JOIN 
+	                    duty_price_type AS type ON type.id = price_his.duty_price_type_id
+                    WHERE
+                        his.project_id = %s AND his.end_time IS NOT NULL 
+                            AND (
+                            his.start_time::date BETWEEN price_his.start_date AND COALESCE(price_his.end_date,CURRENT_DATE)
+                            OR his.end_time::date BETWEEN price_his.start_date AND COALESCE(price_his.end_date,CURRENT_DATE)
+                        ) ORDER BY his.start_time DESC;
+                """,(edit_id,))
+                datalist_datas['history'].append(cur.fetchall())
+
                 cur.execute(""" SELECT 
                             code,pj.name,p_group.name,pj_type.name,bi.name,pj.id
                             FROM analytic_project_code AS pj 
@@ -279,13 +443,13 @@ def configurations(what,mgs=None):
                             WHERE pj.id = %s;""",(edit_id,))
                 datalist_datas['name'] = 'Project Edit'
             data = cur.fetchone()
-            print(data)
-            print(project_stat_form_id)
+            # print(data)
+            # print(project_stat_form_id)
             return render_template('edit_configurations.html',mgs=mgs,data=data,what=what,project_datas=project_datas,datalist_datas=datalist_datas,project_stat_form_id=project_stat_form_id, current_role = role)
             
 
     if what == 'machine':
-        cur.execute("""SELECT pj.name,fv.machine_name,mt.name,mc.name,rc.name,mcf.name,vb.name,vo.name,fv.id
+        cur.execute(f"""SELECT pj.name,fv.machine_name,mt.name,mc.name,rc.name,mcf.name,vb.name,vo.name,fv.id
                     FROM fleet_vehicle fv
                     LEFT JOIN machine_type mt ON mt.id = fv.machine_type_id 
                     LEFT JOIN machine_class mc ON mc.id = fv.machine_class_id
@@ -295,22 +459,19 @@ def configurations(what,mgs=None):
                     LEFT JOIN vehicle_machine_config mcf ON mcf.id = fv.machine_config_id
                     LEFT JOIN 
                         ( SELECT project_id,machine_id FROM machines_history 
-                            WHERE CURRENT_TIME >= start_time::time AND 
-                                current_time <= 
-                                    CASE WHEN end_time is NULL THEN current_time ELSE end_time::time END
+                            WHERE CURRENT_TIMESTAMP BETWEEN start_time AND COALESCE(end_time,CURRENT_TIMESTAMP)
                         ) AS history 
                         ON history.machine_id = fv.id
                     LEFT JOIN analytic_project_code AS pj
                         ON pj.id = history.project_id
-                    WHERE fv.machine_name ILIKE %s
-                    ORDER BY CASE WHEN fv.machine_name = %s THEN 0 ELSE 1 END
-                    LIMIT 81;""",('%'+search_wildcard+'%',search_wildcard))
+                    {where_filter_clause[:-6]}
+                    LIMIT 81;""")
         data = cur.fetchall()
         cur.execute("SELECT count(id) FROM fleet_vehicle;")
         extra_datas[2] = cur.fetchall()[0][0]
         extra_datas[0] = "Machine List"
     elif what == 'project':
-        cur.execute("""SELECT 
+        cur.execute(f"""SELECT 
                     code,pj.name,p_group.name,p_type.name,bi.name,pj.id
                     FROM analytic_project_code pj 
                     LEFT JOIN res_company bi
@@ -319,9 +480,8 @@ def configurations(what,mgs=None):
                     ON p_group.id = pj.pj_group_id
                     LEFT JOIN project_type AS p_type
                     ON p_type.id = pj.pj_type_id
-                    WHERE code ILIKE %s OR pj.name ILIKE %s
-                    ORDER BY CASE WHEN pj.name = %s THEN 0 WHEN pj.code = %s THEN 0 ELSE 1 END
-                    LIMIT 81;""",('%'+search_wildcard+'%','%'+search_wildcard+'%',search_wildcard,search_wildcard))
+                    {where_filter_clause[:-6]}
+                    LIMIT 81;""")
         data = cur.fetchall()
         cur.execute("""SELECT count(id) FROM analytic_project_code;""")
         extra_datas[2] = cur.fetchall()[0][0]
@@ -344,12 +504,12 @@ def configurations(what,mgs=None):
         extra_datas[2] = cur.fetchone()[0]
         extra_datas[0] = table_name_dct[what]
     elif what == 'project-stat':
-        cur.execute(""" SELECT pj.id , pj.name , pj.code , emp.name FROM project_statistics stat 
-                    INNER JOIN analytic_project_code pj ON stat.project_id = pj.id 
+        cur.execute(f""" SELECT pj.id , pj.name , pj.code , emp.name, stat.location , stat.pj_start_date, estimate_feet, will_sud , estimate_sud, estimate_duty , estimate_fuel , estimate_expense , estimate_day
+                    FROM project_statistics stat 
+                        INNER JOIN analytic_project_code pj ON stat.project_id = pj.id 
                     INNER JOIN employee emp ON emp.id = stat.supervisor_id
-                    WHERE pj.code ILIKE %s OR pj.name ILIKE %s OR emp.name ILIKE %s
-                    ORDER BY CASE WHEN pj.name = %s THEN 0 WHEN pj.code = %s THEN 0 WHEN emp.name = %s  THEN 0 ELSE 1 END
-                    LIMIT 81;""",('%'+search_wildcard+'%','%'+search_wildcard+'%','%'+search_wildcard+'%',search_wildcard,search_wildcard,search_wildcard))
+                        {where_filter_clause[:-6]}
+                    ORDER BY pj.name LIMIT 81;""")
         
         data = cur.fetchall()
         cur.execute("""SELECT count(id) FROM project_statistics;""")
@@ -605,7 +765,7 @@ def upload_duty():
                 cur.execute("SELECT name,id FROM service_category;")
                 category_datas = {data[0]:data[1] for data in cur.fetchall()}
                 for row_counter , row in enumerate(worksheet.iter_rows(min_row=2),start=2):
-                    print(row[0].value,row[2].value,row[3].value,row[4].value,row[5].value,row[6].value)
+                    # print(row[0].value,row[2].value,row[3].value,row[4].value,row[5].value,row[6].value)
                     if None in (row[0].value,row[2].value,row[3].value,row[4].value,row[5].value,row[6].value) or row[2].value not in bi_datas or row[3].value not in vehicle_datas:
                         print("Blank Field")
                     category_id = row[4].value.strip()
@@ -613,7 +773,7 @@ def upload_duty():
                         cur.execute("INSERT INTO service_category(name) VALUES (%s) ON CONFLICT (name) DO NOTHING RETURNING id;",(category_id,))
                         category_id = cur.fetchall()[0][0]
                     insert_statement_query += f""" ('{row[0].value}','{bi_datas.get(row[2].value.strip())}','{vehicle_datas.get(row[3].value.strip())}','{category_id}','{row[5].value.strip()}','{row[6].value.strip()}') """
-            print(insert_statement_query)
+            # print(insert_statement_query)
             if year != 'all':
                 s_date , e_date = get_first_and_last_day(int(month),int(year))
                 cur.execute("""DELETE FROM {} WHERE duty_date BETWEEN '{}' AND '{}' """.format(table,s_date,e_date))
@@ -674,7 +834,7 @@ def edit_data_in_db(db,id,stng:str):
         if lst[5] not in ['True','False'] or unit == []:
             return f"""["Error","{lst[5]} | {lst[4]}"]"""
         lst[4] = str(unit[0][0]) 
-        print(lst)
+        # print(lst)
         lst = [dt.replace('thisIsSlash','/') for dt in lst]
 
     inserted_values_query = {'project_statistics':tuple(datas)+(id,),
@@ -682,7 +842,7 @@ def edit_data_in_db(db,id,stng:str):
                             'analytic_project_code':tuple(lst)+(id,)}
     conn = db_connect()
     cur = conn.cursor()
-    print(queries_values[db],inserted_values_query[db])
+    # print(queries_values[db],inserted_values_query[db])
     try:
         cur.execute(queries_values[db],inserted_values_query[db])
         conn.commit()
@@ -695,6 +855,24 @@ def edit_data_in_db(db,id,stng:str):
 
 @views.route("/offset-display/<for_what>/<ofset>")
 def offset_display(for_what,ofset):
+    conn = db_connect()
+    cur = conn.cursor()
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+    if role in [3,4]:
+        project_filter_query = ''
+        income_expense_project = ''
+    else:
+        project_filter_query = f"""
+            WHERE das.pj_id in (SELECT project_id FROM project_user_access WHERE user_id = '{user_id}')
+        """
+        income_expense_project = f" WHERE form.project_id in (SELECT project_id FROM project_user_access WHERE user_id = '{user_id}') "
+
     queries_dct = {
         "pj-data-changeable" : f""" SELECT 
                     code,pj.name,p_group.name,p_type.name,bi.name,pj.id
@@ -715,7 +893,8 @@ def offset_display(for_what,ofset):
                     LEFT JOIN fleet_vehicle fv ON fv.id = dty.machine_id
                     LEFT JOIN analytic_project_code pj ON pj.id = dty.project_id ORDER BY dty.duty_date ASC 
                     LIMIT 81 OFFSET {ofset}""",
-        "machine-list-changeable" : f"""SELECT fv.machine_name,mt.name,mc.name,rc.name,mcf.name,vb.name,vo.name 
+        "machine-list-changeable" : f"""
+                        SELECT pj.name,fv.machine_name,mt.name,mc.name,rc.name,mcf.name,vb.name,vo.name,fv.id
                         FROM fleet_vehicle fv
                         LEFT JOIN machine_type mt ON mt.id = fv.machine_type_id 
                         LEFT JOIN machine_class mc ON mc.id = fv.machine_class_id
@@ -723,6 +902,11 @@ def offset_display(for_what,ofset):
                         LEFT JOIN fleet_vehicle_model_brand vb ON vb.id = fv.brand_id
                         LEFT JOIN vehicle_owner vo ON vo.id = fv.owner_name_id
                         LEFT JOIN vehicle_machine_config mcf ON mcf.id = fv.machine_config_id 
+                        LEFT JOIN 
+                            ( SELECT project_id,machine_id FROM machines_history 
+                                WHERE CURRENT_TIMESTAMP BETWEEN start_time AND COALESCE(end_time,CURRENT_TIMESTAMP)
+                            ) AS history ON history.machine_id = fv.id
+                        LEFT JOIN analytic_project_code AS pj ON pj.id = history.project_id
                         LIMIT 81 OFFSET {ofset}""",
         "expense-list-changeable" : f"""  SELECT
                             exp.duty_date,pj.code,pj.name,bi.name,exp.expense_amt
@@ -731,10 +915,85 @@ def offset_display(for_what,ofset):
                             ON pj.id = exp.project_id
                             INNER JOIN res_company bi
                             ON bi.id = exp.res_company_id
-                            LIMIT 81 OFFSET {ofset};"""
+                            LIMIT 81 OFFSET {ofset};""",
+        "income-expense-changeable":f"""SELECT form.set_date,pj.code,pj.name,form.income_expense_no,
+                                        CASE WHEN form.income_status = 't' THEN 'INCOME' ELSE 'EXPENSE' END,
+                                        SUM(line.amt),form.id
+                                        FROM income_expense AS form 
+                                        INNER JOIN income_expense_line AS line 
+                                        ON line.income_expense_id = form.id
+                                        INNER JOIN analytic_project_code AS pj
+                                        ON pj.id = form.project_id
+                                        {income_expense_project}
+                                        GROUP BY form.id,pj.code,pj.name
+                                        ORDER BY MAX(pj.id),form.set_date DESC
+                                        LIMIT 81 OFFSET {ofset};""",
+        "daily-activity-changeable":f""" WITH daily_activity_summary AS (
+                            SELECT DISTINCT ON (da.id)
+                                da.id,
+                                da.set_date,
+                                pj.code,
+                                pj.name,
+                                da.daily_activity_no,
+                                CASE WHEN da.working_status = 't' THEN 'Working' ELSE 'Not Working' END AS working_status,
+                                da.remark_for_not_working,
+                                da.wealther_effect_percent,
+                                da.complete_feet,
+                                da.complete_sud,
+                                pj.id AS pj_id
+                            FROM daily_activity da
+                            JOIN analytic_project_code pj ON da.project_id = pj.id
+                            LEFT JOIN daily_activity_accident_lines AS accident ON accident.daily_activity_id = da.id
+                        ),
+                        duty_hours_summary AS (
+                        
+                            SELECT daily_activity_id, EXTRACT(HOUR FROM sum(duty_hour)) || ':' || EXTRACT(MINUTE FROM sum(duty_hour)) AS total_duty_hour, SUM(used_fuel)  AS total_used_fuel, SUM(way) AS ways
+                            FROM daily_activity_lines
+                            GROUP BY daily_activity_id
+                        ),
+                        present_people_summary AS (
+                            SELECT daily_activity_id, SUM(present_people) AS total_present_people
+                            FROM employee_group_project_line
+                            GROUP BY daily_activity_id
+                        ),
+                        present_machines_summary AS (
+                            SELECT daily_activity_id, SUM(present_machines) AS total_present_machines
+                            FROM machines_history_project
+                            GROUP BY daily_activity_id
+                        ),
+                        accident_summary AS (
+                            SELECT daily_activity_id, COUNT(machine_id) AS machine_count, bool_or(accident_status) AS any_accident
+                            FROM daily_activity_accident_lines
+                            GROUP BY daily_activity_id
+                        )
+                        SELECT
+                            das.set_date,
+                            das.code,
+                            das.name,
+                            das.daily_activity_no,
+                            das.working_status,
+                            das.remark_for_not_working,
+                            das.wealther_effect_percent,
+                            das.complete_feet,
+                            das.complete_sud,
+                            COALESCE(dh.total_duty_hour,'0:00:00'),
+                            COALESCE(dh.total_used_fuel,'0.0'),
+                            pp.total_present_people,
+                            pm.total_present_machines,
+                            COALESCE(a.machine_count,0),
+                            COALESCE(a.any_accident,'FALSE'),
+                            COALESCE(dh.ways,'0.0'),
+                            das.id
+                        FROM daily_activity_summary das
+                        LEFT JOIN duty_hours_summary dh ON das.id = dh.daily_activity_id
+                        LEFT JOIN present_people_summary pp ON das.id = pp.daily_activity_id
+                        LEFT JOIN present_machines_summary pm ON das.id = pm.daily_activity_id
+                        LEFT JOIN accident_summary a ON das.id = a.daily_activity_id
+                        {project_filter_query}
+                        ORDER BY das.pj_id,das.set_date DESC,das.daily_activity_no DESC
+                        LIMIT 81 OFFSET {ofset};"""
     }
-    conn = db_connect()
-    cur = conn.cursor()
+    print(queries_dct[for_what])
     cur.execute(queries_dct[for_what])
     result_datas = cur.fetchall()
     if for_what == 'dty':
@@ -743,6 +1002,11 @@ def offset_display(for_what,ofset):
             str(d[11]), str(d[12]), str(d[13]), str(d[14]), str(d[15]), str(d[16]), str(d[17]), d[18], str(d[19]), 
             str(d[20])) for d in result_datas
             ]
+    elif for_what == 'income-expense-changeable' or for_what == 'daily-activity-changeable':
+        for idx,data in enumerate(result_datas):
+            data = list(data)
+            data[0] = str(data[0])
+            result_datas[idx] = data
     return jsonify(result_datas)
 
 
@@ -802,7 +1066,7 @@ def call_api(for_what,data:str):
         cur.execute("SELECT emp.id FROM employee emp INNER JOIN employee_group emp_gp ON emp.employee_group_id = emp_gp.id WHERE emp_gp.name = 'ACCOUNTANT' AND LOWER(emp.name) = %s LIMIT 1;",(acc.lower(),))
         result.append(cur.fetchone())
         return jsonify(result)
-    elif for_what == 'delete-machines-histrory':
+    elif for_what == 'delete-machines-history':
         cur.execute("UPDATE machines_history SET end_time = NOW() WHERE machine_id =  %s AND end_time IS NULL;",(data,))
         cur.execute("INSERT INTO machines_history (project_id,machine_id) VALUES(4,%s);",(data,))
         conn.commit()
@@ -811,11 +1075,14 @@ def call_api(for_what,data:str):
         cur.execute("DELETE FROM employee_group_project WHERE id = %s RETURNING id;",(data,))
         conn.commit()
     elif for_what == 'transfer_machine_project':
-        print(data.split("~~"))
+        # print(data.split("~~"))
         his_id , project_id , start_time , machine_id = data.split("~~")
         try:
             cur.execute("UPDATE machines_history SET end_time = %s WHERE id = %s;",(start_time,his_id))
             cur.execute("INSERT INTO machines_history (project_id,start_time,machine_id) VALUES (%s,%s,%s);",(project_id,start_time,machine_id))
+            if project_id == '4':
+                end_date = datetime.fromisoformat(start_time).date().strftime('%Y-%m-%d')
+                cur.execute("UPDATE duty_price_history SET end_date = %s WHERE machine_id = %s AND end_date IS NULL AND start_date <= %s RETURNING id;",(end_date,machine_id,end_date))
             conn.commit()
         except IntegrityError as err:
             print(err)

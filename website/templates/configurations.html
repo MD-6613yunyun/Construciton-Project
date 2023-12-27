@@ -31,6 +31,12 @@
 </div> -->
 {# {% endif %} #}
 
+<datalist id="projectList">
+    {% for data in project_datas %}
+        <option value="{{data[2]}}" getId="{{data[0]}}">
+    {% endfor %}
+</datalist>
+
 <h1 class="text-center mt-2">{{extra_datas[0]}} Table</h1>
 
 <form action="{{url_for('views.configurations',what=extra_datas[0])}}" method="POST" id="edit-configuration-form-sth">
@@ -41,13 +47,126 @@
         <div class="row">
             <div class="col-md-6 d-flex align-items-center mb-2">
                 <form action="{{url_for('views.configurations',what='search')}}" method="post" role="search">
-                    <div class="input-group">
+                    <!-- <div class="input-group">
                         <input type="text" name="for-what" hidden value="{{what}}">
                         <input autocomplete="off" class="form-control"  type="search" name="search-value" placeholder="Search" aria-label="Search">
                         <button class="btn btn-primary" type="submit">Search</button>
+                    </div> -->
+                    {% if extra_datas[0] == 'Project List' %}
+                    <div class="">
+                        <input type="text" name="for-what" hidden value="{{what}}">
+                        <!-- search filter features start -->
+                        <button type="button dropdown-toggle" data-bs-toggle="dropdown" class="btn btn-primary ms-1 rounded-2">Search Filter</button>
+                        <div class="dropdown-menu p-3 w-25" style="font-size: 13px;">
+                            <div class="d-flex row">
+                                <div class="col-6 mt-1">
+                                    <label for="siteCode" class="mb-1">ဆိုဒ်ကုဒ်/ဆိုဒ် အမည်</label>
+                                    <input type="text" autocomplete="off" name="pj-name" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Project Group</label>
+                                    <input type="text" autocomplete="off" name="pj-group" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Project Type</label>
+                                    <input type="text" autocomplete="off" name="pj-type" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Business Unit</label>
+                                    <input type="text" autocomplete="off" name="unit" class="form-control">
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <button type="" class="btn btn-success form-control">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- search filter features end -->
                     </div>
+                    {% elif extra_datas[0] == 'Machine List' %}
+                    <div class="">
+                        <input type="text" name="for-what" hidden value="{{what}}">
+                        <!-- search filter features start -->
+                        <button type="button dropdown-toggle" data-bs-toggle="dropdown" class="btn btn-primary ms-1 rounded-2">Search Filter</button>
+                        <div class="dropdown-menu p-2 w-25" style="font-size: 13px;">
+                            <div class="d-flex row">
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Current Project</label>
+                                    <input type="text" list="projectList" name="pj-name"  class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Machine Name</label>
+                                    <input type="text" name="name" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Type</label>
+                                    <input type="text" name="type" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Class</label>
+                                    <input type="text" name="class" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Unit</label>
+                                    <input type="text" name="unit" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Capacity</label>
+                                    <input type="text" name="capacity" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Brand</label>
+                                    <input type="text" name="brand" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Owner</label>
+                                    <input type="text" name="owner" class="form-control">
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <button type="" class="btn btn-success form-control">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- search filter features end -->
+                    </div>
+                    {% elif extra_datas[0] == 'Project Statistics' %}
+                    <div class="">
+                        <input type="text" name="for-what" hidden value="{{what}}">
+                        <!-- search filter features start -->
+                        <button type="button dropdown-toggle" data-bs-toggle="dropdown" class="btn btn-primary ms-1 rounded-2">Search Filter</button>
+                        <div class="dropdown-menu p-2 w-25" style="font-size: 13px;">
+                            <div class="d-flex row">
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Project Name / Code</label>
+                                    <input type="text" list="projectList" name="pj-name" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Supervisor</label>
+                                    <input type="text" name="supervisor" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Location</label>
+                                    <input type="text" name="location" class="form-control">
+                                </div>    
+                                <div class="col-6 mt-1">
+                                    <label for="" class="mb-1">Start Date</label>
+                                    <input type="date" name="start-dt" class="form-control">
+                                </div>                                                           
+                                <div class="col-12 mt-2">
+                                    <button type="" class="btn btn-success form-control">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- search filter features end -->
+                    </div>
+                    {% else %}
+                    <div class="input-group">
+                        <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                        <button class="btn btn-primary rounded-2" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </div>
+                    {% endif %}
                 </form>
                 <button class="btn btn-secondary text-white mx-2"><i class="fa-solid fa-download"></i></button>
+                <button  data-bs-toggle="modal" data-bs-target="#importStaticBackdrop" class="btn btn-secondary text-white mx-2"><i class="fa-solid fa-file-import"></i></button>
                 {% if what not in ('employee','ajt','ajf','fuel-price','employee-group','type','class','unit','capacity','brand','owner') %}
                     <a class="nav-item" href="{{url_for('imports.import_data',what=what)}}"><button class="btn btn-success">Create</button></a>
                 {% else %}
@@ -137,17 +256,29 @@
     <table>
         <thead>
             <tr>
-                <th>Project Name</th>
-                <th>Project Code</th>
-                <th>Supervisor</th>
+                <th>အမည်</th>
+                <th>ကုဒ်</th>
+                <th>တာဝန်ခံ</th>
+                <th>တည်နေရာ</th>
+                <th>စတင်ရက်</th>
+                <th>ပမာဏပေ</th>
+                <th>ပမာဏကျင်း</th>
+                <th>ဆောင်ရွက်မည့်ကျင်း</th>
+                <th>ခန့်မှန်း ဂျူတီ</th>
+                <th>ခန့်မှန်း ဆီ</th>
+                <th>ခန့်မှန်း အသုံးစရိတ်</th>
+                <th>ခန့်မှန်း ကြာချိန်</th>
             </tr>
         </thead>
         <tbody>
         {% for machine_data in datas %}
         <tr class="pj-stat-list-changeable" onclick="redirectToProjectStatForm('hidden-project-id','hidden-project-stat-form','{{machine_data[0]}}')">
-            <td class="text-start">{{machine_data[1]}}</td>
-            <td class="text-start">{{machine_data[2]}}</td>
-            <td class="text-start">{{machine_data[3]}}</td>
+            {% for data in machine_data[1:6] %}
+                <td class="text-start">{{data}}</td>
+            {% endfor %}
+            {% for data in machine_data[6:] %}
+                <td class="text-end">{{data}}</td>
+            {% endfor %}
         </tr>
         {% endfor %}
         </tbody>

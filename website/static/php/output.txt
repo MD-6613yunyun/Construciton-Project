@@ -1,7 +1,7 @@
  
                 <p align='center' line-height='0.2'>MDY - Nyaung Oo - Mya Kan Ta Man - Taung Pon Wa Chaung </p>
                 <p align='center' line-height='0.2'> SPD-23-24-002</p>
-                <p align='center' line-height='0.5'>2023-12-01 - 2023-12-16</p>
+                <p align='center' line-height='0.5'>2023-09-01 - 2023-12-21</p>
                 <p align='center'></p>
                 <div>
                     <table border="black">
@@ -18,22 +18,67 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td >2023-12-10</td>
+                                <td >2023-09-27</td>
                                 <td >Opening လက္က်န္ေငြ</td>
                                 <td ></td>
                                 <td ></td>
                                 <td ></td>
-                                <td >27,289.00</td>
+                                <td >0.00</td>
                                 <td ></td>
                             </tr> 
                                          
+                <tr>
+                    <td >2023-09-27</td>
+                    <td >Fuel</td>
+                    <td ></td>
+                    <td align="right">5.00</td>
+                    <td align="right">0.0</td>
+                    <td align="right">5.00</td>
+                    <td ></td>
+                </tr>              
+                <tr>
+                    <td >2023-09-27</td>
+                    <td >Testing </td>
+                    <td ></td>
+                    <td align="right">0.0</td>
+                    <td align="right">12.00</td>
+                    <td align="right">-7.00</td>
+                    <td >testing hello</td>
+                </tr>              
+                <tr>
+                    <td >2023-09-28</td>
+                    <td >Test</td>
+                    <td ></td>
+                    <td align="right">1,440.00</td>
+                    <td align="right">0.0</td>
+                    <td align="right">1,433.00</td>
+                    <td >testing</td>
+                </tr>              
+                <tr>
+                    <td >2023-09-29</td>
+                    <td >Change Tyres</td>
+                    <td ></td>
+                    <td align="right">2,000.00</td>
+                    <td align="right">0.0</td>
+                    <td align="right">3,433.00</td>
+                    <td ></td>
+                </tr>              
+                <tr>
+                    <td >2023-09-29</td>
+                    <td >ထမင္းစားစရိတ္</td>
+                    <td ></td>
+                    <td align="right">24,000.00</td>
+                    <td align="right">0.0</td>
+                    <td align="right">27,433.00</td>
+                    <td ></td>
+                </tr>              
                 <tr>
                     <td >2023-12-10</td>
                     <td >႐ုံးခ်ဳပ္မွရေငြ</td>
                     <td ></td>
                     <td align="right">300,000.00</td>
                     <td align="right">0.0</td>
-                    <td align="right">327,289.00</td>
+                    <td align="right">327,433.00</td>
                     <td ></td>
                 </tr>              
                 <tr>
@@ -42,7 +87,7 @@
                     <td >Vr-001</td>
                     <td align="right">0.0</td>
                     <td align="right">12,500.00</td>
-                    <td align="right">314,789.00</td>
+                    <td align="right">314,933.00</td>
                     <td ></td>
                 </tr>              
                 <tr>
@@ -51,16 +96,16 @@
                     <td >Vr-002</td>
                     <td align="right">0.0</td>
                     <td align="right">4,000.00</td>
-                    <td align="right">310,789.00</td>
+                    <td align="right">310,933.00</td>
                     <td ></td>
                 </tr> 
                             <tr>
                                 <td >စုစုေပါင္း</td>
                                 <td ></td>
                                 <td ></td>
-                                <td align="right">300,000.00</td>
-                                <td align="right">16,500.00</td>
-                                <td align="right">310,789.00</td>
+                                <td align="right">327,445.00</td>
+                                <td align="right">16,512.00</td>
+                                <td align="right">310,933.00</td>
                                 <td ></td>
                             </tr>                             
                         </tbody>

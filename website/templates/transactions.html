@@ -2,8 +2,8 @@
 {% block title %} Duty Query {% endblock %}
 {% block content %}
 
-{% if name not in ('Income Expense Query','Machine Activities Query','Repair Activities Query') %}
-    <h3 class="m-3 ms-5">Query Import</h3>
+{# {% if name not in ('Income Expense Query','Machine Activities Query','Repair Activities Query') %} #}
+    <!-- <h3 class="m-3 ms-5">Query Import</h3>
     <form method="POST" action="/upload-duty" enctype="multipart/form-data">
         <div class="conatiner m-3">
             <div class="row">
@@ -50,8 +50,8 @@
                 </div>
             </div>
         </div>
-    </form>
-{% endif %}
+    </form> -->
+{# {% endif %} #}
 <div id="duty-expense-container">
 
     <h1 class="text-center m-2">{{name}} Table</h1>
@@ -59,13 +59,66 @@
     <div class="text-center m-3">
         <div class="row">
             <div class="col-md-6 d-flex align-items-center">
-                <form role="search">
-                    <div class="input-group">
-                        <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                <form action="{{url_for('views.show_transactions',what='search')}}" method="post" role="search">
+                    <!-- <div class="input-group">
+                        <input type="text" name="for-what" hidden value="{{name}}">
+                        <input class="form-control" type="search" placeholder="Search" name="search-value" aria-label="Search">
                         <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </div> -->
+                    <div class="">
+                        {% if name not in ('Duty Query','Expenses Query','Machine Activities Query','Repair Activities Query') %}
+                        <!-- search filter features start -->
+                        <button type="button dropdown-toggle" data-bs-toggle="dropdown" class="btn btn-primary ms-1 rounded-2">Search Filter</button>
+                        <div class="dropdown-menu p-2 w-25">
+                            <div class="d-flex row">
+                                <div class="col-6 mt-1">
+                                    <label for="startDate">Start Date</label>
+                                    <input type="date" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="endDate">End Date</label>
+                                    <input type="date" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="siteCode">ဆိုဒ်ကုဒ်/ဆိုဒ် အမည်</label>
+                                    <input type="text" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="endDate">Cash Type</label>
+                                    <input type="text" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="inOut">Machine</label>
+                                    <input type="text" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="inOut">Invoice</label>
+                                    <input type="text" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="inOut">Price</label>
+                                    <input type="text" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="inOut">Amount</label>
+                                    <input type="text" class="form-control">
+                                </div>
+                                <div class="col-12 mt-1">
+                                    <button type="" class="btn btn-success form-control">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- search filter features end --> 
+                        {% else %}
+                        <div class="input-group">
+                            <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                            <button class="btn btn-primary rounded-2" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                        </div>
+                        {% endif %}                      
                     </div>
                 </form>
                 <button  data-bs-toggle="modal" data-bs-target="#exportStaticBackdrop" onclick="setDbAndGiveProjectCodes('{{name}}')" class="btn btn-secondary text-white mx-2"><i class="fa-solid fa-download"></i></button>
+                <button  data-bs-toggle="modal" data-bs-target="#importStaticBackdrop" class="btn btn-secondary text-white mx-2"><i class="fa-solid fa-file-import"></i></button>
                 {% if name == 'Duty Query' %}
                 <button class="btn btn-success" onclick="showTruckAnimation()">Create</button>
                 {% endif %}

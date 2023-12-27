@@ -74,12 +74,12 @@
                     <tbody id="activitiesTable">
                         <tr onchange="fillValue(this)">
                             <td>1</td>
-                            <td><input type="text" name="description" autocomplete="off" required style="width: 150px;"></td>
-                            <td><input type="text" name="machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
+                            <td><input type="text" name="description" data-field-name="အကြောင်း အရာ" autocomplete="off" required style="width: 150px;"></td>
+                            <td><input type="text" name="machine_id"  autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
                             <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td>
                             <td><input type="number" step="any" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
                             <td><input type="number" step="any" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 100px;"></td>
-                            <td><input type="number" step="any" name="amt" autocomplete="off" required class="amt"  style="text-align: right;width: 100px;"></td>
+                            <td><input type="number" step="any" data-field-name="ငွေ ပမာဏ" name="amt" autocomplete="off" required class="amt"  style="text-align: right;width: 100px;"></td>
                             <td><input type="text" name="remark" autocomplete="off"></td>
                             <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
@@ -90,12 +90,12 @@
                         </tr>
                         <tr onchange="fillValue(this)" class="d-none">
                             <td id="no">1</td>
-                            <td><input type="text" name="description" autocomplete="off"  class="shouldRequired" style="width: 150px;"></td>
+                            <td><input type="text" name="description" autocomplete="off" data-field-name="အကြောင်း အရာ"  class="shouldRequired" style="width: 150px;"></td>
                             <td><input type="text" name="machine_id" autocomplete="off" hidden style="width: 70px;"><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
                             <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td>
                             <td><input type="number" step="any" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
                             <td><input type="number" step="any" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 100px;"></td>
-                            <td><input type="number" step="any" name="amt" autocomplete="off"  class="amt shouldRequired"  style="text-align: right;width: 100px;"></td>
+                            <td><input type="number" step="any" name="amt" autocomplete="off" data-field-name="ငွေ ပမာဏ"  class="amt shouldRequired"  style="text-align: right;width: 100px;"></td>
                             <td><input type="text" name="remark" autocomplete="off"></td>
                             <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
@@ -109,6 +109,11 @@
         </form>
     </div>
 {% elif template_type == 'Report List' %}
+    <datalist id="projectList">
+        {% for data in project_datas %}
+            <option value="{{data[2]}}" getId="{{data[0]}}">
+        {% endfor %}
+    </datalist>
     <form id="hidden-income-expense-form" action="{{url_for('imports.import_data',what='income_expense_edit_form')}}" method="post">
         <input type="number" name="income_expense_id" id="hidden-income-expense-id" value="" hidden>
     </form>
@@ -116,19 +121,52 @@
     <div class="text-center m-3">
         <div class="row">
             <div class="col-md-6 d-flex align-items-center">
-                <form role="search">
-                    <div class="input-group">
-                        <input class="form-control" type="search" placeholder="Search" aria-label="Search">
-                        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <form action="{{url_for('site_imports.income_expense',typ='view')}}" method="post" role="search">
+                    <div class="">
+                        <!-- search filter features start -->
+                        <button type="button dropdown-toggle" data-bs-toggle="dropdown" class="btn btn-primary ms-1 rounded-2">Search Filter</button>
+                        <div class="dropdown-menu p-3 w-25" style="font-size: 13px;">
+                            <div class="d-flex row">
+                                <div class="col-6 mt-1">
+                                    <label for="startDate" class="mb-1">Start Date</label>
+                                    <input type="date" name="start-dt" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="endDate" class="mb-1">End Date</label>
+                                    <input type="date" name="end-dt" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="siteCode" class="mb-1">ဆိုဒ်ကုဒ်/ဆိုဒ် အမည်</label>
+                                    <input type="text" list="projectList" autocomplete="off" name="search-value" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="endDate" class="mb-1">အမှတ်စဉ်</label>
+                                    <input type="text" autocomplete="off" name="no" class="form-control">
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="inOut" class="mb-1">ဝင်/ထွက်</label>
+                                    <select name="status" class="form-control">
+                                        <option value="'t','f'" selected>ဝင်ငွေ နှင့် ထွက်ငွေ</option>
+                                        <option value="'t'">ဝင်ငွေ</option>
+                                        <option value="'f'">ထွက်ငွေ</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <label for="inOut" class="mb-1 text-white">ခလုတ်</label>
+                                    <button  type="" class="btn btn-success form-control">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- search filter features end -->
                     </div>
                 </form>
                 <button onclick="showModalAndGiveProjectCodes('remove-date')" data-bs-toggle="modal" data-bs-target="#monthlyReport" id="chooseProjectBeforeCreateForm" class="btn btn-success text-white ms-2 income-expense">ဖန်တီးပါ</button>
             </div>
             <div class="col-md-6 col-sm-12 text-end mt-2">
                 <div class="btn-group" role="group" aria-label="Basic example">
-                    <button type="button" onclick="clickPagination(this,'pj','prev')" class="btn btn-primary">ရှေ့သို့</button>
-                    <button type="button" class="btn btn-outline-dark" disabled> 1- {% if extra_datas[0][0] >= 81 %} 81 {% else %} {{extra_datas[0][0]}} {% endif %} / {{extra_datas[0][0]}}</button>
-                    <button type="button" onclick="clickPagination(this,'pj','next')" class="btn btn-primary">နောက်သို့</button>
+                    <button type="button" onclick="clickPagination(this,'income-expense','prev')" class="btn btn-primary">ရှေ့သို့</button>
+                    <button type="button" class="btn btn-outline-dark" disabled> 1- {% if extra_datas[0] >= 81 %} 81 {% else %} {{extra_datas[0]}} {% endif %} / {{extra_datas[0]}}</button>
+                    <button type="button" onclick="clickPagination(this,'income-expense','next')" class="btn btn-primary">နောက်သို့</button>
                 </div>
             </div>
         </div>
@@ -147,13 +185,13 @@
             </thead>
             <tbody>
                 {% for data in result %}
-                    <tr onclick="redirectToProjectStatForm('hidden-income-expense-id','hidden-income-expense-form','{{data[0]}}')">
-                        <td class="text-center">{{data[1]}}</td>
-                        <td>{{data[2]}}</td>
-                        <td class="text-start text-wrap" title="{{data[3]}}">{{data[3]}}</td>
-                        <td>{{data[4]}}</td>
-                        <td class="text-start">{{data[5]}}</td>
-                        <td class="text-end">{{data[6]}}</td>
+                    <tr class="income-expense-changeable" id="{{data[6]}}" onclick="redirectToProjectStatForm('hidden-income-expense-id','hidden-income-expense-form','{{data[6]}}')">
+                        <td class="text-center">{{data[0]}}</td>
+                        <td>{{data[1]}}</td>
+                        <td class="text-start text-wrap" title="{{data[3]}}">{{data[2]}}</td>
+                        <td>{{data[3]}}</td>
+                        <td class="text-start">{{data[4]}}</td>
+                        <td class="text-end">{{data[5]}}</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -247,12 +285,12 @@
                         {% for line in line_datas %}
                             <tr onchange="fillValue(this)">
                                 <td>1</td>
-                                <td><input disabled type="text" name="description" value="{{line[2]}}" autocomplete="off" required style="width: 150px;"></td>
+                                <td><input disabled type="text" name="description" value="{{line[2]}}" data-field-name="အကြောင်း အရာ" autocomplete="off" required style="width: 150px;"></td>
                                 <td><input type="text" name="machine_id" autocomplete="off" hidden><input disabled value="{{line[8]}}" type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
                                 <td><input disabled type="text" name="invoice_no" value="{{line[3]}}"  autocomplete="off" style="width: 70px;"></td>
                                 <td><input disabled type="number" step="any" name="qty" autocomplete="off"  value="{{line[4]}}" class="quan"  style="text-align: right;width: 70px;"></td>
                                 <td><input disabled type="number" step="any" name="price" autocomplete="off"  value="{{line[5]}}" class="prc"  style="text-align: right;width: 100px;"></td>
-                                <td><input disabled type="number" step="any" name="amt" autocomplete="off" value="{{line[6]}}" required class="amt"  style="text-align: right;width: 100px;"></td>
+                                <td><input disabled type="number" step="any" name="amt" autocomplete="off" data-field-name="ငွေ ပမာဏ" value="{{line[6]}}" required class="amt"  style="text-align: right;width: 100px;"></td>
                                 <td><input disabled type="text" name="remark" value="{{line[7]}}" autocomplete="off"></td>
                                 <td><button type="button" onclick="deleteRow(this)" disabled class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                             </tr>
@@ -264,12 +302,12 @@
                         </tr>
                         <tr onchange="fillValue(this)" class="d-none">
                             <td id="no">1</td>
-                            <td><input type="text" name="description" autocomplete="off"  class="shouldRequired" style="width: 150px;"></td>
+                            <td><input type="text" name="description" autocomplete="off" data-field-name="အကြောင်း အရာ" class="shouldRequired" style="width: 150px;"></td>
                             <td><input type="text" name="machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData',false)"></td>
                             <td><input type="text" name="invoice_no" autocomplete="off" style="width: 70px;"></td>
                             <td><input type="number" step="any" name="qty" autocomplete="off"  class="quan"  style="text-align: right;width: 70px;"></td>
                             <td><input type="number" step="any" name="price" autocomplete="off"  class="prc"  style="text-align: right;width: 100px;"></td>
-                            <td><input type="number" step="any" name="amt" autocomplete="off"  class="amt shouldRequired"  style="text-align: right;width: 100px;"></td>
+                            <td><input type="number" step="any" name="amt" autocomplete="off" data-field-name="ငွေ ပမာဏ"  class="amt shouldRequired"  style="text-align: right;width: 100px;"></td>
                             <td><input type="text" name="remark" autocomplete="off"></td>
                             <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>

@@ -19,7 +19,7 @@ def db_connect():
             password=password,
             client_encoding = 'UTF8'
         )
-        print('Connected to the database successfully!')
+        # print('Connected to the database successfully!')
         return conn
     except psycopg2.Error as e:
         print('Error connecting to the database:', e)

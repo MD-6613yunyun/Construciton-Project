@@ -846,7 +846,7 @@ html.under-construction {
 }
 
 .machine-name-container .machine-name-table{
-    max-height: 200px;
+    max-height: 400px;
     overflow: auto;
 }
 
@@ -1010,4 +1010,23 @@ html.under-construction {
         padding: 5px;
     }
 
+}
+
+#currentWorkingMachine div,#historyWorkingMachine div{
+    display: grid;
+    grid-template-columns: 31% 23% 23% 23%;
+    text-align: center;
+}
+
+#currentWorkingMachine, #historyWorkingMachine{
+    max-height: 50vh;
+    overflow: auto;
+}
+
+#historyWorkingMachine div{
+    grid-template-columns: 26% 18% 18% 18% 20%;
+}
+
+#currentWorkingMachine div:nth-child(even),#historyWorkingMachine div:nth-child(even){
+    background-color: #E9ECEF;
 }

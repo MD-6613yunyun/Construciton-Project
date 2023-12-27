@@ -12,10 +12,10 @@ def home():
 @site_imports.route("income-expense/<typ>/<mgs>",methods=['GET','POST'])
 @site_imports.route("income-expense/<typ>",methods=['GET','POST'])
 def income_expense(typ,mgs=None):
-
     if "cpu_user_id" not in session:
         return redirect(url_for("auth.authenticate"))
-
+    search_filter_query = ""
+    where_clause_query = "        "
     conn = db_connect()
     cur = conn.cursor()
     user_id = session["cpu_user_id"]
@@ -51,31 +51,60 @@ def income_expense(typ,mgs=None):
         return render_template("income_expense.html",cur_date = cur_date,form_datas = form_datas,machine_datas = machine_datas,template_type = 'Import',project_datas = project_datas, current_role = current_role)
     else:
         ##
+        if request.method == 'POST':
+            where_clause_query = " WHERE "
+            start_date = request.form.get('start-dt')
+            if start_date != '':
+                where_clause_query += f"form.set_date >= '{start_date}' AND "
+            end_date = request.form.get('end-dt')
+            if end_date != '':
+                where_clause_query += f"form.set_date <= '{end_date}' AND "
+            report_no = request.form.get('no').strip()
+            if report_no != '':
+                where_clause_query += f"form.income_expense_no ilike '%{report_no}%' AND "
+            income_status = request.form.get('status').strip()
+            where_clause_query += f"form.income_status IN ({income_status}) AND "
+            search_filter_query = request.form.get("search-value").strip()
+            where_clause_query += f"( pj.code ILIKE '%{search_filter_query}%' OR pj.name ILIKE '%{search_filter_query}%' )  AND "
         if current_role in [3,4]:
             project_filter_query = ''
+            count_project_filter_query = ''
         else:
-            project_filter_query = """
+            project_filter_query = f"""
                 INNER JOIN project_user_access AS access 
                 ON access.project_id = pj.id 
-                WHERE access.user_id = %s
+                WHERE access.user_id = '{user_id}'
             """
-        query = f""" SELECT form.id,form.set_date,MAX(pj.code),MAX(pj.name),form.income_expense_no,
+            count_project_filter_query = f"""
+                INNER JOIN project_user_access AS access 
+                ON access.project_id = pj.project_id 
+                WHERE access.user_id = '{user_id}'
+            """
+            if request.method == 'POST':
+                where_clause_query += f"  form.project_id IN (SELECT project_id FROM project_user_access WHERE user_id = '{user_id}')          "
+            else:
+                where_clause_query += f" WHERE form.project_id IN (SELECT project_id FROM project_user_access WHERE user_id = '{user_id}')          "
+        limit_filter_query = 'LIMIT 81' if where_clause_query.strip() == '' else '' 
+        query = f""" SELECT form.set_date,pj.code,pj.name,form.income_expense_no,
                         CASE WHEN form.income_status = 't' THEN 'INCOME' ELSE 'EXPENSE' END,
-                        SUM(line.amt)
+                        SUM(line.amt),form.id
                         FROM income_expense AS form 
                         INNER JOIN income_expense_line AS line 
                         ON line.income_expense_id = form.id
                         INNER JOIN analytic_project_code AS pj
                         ON pj.id = form.project_id
-                        {project_filter_query}
-                        GROUP BY form.id
+                        {where_clause_query[:-4]} 
+                        GROUP BY form.id,pj.code,pj.name
                         ORDER BY MAX(pj.id),form.set_date DESC
-                        LIMIT 81; """
-        cur.execute(query,(user_id,))
+                        {limit_filter_query};"""
+        cur.execute(query)
         result = cur.fetchall()
         extra_datas = []
-        cur.execute("SELECT count(id) FROM income_expense_line;")
-        extra_datas.append(cur.fetchone())
+        if limit_filter_query.strip() == "":
+            extra_datas.append(len(result))
+        else:
+            cur.execute(f"SELECT count(pj.id) FROM income_expense AS pj {count_project_filter_query} ;")
+            extra_datas.append(cur.fetchone()[0])
         query = f"SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj {project_filter_query};"
         cur.execute(query,(user_id,))
         project_datas = cur.fetchall()
@@ -95,6 +124,9 @@ def daily_activity(typ,mgs=None):
     user_id = session["cpu_user_id"]
     cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
     current_role = cur.fetchone()[0]
+
+    search_filter_query = ""
+    where_clause_query = "          "
 
     if current_role not in [1,3,4,5]:
         return render_template('access_error.html')
@@ -175,19 +207,44 @@ def daily_activity(typ,mgs=None):
         conn.close()
         if not history_datas:
             history_datas = (Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'),Decimal('0.0'))
-        print(history_datas)
+        # print(history_datas)
         return render_template("daily-table.html",extra_datas = extra_datas,form_datas = form_datas,machine_datas=machine_datas,activity_jobs=[activity_job_types,activity_job_functions],history_datas=history_datas,template_type = 'create',project_datas = project_datas,mgs=mgs, current_role = current_role)
     else:
+        accident_status = "'t','f'"
+        if request.method == 'POST':
+            where_clause_query = " WHERE "
+            start_date = request.form.get('start-dt')
+            if start_date != '':
+                where_clause_query += f"da.set_date >= '{start_date}' AND "
+            end_date = request.form.get('end-dt')
+            if end_date != '':
+                where_clause_query += f"da.set_date <= '{end_date}' AND "
+            report_no = request.form.get('no').strip()
+            if report_no != '':
+                where_clause_query += f"da.daily_activity_no ilike '%{report_no}%' AND "
+            accident_status = request.form.get('accident_status')
+            where_clause_query += f" COALESCE(accident_status,'f') IN ({accident_status}) AND "
+            income_status = request.form.get('working_status').strip()
+            where_clause_query += f"da.working_status IN ({income_status}) AND "
+            search_filter_query = request.form.get("search-value").strip()
+            where_clause_query += f"( pj.code ILIKE '%{search_filter_query}%' OR pj.name ILIKE '%{search_filter_query}%' )  AND "
         if current_role in [4,3]:
             project_filter_query = ''
+            count_project_filter_query = ''
         else:
-            project_filter_query = """
+            project_filter_query = f"""
                 INNER JOIN project_user_access AS access 
                 ON access.project_id = das.pj_id 
-                WHERE access.user_id = %s
+                WHERE access.user_id = '{user_id}'
             """
+            count_project_filter_query = f"""
+                INNER JOIN project_user_access AS access 
+                ON access.project_id = das.project_id 
+                WHERE access.user_id = '{user_id}'
+            """
+        limit_filter_query = 'LIMIT 81' if where_clause_query.strip() == '' else '' 
         query = f""" WITH daily_activity_summary AS (
-                            SELECT 
+                            SELECT DISTINCT ON (da.id)
                                 da.id,
                                 da.set_date,
                                 pj.code,
@@ -201,9 +258,12 @@ def daily_activity(typ,mgs=None):
                                 pj.id AS pj_id
                             FROM daily_activity da
                             JOIN analytic_project_code pj ON da.project_id = pj.id
+                            LEFT JOIN daily_activity_accident_lines AS accident ON accident.daily_activity_id = da.id
+                            {where_clause_query[:-4]}
                         ),
                         duty_hours_summary AS (
-                            SELECT daily_activity_id, SUM(duty_hour) AS total_duty_hour, SUM(used_fuel)  AS total_used_fuel, SUM(way) AS ways
+                        
+                            SELECT daily_activity_id, EXTRACT(HOUR FROM sum(duty_hour)) || ':' || EXTRACT(MINUTE FROM sum(duty_hour)) AS total_duty_hour, SUM(used_fuel)  AS total_used_fuel, SUM(way) AS ways
                             FROM daily_activity_lines
                             GROUP BY daily_activity_id
                         ),
@@ -223,7 +283,6 @@ def daily_activity(typ,mgs=None):
                             GROUP BY daily_activity_id
                         )
                         SELECT
-                            das.id,
                             das.set_date,
                             das.code,
                             das.name,
@@ -239,19 +298,23 @@ def daily_activity(typ,mgs=None):
                             pm.total_present_machines,
                             COALESCE(a.machine_count,0),
                             COALESCE(a.any_accident,'FALSE'),
-                            COALESCE(dh.ways,'0.0')
+                            COALESCE(dh.ways,'0.0'),
+                            das.id
                         FROM daily_activity_summary das
                         LEFT JOIN duty_hours_summary dh ON das.id = dh.daily_activity_id
                         LEFT JOIN present_people_summary pp ON das.id = pp.daily_activity_id
                         LEFT JOIN present_machines_summary pm ON das.id = pm.daily_activity_id
                         LEFT JOIN accident_summary a ON das.id = a.daily_activity_id
                         {project_filter_query}
-                        ORDER BY das.pj_id,das.set_date DESC,das.daily_activity_no DESC; """
-        cur.execute(query,(user_id,))
+                        ORDER BY das.pj_id,das.set_date DESC,das.daily_activity_no DESC {limit_filter_query};"""
+        cur.execute(query)
         result = cur.fetchall()
         extra_datas = []
-        cur.execute("SELECT count(*) FROM daily_activity;")
-        extra_datas.append(cur.fetchone())
+        if limit_filter_query.strip() == "":
+            extra_datas.append(len(result))
+        else:
+            cur.execute(f"SELECT count(das.id) FROM daily_activity AS das {count_project_filter_query};")
+            extra_datas.append(cur.fetchone()[0])
         if current_role in [3,4]:
             cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
         else:
@@ -259,6 +322,6 @@ def daily_activity(typ,mgs=None):
         project_datas = cur.fetchall()
         cur.close()
         conn.close()
-        print(result)
+        # print(result)
         return render_template("daily-table.html",project_datas=project_datas,result=result,extra_datas = extra_datas,template_type='view',mgs=mgs,current_role = current_role)
     

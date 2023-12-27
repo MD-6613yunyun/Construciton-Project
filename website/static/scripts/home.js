@@ -88,13 +88,10 @@ function checkSupervisor(){
 }
 
 function showDrop(selectRow){
-    const dropIcn = selectRow.children[0].children[5].children[0];
     if(selectRow.children[1].style.maxHeight == 0){
         selectRow.children[1].style.maxHeight = "60vh";
-        dropIcn.style.transform = "rotate(90deg)";
     }else{
         selectRow.children[1].style.maxHeight = null;
-        dropIcn.style.transform = "rotate(360deg)";
     }
 }
 
@@ -275,7 +272,10 @@ function clickPagination(btn,target,txt){
                     "machine":"machine-list-changeable",
                   "Duty Query":"duty-query-changeable",
               "machine":"machine-list-changeable",
-              "Expenses Query":"expense-list-changeable"}
+              "Expenses Query":"expense-list-changeable",
+              "income-expense":"income-expense-changeable",
+                "daily-activity":"daily-activity-changeable",}
+    all_tr = target_mapp.hasOwnProperty(target) ? document.getElementsByClassName(target_mapp[target]) : document.getElementsByClassName(target_mapp['machine'])
     all_tr = document.getElementsByClassName(target_mapp[target])
     if (txt == 'prev'){
         displayAmt = btn.nextElementSibling.textContent.trim().split("/")
@@ -315,10 +315,16 @@ function clickPagination(btn,target,txt){
 function replaceTableData(result) {
     let i = 0;
     for (i = 0; i < result.length; i++) {
-      tds = all_tr[i].getElementsByTagName('td');
-      Array.from(tds).forEach((td, index) => {
-        td.innerText = result[i][index];
-      });
+        console.log(result[i])
+        console.log(all_tr[i])
+        let redirector = all_tr[i].getAttribute("onclick").split(",")
+        redirector[redirector.length - 1] = `'${result[i][result[i].length - 1]}')`
+        all_tr[i].setAttribute("onclick", redirector.join())
+        tds = all_tr[i].getElementsByTagName('td');
+        Array.from(tds).forEach((td, index) => {
+            console.log(typeof(result[i][index]))
+            td.innerText = result[i][index];
+        });
     }
 }  
 
@@ -868,7 +874,7 @@ function directlyremoveTdRow(api_id,btn){
     if (btn.classList.contains("emp-data")){
         api_call = 'delete-employee-group-history'
     }else{
-        api_call = 'delete-machines-histrory'
+        api_call = 'delete-machines-history'
     }
     fetch(`/get-api/${api_call}/${api_id}`)
     .then(response => {
@@ -886,11 +892,12 @@ function replaceIdInTheTransferModal(hisId,machine_id){
     document.getElementById("source-machine-id").value = machine_id
 }
 
-function submitMachineTransferForStat(){
+function submitMachineTransferForStat(btn){
     his_id = document.getElementById("source-history-id").value.trim()
-    project_id = document.getElementById("transfer_project_id_for_stat").value.trim()
-    start_time = document.getElementById("transfer_machine_stat").value.trim()
     machine_id = document.getElementById("source-machine-id").value.trim()
+    let modalHolder = btn.parentElement.parentElement
+    project_id = modalHolder.querySelector("#transfer_project_id_for_stat").value.trim()
+    start_time = modalHolder.querySelector("#transfer_machine_stat").value.trim()
     console.log(his_id,project_id,start_time,machine_id)
     if (his_id == '' || project_id == '' || start_time == '' || machine_id == ''){
        alert("Incomplete Datas") 
@@ -899,7 +906,8 @@ function submitMachineTransferForStat(){
         .then(response => {
             if(response.status == 200){
                 console.log("Success")
-                document.getElementById("submitMachineTransferForStatCloseBtn").click()
+                modalHolder.querySelector("#submitMachineTransferForStatCloseBtn").click()
+                document.querySelector(`[machine-data-id='${machine_id}']`).remove()
             }else{
                 alert("Unknown error occurred...")
             }
@@ -929,6 +937,8 @@ function checkValidMachine(inp,idd,mandatory=true){
             .then(result => {
                 if (result.length != 1){
                     alert("ဂျူတီ ဈေးနှုန်း မသတ်မှတ်ထားသေးသောကြောင့် စက်ကားများ သွင်း၍ မရနိုင်ပါ !!!!")
+                    inp.previousElementSibling.setAttribute("required","")
+                    inp.value = ""
                 }
             })
         }
@@ -1115,6 +1125,7 @@ function showModalToEditDutyPrice(trRow){
     machineTypePlace.nextElementSibling.value = tds[0].textContent.trim()
     machineTypePlace.value = editDatas[1]
     document.getElementById("startDate").value = tds[2].textContent.trim()
+    document.getElementById("endDate").value = tds[3].textContent.trim()
     document.getElementById("price").value = tds[4].textContent.trim()
     document.querySelectorAll("#priceType option").forEach(selectt => {
         console.log(selectt.value, "h",)
@@ -1174,5 +1185,22 @@ function editEmployeeGroup(btn,typ='edit'){
         editBtn.previousElementSibling.children[0].setAttribute("hidden","")
         editBtn.previousElementSibling.innerHTML = `${typ} ${editBtn.previousElementSibling.children[0].outerHTML}` 
         btn.remove()
+    }
+}
+
+
+function switchTab(tab){
+    const currentWorkingMachine = document.getElementById("currentWorkingMachine");
+    const historyWorkingMachine = document.getElementById("historyWorkingMachine");
+    if(tab.querySelector('a').textContent == "Current Working Machines"){
+        tab.nextElementSibling.querySelector('a').classList.remove("active");
+        tab.querySelector('a').classList.add("active");
+        currentWorkingMachine.style.display = "";
+        historyWorkingMachine.style.display = "none"
+    }else if(tab.querySelector('a').textContent == "Machines History"){
+        tab.previousElementSibling.querySelector('a').classList.remove("active");
+        tab.querySelector('a').classList.add("active");
+        currentWorkingMachine.style.display = "none";
+        historyWorkingMachine.style.display = ""
     }
 }

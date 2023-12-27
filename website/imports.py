@@ -51,22 +51,17 @@ def import_data(what,mgs=None):
                             LEFT JOIN project_status status ON status.id = pj.project_status_id
                             WHERE pj.id = %s ; """,(pj_id,))
                 stat_datas = cur.fetchone()
-                cur.execute(""" SELECT  his.id , car.id , car.machine_name , type.name FROM machines_history his 
-                            INNER JOIN fleet_vehicle car ON car.id = his.machine_id INNER JOIN machine_type 
-                            type ON car.machine_type_id = type.id WHERE his.project_id = %s AND 
-                            his.end_time IS NULL;""",(pj_id,))
                 cur.execute(""" SELECT  his.id , car.id , car.machine_name , type.name , 
                                         price.duty_price , duty_price_type.name
                                     FROM machines_history his 
                                 INNER JOIN fleet_vehicle car 
                                     ON car.id = his.machine_id 
-                                INNER JOIN machine_type type 
-                                    ON car.machine_type_id = type.id
                                 LEFT JOIN (
                                     SELECT 
                                         machine_id,
                                         COALESCE(duty_price, '0') AS duty_price,
-                                        duty_price_type_id
+                                        duty_price_type_id,
+                                        machine_type_id
                                     FROM 
                                         duty_price_history AS price
                                     WHERE 
@@ -85,7 +80,8 @@ def import_data(what,mgs=None):
                                     SELECT 
                                         machine_id,
                                         '0' AS duty_price,
-                                        '0' AS duty_price_type_id
+                                        '0' AS duty_price_type_id,
+                                        '0' AS machine_type_id
                                     FROM 
                                         machines_history
                                     WHERE 
@@ -106,6 +102,8 @@ def import_data(what,mgs=None):
                                 ON price.machine_id = car.id
                                 LEFT JOIN duty_price_type
                                 ON duty_price_type.id = price.duty_price_type_id
+                                LEFT JOIN machine_type AS type
+                                ON type.id = price.machine_type_id
                                 WHERE his.project_id = %s AND his.end_time IS NULL; """,(pj_id,stat_datas[2],stat_datas[2],pj_id,stat_datas[2],stat_datas[2],pj_id))
                 history_datas = cur.fetchall()
                 cur.execute(""" SELECT emp.id , emp_gp.id , emp_gp.name , emp.assigned_people FROM employee_group_project 
@@ -173,6 +171,7 @@ def import_data(what,mgs=None):
                         WHERE activity.id = %s;""",(daily_activity_id,daily_activity_id))
             form_datas = cur.fetchone()
             pj_id = form_datas[12]
+            acti_set_date = form_datas[14]
             line_datas = []
             cur.execute("""SELECT line.id,car.id,car.machine_name,ajt.id,ajt.name,ajf.id,ajf.name,EXTRACT(HOUR FROM line.duty_hour),EXTRACT(MINUTE FROM line.duty_hour),line.used_fuel,line.description,COALESCE(line.way,'0.0')
                         FROM daily_activity_lines AS line
@@ -189,20 +188,24 @@ def import_data(what,mgs=None):
                         LEFT JOIN fleet_vehicle AS car
                         ON car.id = line.machine_id WHERE line.daily_activity_id = %s;""",(daily_activity_id,))
             line_datas.append(cur.fetchall())
-            cur.execute(""" SELECT type.name,count(*),MIN(type.id),MAX(machines_table.present_machines) FROM machines_history AS his
-                            LEFT JOIN fleet_vehicle AS car
-                            ON car.id = his.machine_id
-                            LEFT JOIN machine_type type
-                            ON type.id = car.machine_type_id
-                            LEFT JOIN (
-                                SELECT activity.project_id,present_machines FROM machines_history_project his
-                                LEFT JOIN daily_activity activity
-                                ON activity.id = his.daily_activity_id
-                                WHERE daily_activity_id = %s
-                            ) AS machines_table
-                            ON machines_table.project_id = his.project_id
-                            WHERE his.project_id = %s AND his.end_time IS  NULL
-                            GROUP BY type.name; """,(daily_activity_id,pj_id))
+            cur.execute(""" 
+                SELECT COALESCE(total_history.name,'DEPRECATED'),COALESCE(total_history.total_machines,0),current_his.machine_type_id,current_his.present_machines FROM machines_history_project AS current_his
+                    INNER JOIN daily_activity AS acti
+                ON acti.id = current_his.daily_activity_id
+                    LEFT JOIN (
+                        SELECT type.id AS machine_type_id,MAX(type.name) AS name,COUNT(price_his.machine_id) AS total_machines 
+                            FROM duty_price_history AS price_his
+                        INNER JOIN machine_type AS type
+                            ON price_his.machine_type_id = type.id
+                        LEFT JOIN machines_history AS machine_his
+                            ON machine_his.machine_id = price_his.machine_id
+                        WHERE machine_his.project_id = %s AND
+                            %s BETWEEN price_his.start_date AND COALESCE(price_his.end_date,%s) 
+                        GROUP BY type.id
+                    ) AS total_history 
+                ON current_his.machine_type_id = total_history.machine_type_id
+                    WHERE acti.id = %s;
+            """,(pj_id,acti_set_date,acti_set_date,daily_activity_id))
             emp_datas = cur.fetchall()
             cur.execute(""" SELECT emp.name,emp_pj.assigned_people,emp_pj.id,emp_line.present_people FROM employee_group_project emp_pj
                             LEFT JOIN employee_group emp
@@ -226,26 +229,33 @@ def import_data(what,mgs=None):
             activity_job_types = cur.fetchall()
             cur.execute("SELECT name,id FROM activity_job_function;")
             activity_job_functions = cur.fetchall()
-            cur.execute(""" WITH form_table AS ( SELECT project_id,sum(complete_feet) AS feet,sum(complete_sud) AS sud
-                            FROM daily_activity GROUP BY project_id ) ,
+            cur.execute(""" WITH form_table AS ( 
+                                SELECT project_id,sum(complete_feet) AS feet,sum(complete_sud) AS sud
+                                    FROM daily_activity 
+                                WHERE project_id = %s
+                                    GROUP BY project_id 
+                                ) ,
                             line_table AS (
-                            SELECT form.project_id,ROUND((EXTRACT(HOUR FROM sum(duty_hour)) + EXTRACT(MINUTE FROM sum(duty_hour))/60),2) AS hour,sum(used_fuel) AS fuel FROM daily_activity_lines AS line
-                            LEFT JOIN daily_activity AS FORM 
-                            ON line.daily_activity_id = form.id
-                            GROUP BY form.project_id ) ,
+                                SELECT form.project_id,ROUND((EXTRACT(HOUR FROM sum(duty_hour)) + EXTRACT(MINUTE FROM sum(duty_hour))/60),2) AS hour,sum(used_fuel) AS fuel 
+                                    FROM daily_activity_lines AS line
+                                LEFT JOIN daily_activity AS FORM 
+                                    ON line.daily_activity_id = form.id
+                                WHERE FORM.project_id = %s
+                                    GROUP BY form.project_id 
+                                ) ,
                             expense_table AS (
-                            SELECT form.project_id,sum(line.amt) AS expense FROM income_expense_line AS line
-                            LEFT JOIN income_expense AS form 
-                            ON form.id = line.income_expense_id
-                            WHERE form.income_status = 'f'
-                            GROUP BY form.project_id
+                                SELECT form.project_id,sum(line.amt) AS expense FROM income_expense_line AS line
+                                    LEFT JOIN income_expense AS form 
+                                ON form.id = line.income_expense_id
+                                    WHERE form.income_status = 'f'
+                                GROUP BY form.project_id
                             )
                             SELECT COALESCE(form_table.feet,0.0),COALESCE(form_table.sud,0.0),COALESCE(line_table.hour,0.0),COALESCE(line_table.fuel,0.0),COALESCE(expense_table.expense,0.0) FROM form_table 
-                            LEFT JOIN line_table 
+                                LEFT JOIN line_table 
                             ON form_table.project_id = line_table.project_id
-                            LEFT JOIN expense_table
+                                LEFT JOIN expense_table
                             ON form_table.project_id = expense_table.project_id
-                            WHERE form_table.project_id = %s;""",(pj_id,))
+                                WHERE form_table.project_id = %s;""",(pj_id,pj_id,pj_id))
             history_datas = cur.fetchone()
             if role in (3, 4):
                 cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
@@ -407,7 +417,7 @@ def upload_each_data():
         if db == 'analytic_project_code':
             pj_datas = request.form.getlist('pj-datas')
             edit_id = request.form.get("edit-id")
-            print(pj_datas)
+            # print(pj_datas)
             cur.execute("SELECT id FROM res_company where name = %s",(pj_datas[-1],))
             bi_id = cur.fetchall()
             if not bi_id:
@@ -425,7 +435,7 @@ def upload_each_data():
             what = 'project'
         elif db == 'duty_odoo_report':
             dty_datas = request.form.getlist('duty-datas')
-            print(dty_datas)
+            # print(dty_datas)
         elif db == 'fleet_vehicle':
             edit_id = request.form.get("edit-id")
             vehicle_datas = request.form.getlist('vehicle-datas')
@@ -437,10 +447,9 @@ def upload_each_data():
                     return redirect(url_for('views.configurations',what='machine',mgs=f"Invalid {change_db_to_field_name(table_name)}"))
                 else:
                     inserted_values.append(idd)
-            query = f""" INSERT INTO {db} (machine_name,machine_type_id,machine_class_id,machine_config_id,brand_id,business_unit_id,owner_name_id) VALUES {tuple(inserted_values)};"""
+            query = f""" INSERT INTO {db} (machine_name,machine_type_id,machine_class_id,machine_config_id,brand_id,business_unit_id,owner_name_id) VALUES {tuple(inserted_values)} RETURNING id;"""
             if edit_id:
                 query = f""" UPDATE  {db} SET machine_name = '{inserted_values[0]}'  , machine_class_id = '{inserted_values[1]}' , machine_config_id = '{inserted_values[2]}' , brand_id = '{inserted_values[3]}' , business_unit_id = '{inserted_values[4]}' , owner_name_id = '{inserted_values[5]}' WHERE id = {edit_id};"""
-            print(query)
             what = 'machine'
         elif db == 'project_stats':
             pj_id = request.form.get('pj_id')
@@ -499,7 +508,7 @@ def upload_each_data():
             employee_powers = request.form.getlist("employee_power")
             update_query = update_query[:-2] + f" WHERE project_id = {pj_id};"
             what = 'project-stat'
-            print(update_query)
+            # print(update_query)
             try:
                 cur.execute(update_query,list(input_values.values()))
                 if machine_ids != []:
@@ -517,6 +526,9 @@ def upload_each_data():
         if query != "":
             try:
                 cur.execute(query)
+                if db == 'fleet_vehicle':
+                    machine_id = cur.fetchone()[0]
+                    cur.execute("INSERT INTO machines_history (project_id,machine_id,start_time) VALUES (4,%s,NOW());",(machine_id,))
                 conn.commit()
             except IntegrityError as err:
                 mgs = str(err).title()
@@ -587,7 +599,7 @@ def site_imports(typ):
             amts = request.form.getlist("amt")[:-1]
             remarks = request.form.getlist("remark")[:-1]
             machine_ids = request.form.getlist("machine_id")[:-1]
-            print(form_id)
+            # print(form_id)
             cur.execute("SELECT income_status FROM income_expense WHERE id = %s;",(form_id,))
             income_original_status = cur.fetchone()[0]
             income_status = True if  income_or_expense == 'incomes' else False
@@ -639,17 +651,21 @@ def site_imports(typ):
             cur.execute("SELECT fuel_price FROM fuel_price_history WHERE %s BETWEEN start_date AND COALESCE(end_date,%s);",(set_date,set_date))
             fuel_price = cur.fetchone()[0]
             for data in zip(machine_ids,job_type_ids,job_function_ids,duty_hr,duty_min,used_fuel,descriptions,ways):
-                print(data)
+                # print(data)
                 if data != ('', '', '', '', '', '', '',''):
                     cur.execute(""" SELECT ROUND(CASE WHEN type.name = 'Per Duty' THEN ROUND((duty_price / 8),2) * %s + ROUND((duty_price/8) / 60,2) * %s WHEN type.name = 'Per Month' THEN (duty_price / 30) END,2) AS price
                                     FROM duty_price_history AS his
                                     INNER JOIN duty_price_type AS type
                                     ON his.duty_price_type_id = type.id WHERE machine_id = %s AND %s BETWEEN start_date AND COALESCE(end_date,%s);""",(data[3],data[4],data[0],set_date,set_date))
-                    duty_amt = cur.fetchone()[0]       
+                    duty_amt = cur.fetchone()
+                    if duty_amt is None:
+                        return redirect(url_for('site_imports.daily_activity',typ='view',mgs="ဂျူတီ ဈေးနှုန်း မသတ်မှတ်ထားသော စက်ကားများ ထည့်သွင်း၍ မရပါ ။"))
+                    else:
+                        duty_amt = duty_amt[0]
                     fuel_qty = round(Decimal(data[5]) / Decimal(4.54),2)
                     fuel_amt = round(fuel_price*(Decimal(fuel_qty)*Decimal('4.54')),2)
                     ways = 0 if data[7].strip() == "" else data[7]
-                    print(ways)
+                    # print(ways)
                     cur.execute('''INSERT INTO daily_activity_lines(daily_activity_id,machine_id,job_type_id,job_function_id,duty_hour,used_fuel,description,duty_amt,fuel_amt,way) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);''',(daily_activity_id,data[0],data[1],data[2],f'{data[3]} hours {data[4]}  minutes',fuel_qty,data[6],duty_amt,fuel_amt,ways))
             # manpower & equipment
             man_amt = request.form.getlist("manpower_amt")
@@ -657,8 +673,10 @@ def site_imports(typ):
             type_amt = request.form.getlist("type_amt")
             type_id = request.form.getlist("type_id")
             for data in zip(man_id,man_amt):
+                # print(data)
                 cur.execute("INSERT INTO employee_group_project_line(daily_activity_id,employee_group_project_id,present_people) VALUES (%s,%s,%s);",(daily_activity_id,data[0],data[1]))
             for data in zip(type_id,type_amt):
+                # print(data)
                 cur.execute("INSERT INTO machines_history_project(daily_activity_id,machine_type_id,present_machines) VALUES (%s,%s,%s);",(daily_activity_id,data[0],data[1]))
             # accidents
             acc_machine_ids = request.form.getlist("acc_machine_id")[:-1]
@@ -668,14 +686,15 @@ def site_imports(typ):
                 if data[0].strip() != '' and data[1].strip() != '':
                     acc_status = 't' if data[2] == '1' else 'f'
                     cur.execute('''INSERT INTO daily_activity_accident_lines(daily_activity_id,machine_id,description,accident_status) VALUES(%s,%s,%s,%s);''',(daily_activity_id,data[0],data[1],acc_status))
-            print(man_amt)
-            print(man_id)
-            print(type_amt)
-            print(type_id)
-            print(ways)
-            print(acc_machine_ids)
-            print(acc_descriptions)
-            print(hasAccidents)
+
+            # print(man_amt)
+            # print(man_id)
+            # print(type_amt)
+            # print(type_id)
+            # print(ways)
+            # print(acc_machine_ids)
+            # print(acc_descriptions)
+            # print(hasAccidents)
 
             if daily_activity_edit_id:
                 cur.execute("DELETE FROM daily_activity_accident_lines WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
@@ -684,13 +703,13 @@ def site_imports(typ):
                 cur.execute("DELETE FROM machines_history_project WHERE daily_activity_id = %s;",(daily_activity_edit_id,))
                 cur.execute("DELETE FROM daily_activity WHERE id = %s;",(daily_activity_edit_id,))
                 
-            print(machine_ids)
-            print(job_type_ids)
-            print(job_function_ids)
-            print(duty_hr)
-            print(duty_min)
-            print(used_fuel)
-            print(descriptions)
+            # print(machine_ids)
+            # print(job_type_ids)
+            # print(job_function_ids)
+            # print(duty_hr)
+            # print(duty_min)
+            # print(used_fuel)
+            # print(descriptions)
             conn.commit()
             return redirect(url_for('site_imports.daily_activity',typ='view'))
     else:
@@ -705,7 +724,7 @@ def delete_form():
     cur = conn.cursor()
     url_for_name , typ = "" , ""
     mgs = "Succesfully Deleted..."
-    print(for_what)
+    # print(for_what)
     try:
         if for_what == "daily_activity":
             url_for_name , typ = 'site_imports.daily_activity' , 'view' 

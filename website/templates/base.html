@@ -208,6 +208,7 @@
             </div>
         </div>
     </div>
+
     <!-- Export Modal -->
     <div class="modal fade" id="exportStaticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -253,6 +254,41 @@
             </div>
         </div>
     </div>
+
+    <!-- Import Modal -->
+    <div class="modal fade" id="importStaticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" style="margin: 0;" id="staticBackdropLabel">Upload Excel File</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="/upload-machine-details" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="m-4">
+                            <div class="form-group w-100">
+                                <input type="file"  required class="form-control" name="upload_excel_machine_details">
+                            </div>
+                        </div>
+                        <div class="m-4">
+                            <select class="form-select form-select" name="selectedOption"  required aria-label=".form-select-sm example">
+                                <option value="" disabled selected>Please Select Excel Import File</option>                               
+                                <option value="1">Machine List</option>
+                                <option value="2">Machine Details</option>
+                                <option value="3">Project Code</option>
+                                <option value="4">Work Done</option>
+                            </select>
+                        </div>                        
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success btn-block">Upload Excel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Message Modal -->
         <!-- Button trigger modal -->
         <button type="button" class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#exampleModal" id="autoClicker"></button>
