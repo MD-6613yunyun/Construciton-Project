@@ -4,68 +4,293 @@
     <link href="{{url_for('static',filename='styles/site-reports.css')}}" rel="stylesheet"/>
 {% endblock %}
 {% block content %}
-<h3 class="text-center mt-2">Income Expense Report</h3>
-<hr/><h4 class="text-center second-header-income-expense">{{extra_datas[1]}}({{extra_datas[0]}})</h4><hr/>
-<h5 class="text-center">From - <strong> {{extra_datas[2]}} </strong> To - <strong> {{extra_datas[3]}} </strong></h5>
-<form action="/duty/income-expense-report" class="monthlyformInModal" method="POST">
-    <input hidden type="text" value="{{extra_datas[0]}}_&_{{extra_datas[1]}}" name="pj_name">
-    <input hidden="number" value="{{extra_datas[5]}}" name="pj_id">
-    <input hidden="date" value="{{extra_datas[2]}}" name="start_date_for_each">
-    <input hidden type="date" value="{{extra_datas[3]}}"  name="end_date_for_each">
-    <input hidden type="text" value="" name="for_what_type" id="for_what_type">
-    <button type="submit" class="btn btn-sm btn-success m-1 d-inline" onclick="{document.getElementById('for_what_type').value = 'excel'}"><i class="fas fa-print"></i> Excel Print</button>
-    <button type="submit" class="btn btn-sm btn-outline-dark m-1 d-inline" onclick="{document.getElementById('for_what_type').value = 'pdf'}"><i class="fas fa-print"></i> PDF Print</button>
-</form>
-<div id="inExReport">
-    <div class="inExRow " onclick="showDrop(this)">
-        <ul id="totalRow">
-            <li class="fs-3"><b>စုစုပေါင်း</b></li>
-            <li>Opening လက်ကျန်ငွေ<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][0]}}</b></li>
-            <li>အဝင်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][1]}}</b></li>
-            <li>အထွက်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][2]}}</b></li>
-            <li>လက်ကျန်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][3]}}</b></li>
-        </ul>
-        {% if result_datas|length != 0 %}
-            <div class="dropBox">
-                <table>
-                    <tr>
-                        <thead id="detialHead">
-                            <th class="py-2" style="width: 15%">နေ့စွဲ</th>
-                            <th style="width: 25%">အကြောင်းအရာ</th>
-                            <th style="width: 15%">ဘောင်ချာ</th>
-                            <th style="width: 10%">အဝင်</th>
-                            <th style="width: 10%">အထွက်</th>
-                            <th style="width: 10%">လက်ကျန်</th>
-                            <th style="width: 20%">မှတ်ချက်</th>
-                        </thead>
-                        <tbody id="tbody">
-                            <tr style="background-color: #c1c1c1;">
-                                <td class="py-2">{{result_datas[0][0]}}</td>
-                                <td class="text-start">Opening Balance</td>
-                                <td class="py-2"></td>
-                                <td class="text-end"></td>
-                                <td class="text-end"></td>
-                                <td class="text-end toAddCommaForAmt">{{extra_datas[4][0]}}</td>
-                                <td class="ps-2 text-start"></td>
-                            </tr>
-                            {% for result_data in result_datas %}
+
+    {%if site_report_type == 'income_expense' %}
+        <h3 class="text-center mt-2">ဝင်ငွေ / ထွက်ငွေ စာရင်း</h3>
+        <hr/><h4 class="text-center second-header-income-expense">{{extra_datas[1]}}({{extra_datas[0]}})</h4><hr/>
+        <h5 class="text-center">From - <strong> {{extra_datas[2]}} </strong> To - <strong> {{extra_datas[3]}} </strong></h5>
+        <form action="/duty/income-expense-report" class="monthlyformInModal" method="POST">
+            <input hidden type="text" value="{{extra_datas[0]}}_&_{{extra_datas[1]}}" name="pj_name">
+            <input hidden="number" value="{{extra_datas[5]}}" name="pj_id">
+            <input hidden="date" value="{{extra_datas[2]}}" name="start_date_for_each">
+            <input hidden type="date" value="{{extra_datas[3]}}"  name="end_date_for_each">
+            <input hidden type="text" value="" name="for_what_type" id="for_what_type">
+            <button type="submit" class="btn btn-sm btn-success m-1 d-inline" onclick="{document.getElementById('for_what_type').value = 'excel'}"><i class="fas fa-print"></i> Excel Print</button>
+            <button type="submit" class="btn btn-sm btn-outline-dark m-1 d-inline" onclick="{document.getElementById('for_what_type').value = 'pdf'}"><i class="fas fa-print"></i> PDF Print</button>
+        </form>
+        <div id="inExReport" class="my-3">
+            <div class="inExRow " onclick="showDrop(this)">
+                <ul id="totalRow">
+                    <li class="fs-3"><b>စုစုပေါင်း</b></li>
+                    <li>Opening လက်ကျန်ငွေ<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][0]}}</b></li>
+                    <li>အဝင်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][1]}}</b></li>
+                    <li>အထွက်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][2]}}</b></li>
+                    <li>လက်ကျန်<br><b class="fs-5 toAddCommaForAmt">{{extra_datas[4][3]}}</b></li>
+                </ul>
+                {% if result_datas|length != 0 %}
+                    <div class="dropBox">
+                        <table>
                             <tr>
-                                <td class="text-center">{{result_data[0]}}</td>
-                                <td class="text-start">{{result_data[1]}}</td>
-                                <td class="">{{result_data[2]}}</td>
-                                <td class="text-end toAddCommaForAmt">{{result_data[3]}}</td>
-                                <td class="text-end toAddCommaForAmt">{{result_data[4]}}</td>
-                                <td class="text-end toAddCommaForAmt">{{result_data[5]}}</td>
-                                <td class="ps-2 text-start">{{result_data[6]}}</td>
+                                <thead id="detialHead">
+                                    <th class="py-2" style="width: 15%">နေ့စွဲ</th>
+                                    <th style="width: 25%">အကြောင်းအရာ</th>
+                                    <th style="width: 15%">ဘောင်ချာ</th>
+                                    <th style="width: 10%">အဝင်</th>
+                                    <th style="width: 10%">အထွက်</th>
+                                    <th style="width: 10%">လက်ကျန်</th>
+                                    <th style="width: 20%">မှတ်ချက်</th>
+                                </thead>
+                                <tbody id="tbody">
+                                    <tr style="background-color: #c1c1c1;">
+                                        <td class="py-2">{{result_datas[0][0]}}</td>
+                                        <td class="text-start">Opening Balance</td>
+                                        <td class="py-2"></td>
+                                        <td class="text-end"></td>
+                                        <td class="text-end"></td>
+                                        <td class="text-end toAddCommaForAmt">{{extra_datas[4][0]}}</td>
+                                        <td class="ps-2 text-start"></td>
+                                    </tr>
+                                    {% for result_data in result_datas %}
+                                    <tr>
+                                        <td class="text-center">{{result_data[0]}}</td>
+                                        <td class="text-start">{{result_data[1]}}</td>
+                                        <td class="">{{result_data[2]}}</td>
+                                        <td class="text-end toAddCommaForAmt">{{result_data[3]}}</td>
+                                        <td class="text-end toAddCommaForAmt">{{result_data[4]}}</td>
+                                        <td class="text-end toAddCommaForAmt">{{result_data[5]}}</td>
+                                        <td class="ps-2 text-start">{{result_data[6]}}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
                             </tr>
-                            {% endfor %}
-                        </tbody>
-                    </tr>
-                </table>
+                        </table>
+                    </div>
+                {% endif%}
             </div>
-        {% endif%}
-    </div>
-</div>
+        </div>
+    {% elif site_report_type == 'fuel' %}
+
+        <h3 class="text-center p-2">ဆိုဒ်များ၏ သုံးစွဲမှုဆီစာရင်း</h3>
+
+        <h4 class="text-center p-2">{{date_diff[2]}}</h4>
+        
+        {% if result_datas == {} %}
+
+            <h4 class="text-center mt-5"> ဆီသုံးစွဲမှု မရှိပါ။ </h4>
+
+        {% else %}
+            <form action="/duty/fuel-report" class="monthlyformInModal" method="POST">
+                <input hidden="date" value="{{date_diff[3]}}" name="start_date_for_each">
+                <input hidden type="date" value="{{date_diff[4]}}"  name="end_date_for_each">
+                <input hidden type="text" value="" name="for_what_type" id="for_what_type">
+                <button type="submit" class="btn btn-sm btn-success d-inline ms-2" style="margin-top: -50px;" onclick="{document.getElementById('for_what_type').value = 'excel'}"><i class="fas fa-print"></i> Excel Print</button>
+                <!-- <button type="submit" class="btn btn-sm btn-outline-dark m-1 d-inline" onclick="{document.getElementById('for_what_type').value = 'pdf'}"><i class="fas fa-print"></i> PDF Print</button> -->
+            </form>
+            <div class="cpu-table-sec monthly-site-fuel-report" id="">
+                <table class="" id="">
+                    <thead>
+                        <tr>
+                            <th>ဆိုဒ် အမည်</th>
+                            {% for day in range(date_diff[0],date_diff[1]+1) %}
+                                <th>{{day}}</th>
+                            {% endfor %}
+                            <th rowspan="2">ဆိုဒ် အလိုက် သုံးစွဲမှုဆီ ( လီတာ ) </th>
+                            <th rowspan="2">ဆိုဒ် အလိုက် သုံးစွဲမှုဆီ ( ဂါလန် ) </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pj_name,pj_data in projects_dct.items() %}
+                        <tr>
+                            {% if not loop.revindex in [1, 2] %}
+                                <td title="{{pj_name}}">{{pj_name}}</td>
+                                {% for data in pj_data%}
+                                    <td>{{data}}</td>
+                                {% endfor %}
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        {% for pj_name,pj_data in projects_dct.items() %}
+                        <tr>
+                            {% if  loop.revindex in [1, 2] %}
+                                <td title="{{pj_name}}">{{pj_name}}</td>
+                                {% for data in pj_data%}
+                                    <td>{{data}}</td>
+                                {% endfor %}
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tfoot>
+                </table>
+            </div>   
+    
+        {% endif %}
+
+    {% elif site_report_type == 'machine-activity' %}   
+    
+        <h3 class="text-center p-2">စက်ကား များ တစ်နေ့တာ လုပ်ဆောင်မှု များ စာရင်း</h3>
+
+        <h4 class="text-center p-2">{{set_date}}</h4>
+
+        {% if result_datas|length == 0 %}
+
+            <h4 class="text-center mt-3">ရွေးချယ်ထား သော ရက် အတွင်းတွင် စက်ကားများ ၏ လုပ်ဆောင်မှု မရှိပါ </h4>
+
+        {% else %}
+
+            <form action="/duty/machine-activity-report" class="monthlyformInModal" method="POST">
+                <input hidden type="date" value="{{set_date}}"  name="only-one-date">
+                <input hidden type="text" value="" name="for_what_type" id="for_what_type">
+                <button type="submit" class="btn btn-sm btn-success d-inline ms-2" style="margin-top: -50px;" onclick="{document.getElementById('for_what_type').value = 'excel'}"><i class="fas fa-print"></i> Excel Print</button>
+                <!-- <button type="submit" class="btn btn-sm btn-outline-dark m-1 d-inline" onclick="{document.getElementById('for_what_type').value = 'pdf'}"><i class="fas fa-print"></i> PDF Print</button> -->
+            </form>        
+        
+            <div class="cpu-table-sec monthly-site-fuel-report" id="">
+            
+                <table class="" id="">
+                    <thead>
+                        <tr>
+                            <th>စက်အမည်</th>
+                            <th>မှတ်ချက်</th>
+                            <th>ဆိုဒ် အမည်</th>
+                            <th>နာရီ</th>
+                            <th>သုံးဆီ( လီတာ )</th>
+                            <th>သုံးဆီ( ဂါလန် )</th>     
+                            <th>ဆီစားနှုန်း ( လီတာ )</th>     
+                            <th>ဆီစားနှုန်း ( ဂါလန် )</th>              
+                            <th>ဂျူတီ ကုန်ကျငွေ</th>
+                            <th>ဆီ ကုန်ကျငွေ</th>
+                            <th>(၁)နေ့တာကုန်ငွေပေါင်း</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in result_datas %}
+                        <tr>
+                            <td class="text-start">{{data[0]}}</td>
+                            <td class="text-start">{{data[1]}}</td>
+                            <td>{{data[2]}}</td>
+                            <td>{{data[3]}}</td>
+                            <td class="text-end">{{data[4]}}</td>
+                            <td class="text-end">{{data[5]}}</td>
+                            <td class="text-end">{{data[6]}}</td>
+                            <td class="text-end">{{data[7]}}</td>
+                            <td class="text-end">{{data[8]}}</td>
+                            <td class="text-end">{{data[9]}}</td>
+                            <td class="text-end">{{data[10]}}</td>                                                
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>  
+          
+        {% endif %}
+
+    {% else %}
+
+        <h3 class="text-center mt-2">နေ့စဉ် လုပ်ငန်းဆောင်တာပြ စာရင်း</h3>
+        <hr/><h4 class="text-center second-header-income-expense">{{extra_datas[1]}}({{extra_datas[0]}})</h4><hr/>
+        <h5 class="text-center">From - <strong> {{extra_datas[2]}} </strong> To - <strong> {{extra_datas[3]}} </strong></h5>
+        <form action="/duty/daily-activity-report" class="monthlyformInModal" method="POST">
+            <input hidden type="text" value="{{extra_datas[0]}}_&_{{extra_datas[1]}}" name="pj_name">
+            <input hidden="number" value="{{extra_datas[4]}}" name="pj_id">
+            <input hidden="date" value="{{extra_datas[2]}}" name="start_date_for_each">
+            <input hidden type="date" value="{{extra_datas[3]}}"  name="end_date_for_each">
+            <input hidden type="text" value="" name="for_what_type" id="for_what_type">
+            <button type="submit" class="btn btn-sm btn-success d-inline ms-2" style="margin-top: -50px;" onclick="{document.getElementById('for_what_type').value = 'excel'}"><i class="fas fa-print"></i> Excel Print</button>
+            <!-- <button type="submit" class="btn btn-sm btn-outline-dark m-1 d-inline" onclick="{document.getElementById('for_what_type').value = 'pdf'}"><i class="fas fa-print"></i> PDF Print</button> -->
+        </form>
+        <div  style="margin-top: -20px;" id="dutyReportNav">
+            <div class="d-flex justify-content-around rounded aligns-items-center text-white my-2">
+                {% for i in range(0,13,4) %}
+                    <div class="bg-white text-dark me-1 rounded">
+                        <b>{{overall[1][i]}}</b><hr class="p-0 m-0">
+                        <small class="">ခန့်မှန်း   - {{overall[1][i+1]}} |</small>
+                        <small class="">ပြီးစီး    - {{overall[1][i+2]}} |</small>
+                        <small class="">လက်ကျန် - {{overall[1][i+3]}} </small>
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div id="inExReport" class="my-3">
+            <div class="inExRow">
+                {% if result_datas == {} %}
+                    <ul id="" class="duty-report totalRow" style="height: 50px;vertical-align: middle;grid-template-columns: auto;">
+                        <li class=""><b>လုပ်ဆောင်ချက်များ မရှိပါ။</b></li>
+                    </ul>
+                {% else %}
+                    <ul id="" class="duty-report totalRow"  onclick="dutyReportDrop(this)">
+                        <li class=""><b>စုစုပေါင်း</b></li>
+                        <li>ပေ<br><b class="fs-5">{{overall[0][0]}}</b></li>
+                        <li>ကျင်း<br><b class="fs-5">{{overall[0][1]}}</b></li>
+                        <li>အခေါက်ရေ<br><b class="fs-5">{{overall[0][2]}}</b></li>
+                        <li>အလုပ်ချိန်<br><b class="fs-5">{{overall[0][3]}}</b></li>
+                        <li>လီတာ<br><b class="fs-5">{{overall[0][4]}}</b></li>
+                    </ul>
+                    {% for set_day,each_day in result_datas.items() %}
+                    <div id="" class="mt-3 dutySubRow" onclick="dutyReportDropTwo(this)">
+                        <div>
+                            <span><b>ရက်စွဲ</b></span>
+                            <p>{{set_day}}</p>
+                        </div>
+                        <div>
+                            <span><b>စက်ကားစီးရေ</b></span>
+                            <p>{{each_day[0][0]}}</p>
+                        </div>
+                        <div>
+                            <span><b>အခေါက်ရေ</b></span>
+                            <p>{{each_day[0][1]}}</p>
+                        </div>
+                        <div>
+                            <span><b>အလုပ်ချိန်</b></span>
+                            <p>{{each_day[0][2]}}</p>
+                        </div>
+                        <div>
+                            <span><b>လီတာ</b></span>
+                            <p>{{each_day[0][3]}}</p>
+                        </div>
+                        <div class="drpicn">
+                            <i class="fa-solid fa-caret-down"></i>
+                        </div>
+                        <div class="dutyReportTable">
+                            <hr style="grid-column: span 6;">
+                            <table class="mb-1 shadow-sm">
+                                <tr>
+                                    <thead id="detialHead" class="">
+                                        <th class="py-2">စက်</th>
+                                        <th>အလုပ်အမျိုးအစား</th>
+                                        <th>အလုပ်လုပ်ဆောင်ချက်</th>
+                                        <th>အခေါက်ရေ</th>
+                                        <th>အလုပ်ချိန်</th>
+                                        <th>လီတာ</th>
+                                        <th>မှတ်ချက်</th>
+                                    </thead>
+                                    <tbody id="tbody">
+                                        {% for data in each_day[1:] %}
+                                        <tr class="shadow-sm">
+                                            <td>{{data[1]}}</td>
+                                            <td>{{data[2]}}</td>
+                                            <td>{{data[3]}}</td>
+                                            <td>{{data[4]}}</td>
+                                            <td>{{data[5]}}</td>
+                                            <td>{{data[6]}}</td>
+                                            <td>{{data[7]}}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </tr>
+                            </table>
+                        </div>                    
+                    </div>
+                    {% endfor %}  
+                {% endif %}            
+            </div>
+        </div>
+        
+
+    {% endif %}
 {% endblock %}
 
 {% block project_datas %}

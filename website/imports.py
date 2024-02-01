@@ -3,6 +3,7 @@ from website import db_connect,catch_db_insert_error
 from psycopg2 import IntegrityError
 from itertools import zip_longest
 from decimal import Decimal
+from datetime import datetime
 
 imports = Blueprint("imports",__name__)
 
@@ -455,6 +456,7 @@ def upload_each_data():
             pj_id = request.form.get('pj_id')
             loc = request.form.get('location')
             start_date = request.form.get('pj-start-date')
+            start_date = datetime.strptime(start_date, "%d/%m/%Y").strftime("%Y-%m-%d")
             supervisior = request.form.get('supervisior')
             feet = request.form.get('feet')
             will_sud = request.form.get('will-sud')
@@ -497,6 +499,7 @@ def upload_each_data():
         elif db == 'project_stats_edit':
             input_values = {}
             for key,value in request.form.items():
+                print(key)
                 if key not in ('db','project_id','machine_id','employee_group_id','employee_power'):
                     input_values[key] = value
             update_query = "UPDATE project_statistics SET "
@@ -507,8 +510,11 @@ def upload_each_data():
             employee_group_ids = request.form.getlist("employee_group_id")
             employee_powers = request.form.getlist("employee_power")
             update_query = update_query[:-2] + f" WHERE project_id = {pj_id};"
+            print(update_query)
             what = 'project-stat'
             # print(update_query)
+            print(input_values)
+            input_values['pj_start_date'] = datetime.strptime(input_values['pj_start_date'], "%d/%m/%Y").strftime("%Y-%m-%d")
             try:
                 cur.execute(update_query,list(input_values.values()))
                 if machine_ids != []:
@@ -569,6 +575,7 @@ def site_imports(typ):
                 cur.execute("SELECT 'DCO/' || RIGHT(EXTRACT(YEAR FROM NOW())::TEXT,2) || '/' || TO_CHAR(EXTRACT(MONTH FROM NOW()),'FM00') || '/' || COALESCE((SELECT TO_CHAR(SPLIT_PART(income_expense_no,'/',4)::int + 1, 'FM000000') FROM income_expense WHERE income_status = FALSE ORDER BY income_expense_no DESC LIMIT 1),'000001');")
             report_no = cur.fetchone()[0]
             import_date = request.form.get("import_date")
+            import_date = datetime.strptime(import_date, '%d/%m/%Y')
             pj_id = request.form.get("pj_id")
             cur.execute("INSERT INTO income_expense (income_status,income_expense_no,set_date,project_id,created_name,user_id) VALUES (%s,%s,%s,%s,%s,%s) RETURNING id;",(income_status,report_no,import_date,pj_id,created_username,user_id))
             income_expense_id = cur.fetchone()[0]
@@ -592,6 +599,7 @@ def site_imports(typ):
             form_id = request.form.get("form_id")
             income_or_expense = request.form.get("work")
             income_date = request.form.get("import_date")
+            income_date = datetime.strptime(income_date, '%d/%m/%Y')
             descriptions = request.form.getlist("description")[:-1]
             invoice_nos = request.form.getlist("invoice_no")[:-1]
             qtys = request.form.getlist("qty")[:-1]
@@ -628,6 +636,7 @@ def site_imports(typ):
             reason_for_not_working = request.form.get("reason-for-not-working")
             pj_id = request.form.get("pj_id")
             set_date = request.form.get('set_date')
+            set_date = datetime.strptime(set_date, '%d/%m/%Y').strftime("%Y-%m-%d")
             wealther_affect = request.form.get("wealtherAff")
             complete_feet = request.form.get("completeFeet")
             complete_sud = request.form.get("completeSud")

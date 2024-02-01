@@ -27,7 +27,7 @@
                 </div>
                 <div class="create-sec-div">
                     <label for="import_date" style="margin-right: 10px;">နေ့စွဲ</label>
-                    <input type="date" id="import_date" name="import_date" value="{{cur_date}}" required>
+                    <input type="text" id="import_date" name="import_date" value="{{cur_date}}" required readonly/>
                 </div>
             </section>
             <!-- xxx -->
@@ -102,7 +102,7 @@
                     </tbody>
                 </table> 
             </div>
-            <div class="text-center mb-4">
+            <div class="text-center mb-4 mt-3">
                 <button class="btn btn-success" type="submit">အတည်ပြုရန်</button>
                 <a href="{{url_for('site_imports.income_expense',typ='view')}}" class="nav-item"><button type="button"  class="btn btn-dark ms-3shadow-sm">မလုပ်ဆောင်တော့ပါ</button></a>
             </div>
@@ -160,7 +160,7 @@
                         <!-- search filter features end -->
                     </div>
                 </form>
-                <button onclick="showModalAndGiveProjectCodes('remove-date')" data-bs-toggle="modal" data-bs-target="#monthlyReport" id="chooseProjectBeforeCreateForm" class="btn btn-success text-white ms-2 income-expense">ဖန်တီးပါ</button>
+                <button onclick="showModalAndGiveProjectCodes('remove-date',this)" data-bs-toggle="modal" data-bs-target="#monthlyReport" id="chooseProjectBeforeCreateForm" class="btn btn-success text-white ms-2 income-expense">ဖန်တီးပါ</button>
             </div>
             <div class="col-md-6 col-sm-12 text-end mt-2">
                 <div class="btn-group" role="group" aria-label="Basic example">
@@ -237,7 +237,8 @@
                     <span>နေ့စွဲ</span>
                     <input type="number"  required value="{{form_datas[9]}}" style="display: none;"  class="leePalKwar" name="form_id">
                     <input type="number"  required value="{{form_datas[10]}}" style="display: none;"  class="leePalKwar" name="pj_id">
-                    <span>- <input type="date" disabled name="import_date" value="{{form_datas[2]}}" required></span>
+                    <span>- <input  type="text" onchange="changeAvailableMachines(this)" disabled required change-machine-edit="{{form_datas[10]}}" class="datepicker-custom-input change-machine" autocomplete="off" placeholder="dd/mm/yyyy" name="import_date" value="{{form_datas[2].strftime('%d/%m/%Y')}}"></span>
+                    
                 </div>
             </section>
             <!-- xxx -->

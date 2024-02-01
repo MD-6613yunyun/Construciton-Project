@@ -116,8 +116,14 @@
             <tr ondblclick="showModalToEditDutyPrice(this)" data-id="{{dta[0]}},{{dta[6]}},{{dta[7]}}">
                 <td class="text-start">{{dta[1]}}</td>
                 <td class="text-start">{{dta[2]}}</td>
-                <td class="text-start">{{dta[3]}}</td>
-                <td class="text-end">{{dta[4]}}</td>
+                <td class="text-start">{{dta[3].strftime("%d/%m/%Y")}}</td>
+                <td class="text-end">
+                    {% if dta[4] %}
+                        {{dta[4].strftime("%d/%m/%Y")}}
+                    {% else %}
+                        Current
+                    {% endif %}
+                </td>
                 <td class="text-end">{{dta[5]}}</td>
             </tr>
             {% endfor %}
@@ -151,11 +157,11 @@
                                 <label for="machineType" class="ms-2">Type</span>
                             </div>
                             <div class="col-sm-2 col-md-3 form-floating">
-                                <input id="startDate" required type="date" name="start_date" class="form-control" placeholder="Start-Date" autocomplete="off">
+                                <input id="startDate" required type="text" name="start_date" class="datepicker-custom-input form-control"  autocomplete="off" placeholder="dd/mm/yyyy">
                                 <label for="startDate" class="ms-2">Start Date</label>
                             </div>
                             <div class="col-sm-2 col-md-3 form-floating">
-                                <input id="endDate"  type="date" name="end_date" class="form-control" placeholder="End-Date" autocomplete="off">
+                                <input id="endDate"  type="text" name="end_date" class="datepicker-custom-input form-control"  autocomplete="off" placeholder="dd/mm/yyyy">
                                 <label for="endDate" class="ms-2">End Date</label>
                             </div>
                             <div class="col-sm-2 col-md-3 form-floating">

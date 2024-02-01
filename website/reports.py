@@ -13,7 +13,7 @@ from fpdf import FPDF
 base_directory = os.path.dirname(os.path.abspath(__file__))
 
 # Combine the base directory and relative path to get the full file path
-excel_path = os.path.join(base_directory, "static/downloadable_files/IncomeExpesneReport.xlsx")
+excel_path = os.path.join(base_directory, "static/downloadable_files/")
 pdf_path = os.path.join(base_directory, "static/downloadable_files/IncomeExpenseReport.pdf")
 output_path = os.path.join(base_directory, "static/php/output.txt")
 input_path = os.path.join(base_directory, "static/php/input.txt")
@@ -949,9 +949,6 @@ def report_by_each_machine():
     yer , mon , sth = map(int,start_dt.split("-"))
     if pj_id == "" or start_dt == "" or end_dt == "" or pj_name == "":
         return redirect(url_for('views.home',mgs=f"Incomplete Field For Project Name - Project Code."))
-    # cur.execute("""SELECT MIN(DISTINCT(duty_date)),MAX(DISTINCT(duty_date)) 
-    #                     FROM duty_odoo_report WHERE project_id = %s
-    #                     AND duty_date >= %s AND duty_date <= %s;""",(pj_id,start_dt,end_dt))
     cur.execute("""SELECT MIN(DISTINCT(set_date)),MAX(DISTINCT(set_date)) 
                         FROM daily_activity WHERE project_id = %s
                         AND set_date >= %s AND set_date <= %s;""",(pj_id,start_dt,end_dt))
@@ -1037,12 +1034,320 @@ def report_by_each_machine():
     vehicles_dct[temp_machine_name][1].append(sum(vehicles_dct[temp_machine_name][1]))
     return render_template('machine_by_each_duty.html',vehicles_dct=vehicles_dct,date_diff = [int(start_dt_contain.split('-')[2]),int(end_dt_contain.split('-')[2]),(int(end_dt_contain.split('-')[2])-int(start_dt_contain.split('-')[2]))+1,start_dt_contain.split("-")[0] + '/' + start_dt_contain.split("-")[1]],pj_datas=[pj_name,pj_code],project_datas = project_datas,current_role = role)
 
-@reports.route("/income-expense-report",methods=['GET','POST'])
-def income_expense_report_view():
-
+@reports.route("/machine-activity-report",methods=["GET", "POST"])
+def machine_activity_report():
     if "cpu_user_id" not in session:
         return redirect(url_for("auth.authenticate"))
+    conn = db_connect()
+    cur = conn.cursor()
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+    if not role:
+        return redirect(url_for('views.home'))
+    elif role not in [1,2,3,4,5] or request.method != 'POST':
+        return render_template('access_error.html')
+    start_dt = request.form.get("only-one-date")
+    for_what_type = request.form.get("for_what_type")     
+    if start_dt == "":
+        return redirect(url_for('views.home',mgs=f"Incomplete Date."))
+    if role in [3,4]:
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
+    else:
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+    project_datas = cur.fetchall() 
+    cur.execute(""" 
+        WITH temp_model AS (
+            SELECT 
+                LAG(car.machine_name) OVER (ORDER BY car.id) AS prev_machine_name,car.machine_name, line.description, pj.name, line.duty_hour, line.used_fuel AS gl_used,
+                CASE 
+                    WHEN 
+                        (EXTRACT(HOUR FROM duty_hour) + EXTRACT(MINUTE FROM duty_hour)/60) <> 0
+                    THEN 
+                        ROUND(line.used_fuel / (EXTRACT(HOUR FROM duty_hour) + EXTRACT(MINUTE FROM duty_hour)/60),2)
+                    ELSE 
+                        line.used_fuel 
+                END AS 	gl_consumption,line.duty_amt, line.fuel_amt, line.duty_amt + line.fuel_amt as total_amt
+            FROM daily_activity_lines AS line
+                INNER JOIN daily_activity AS form
+            ON line.daily_activity_id = form.id
+                INNER JOIN analytic_project_code AS pj
+            ON form.project_id = pj.id
+                LEFT JOIN fleet_vehicle AS car
+            ON car.id = line.machine_id
+                WHERE   ( form.set_date = %s )  AND
+                            (
+                                    CASE
+                                        WHEN (SELECT user_access_id FROM user_auth WHERE id = %s) IN (3, 4) THEN true
+                                        ELSE false
+                                    END
+							    OR project_id IN (
+									SELECT project_id
+									FROM project_user_access
+									WHERE user_id = %s
+								)
+							)
+            ORDER BY car.id
+        ) 
+        SELECT 
+            CASE WHEN machine_name = prev_machine_name THEN '' ELSE machine_name END AS machine_name,description,name,duty_hour,ROUND(gl_used*4.54,2) AS litre_used,gl_used,
+            ROUND(gl_consumption*4.54,2)AS litre_consumption,gl_consumption,duty_amt,fuel_amt,total_amt
+        FROM temp_model;
+    """,(start_dt,user_id,user_id))
+    result_datas = cur.fetchall()
+    table_header = ['စက် အမည်','မှတ်ချက်','ဆိုဒ် အမည်','နာရီ','သုံးဆီ (လီတာ)','သုံးဆီ (ဂါလန်)','ဆီစားနှုန်း (လီတာ)','ဆီစားနှုန်း (ဂါလန်)', 'ဂျူတီ ကုန်ကျငွေ' , 'ဆီ ကုန်ကျငွေ' , 'တစ်နေ့တာ ကုန်ငွေပေါင်း']     
+    if for_what_type == 'excel':
+        workbook = xlsxwriter.Workbook(excel_path +  'MachineActivitiesReport.xlsx')
+        worksheet = workbook.add_worksheet("Income Expense")
+        merge_format = workbook.add_format({
+            "bold": 1,
+            "align": "center",
+            "valign": "vcenter"
+        })
+        worksheet.merge_range("A1:K1",data="စက်ကား များ တစ်နေ့တာ လုပ်ဆောင်မှု များ စာရင်",cell_format=merge_format)
+        worksheet.merge_range("A2:K2",data=start_dt,cell_format=merge_format) 
+        worksheet.write_row(3,0,table_header,cell_format=merge_format)
+        
+        for idx,data in enumerate(result_datas,start=4):
+            worksheet.write_row(idx,0,data)
+        workbook.close()
+        return send_file(excel_path + 'MachineActivitiesReport.xlsx',as_attachment=True) 
+    # elif for_what_type == 'pdf':
+    #     tr_rows = ""
+    #     for data in result_datas:
+    #         tr_rows += """             
+    #             <tr>
+    #                 <td >{}</td>
+    #                 <td >{}</td>
+    #                 <td >{}</td>
+    #                 <td align="right">{:,}</td>
+    #                 <td align="right">{:,}</td>
+    #                 <td align="right">{:,}</td>
+    #                 <td >{}</td>
+    #             </tr> """.format(data[0],data[1],data[2],data[3],data[4],data[5],data[6])                   
+    #     html_data = f""" 
+    #             <p align='center' line-height='0.2'>{pj_name}</p>
+    #             <p align='center' line-height='0.2'>{pj_code}</p>
+    #             <p align='center' line-height='0.5'>{start_dt} - {end_dt}</p>
+    #             <p align='center'></p>
+    #             <div>
+    #                 <table border="black">
+    #                     <thead>
+    #                         <tr>
+    #                             <th>နေ့စွဲ</th>
+    #                             <th>အကြောင်းအရာ</th>
+    #                             <th>ဘောင်ချာ အမှတ်</th>
+    #                             <th>အဝင်</th>
+    #                             <th>အထွက်</th>
+    #                             <th>လက်ကျန်ငွေ</th>
+    #                             <th>မှတ်ချက်</th>
+    #                         </tr>
+    #                     </thead>
+    #                     <tbody>
+    #                         <tr>
+    #                             <td >{result_datas[0][0]}</td>
+    #                             <td >Opening လက်ကျန်ငွေ</td>
+    #                             <td ></td>
+    #                             <td ></td>
+    #                             <td ></td>
+    #                             <td >{float(extra_datas[4][0]):,.2f}</td>
+    #                             <td ></td>
+    #                         </tr> 
+    #                         {tr_rows}
+    #                         <tr>
+    #                             <td >စုစုပေါင်း</td>
+    #                             <td ></td>
+    #                             <td ></td>
+    #                             <td align="right">{float(extra_datas[4][1]):,.2f}</td>
+    #                             <td align="right">{float(extra_datas[4][2]):,.2f}</td>
+    #                             <td align="right">{float(extra_datas[4][3]):,.2f}</td>
+    #                             <td ></td>
+    #                         </tr>                             
+    #                     </tbody>
+    #                 </table>
+    #                 <p></p><p></p>
+    #                 <div>
+    #                     <div>
+    #                         <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; စာရင်းကိုင် လက်မှတ် / အမည် &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    #                     </div>
+    #                     <div>
+    #                         <span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ဆိုဒ်တာဝန်ခံ လက်မှတ် / အမည် </span>
+    #                     </div>
+    #                 </div>
+    #             </div>"""
+    #     # Execute the PHP script and pass data to it
+    #     with open(input_path,'w',encoding='utf-8') as file:
+    #         file.write(html_data)
+    #     # Execute the PHP script and capture its output with 'utf-8' encoding
+    #     result = subprocess.run([php_exe, php_script], stdout=subprocess.PIPE, text=True, encoding='utf-8')
 
+    #     # Extract the captured output (the converted text)
+    #     zawgyiText = result.stdout.strip()
+    #     # print(zawgyiText)
+
+    #     with open(output_path,'r',encoding='utf-8') as file:
+    #         datas = file.readlines()
+
+    #     pdf = FPDF('P', 'mm', 'A4')
+
+    #     # Add a page
+    #     pdf.add_page()
+
+    #     pdf.add_font('pyidaungsu', '', zawgyi_font_path)
+    #     pdf.add_font('pyidaungsu', 'B', zawgyi_font_path)
+    #     pdf.set_font('pyidaungsu', '', 10)
+
+    #     pdf.write_html("".join(datas),table_line_separators=True)
+
+    #     # Output the PDF to a file
+    #     pdf.output(pdf_path)
+    #     return send_file(pdf_path,as_attachment=True)    
+    return render_template('site-reports.html',site_report_type='machine-activity',project_datas=project_datas,result_datas=result_datas,set_date = start_dt,current_role = role)
+
+@reports.route("/fuel-report",methods=["GET", "POST"])
+def fuel_report():
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+    conn = db_connect()
+    cur = conn.cursor()
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+    if not role:
+        return redirect(url_for('views.home'))
+    elif role not in [1,2,3,4,5] or request.method != 'POST':
+        return render_template('access_error.html')
+    start_dt = request.form.get('start_date_for_each')
+    end_dt = request.form.get('end_date_for_each')
+    for_what_type = request.form.get("for_what_type")    
+    # print(pj_name,pj_code,pj_id,start_dt,end_dt,for_what_type)
+    if start_dt == "" or end_dt == "":
+        return redirect(url_for('views.home',mgs=f"Incomplete Start Date & End Date."))
+    extra_datas = [start_dt,end_dt]
+    project_datas = {}
+    if role in [3,4]:
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
+    else:
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+    project_datas = cur.fetchall()
+    yer , mon , sth = map(int,start_dt.split("-"))
+    if  start_dt == "" or end_dt == "":
+        return redirect(url_for('views.home',mgs=f"Incomplete Field For Project Name - Project Code."))
+    cur.execute("""SELECT MIN(DISTINCT(set_date)),MAX(DISTINCT(set_date)) 
+                        FROM daily_activity
+                    WHERE (set_date >= %s AND set_date <= %s) AND project_id IN %s ;""",(start_dt,end_dt,tuple(str(pj_data[0]) for pj_data in project_datas)))
+    date_datas = cur.fetchall()   
+    if date_datas == [(None,None)]:
+        return render_template('site-reports.html',result_datas={},project_datas = project_datas,current_role = role,extra_datas=extra_datas,site_report_type="fuel") 
+    start_dt_contain,end_dt_contain = get_max_day(mon,yer,True,date_datas,True)  
+    date_diff = [int(start_dt_contain.split('-')[2]),int(end_dt_contain.split('-')[2]),start_dt_contain.split("-")[0] + '/' + start_dt_contain.split("-")[1],start_dt,end_dt]   
+    cur.execute("""
+                WITH date_range AS (
+                    SELECT
+                        %s::date as start_date,
+                        %s::date as end_date
+                ),
+                all_dates AS (
+                    SELECT
+                        start_date + n AS date
+                    FROM
+                        date_range
+                    CROSS JOIN
+                        generate_series(0, end_date - start_date) n
+                ),
+                all_projects_and_dates AS (
+                    SELECT project_id,all_dates.date
+                        FROM (
+                            SELECT DISTINCT project_id
+                            FROM daily_activity
+                            WHERE (
+                                CASE
+                                    WHEN (SELECT user_access_id FROM user_auth WHERE id = %s) IN (3, 4) THEN true
+                                    ELSE false
+                                END
+                            )
+                            OR project_id IN (
+                                SELECT project_id
+                                FROM project_user_access
+                                WHERE user_id = %s
+                            )
+                        ) AS projects
+                    CROSS JOIN
+                        all_dates
+                )
+                SELECT
+                    apd.project_id,
+                    pj.name,
+                    ROUND(COALESCE(SUM(CASE WHEN data.set_date = apd.date THEN data.used_fuel ELSE 0.0 END 
+					), 0.0)*4.54,2) AS fuel_use,
+                    apd.date AS date
+                FROM
+                    all_projects_and_dates apd
+                LEFT JOIN
+                    (
+                        SELECT form.set_date,form.project_id,line.used_fuel FROM daily_activity_lines AS line
+                        INNER JOIN daily_activity AS form ON line.daily_activity_id = form.id
+                    ) AS data 
+                    ON apd.project_id = data.project_id AND data.set_date = apd.date
+                LEFT JOIN 
+                    analytic_project_code AS pj ON pj.id = apd.project_id
+                GROUP BY
+                    apd.project_id, apd.date , pj.name
+                ORDER BY
+                    apd.project_id, apd.date , pj.name; 
+    """,(start_dt_contain,end_dt_contain,user_id,user_id))  
+    datas = cur.fetchall()
+    projects_dct = {}
+    temp_project_name = ""
+    for idx,data in enumerate(datas):
+        project_name = data[1]
+        if project_name not in projects_dct:
+            if idx != 0:
+                projects_dct[temp_project_name].append(sum(projects_dct[temp_project_name]))
+                projects_dct[temp_project_name].append(round(projects_dct[temp_project_name][-1]/Decimal('4.54'),2))
+            projects_dct[project_name] = [data[2]]
+            temp_project_name = project_name
+        else:
+            projects_dct[project_name].append(data[2])
+    if len(datas) != 0:
+        projects_dct[temp_project_name].append(sum(projects_dct[temp_project_name]))
+        projects_dct[temp_project_name].append(round(projects_dct[temp_project_name][-1]/Decimal('4.54'),2))
+        projects_dct["တစ်ရက်ချင်း အလိုက်သုံးဆီလီတာပေါင်း"] = [sum(x) for x in zip(*projects_dct.values())]
+        projects_dct["တစ်ရက်ချင်း အလိုက်သုံးဆီဂါလန်ပေါင်း"] = [round(x/Decimal('4.54'),2) for x in projects_dct["တစ်ရက်ချင်း အလိုက်သုံးဆီလီတာပေါင်း"]]
+    table_header = ['ဆိုဒ် အမည်'] + [day for day in range(date_diff[0],date_diff[1]+1)] + ['ဆိုဒ် အလိုက် ဆီသုံးစွဲမှု (လီတာ)', 'ဆိုဒ် အလိုက် ဆီသုံးစွဲမှု (ဂါလန်)']
+    print(len(projects_dct))
+    if for_what_type == 'excel':
+        workbook = xlsxwriter.Workbook(excel_path + 'FuelReport.xlsx')
+        worksheet = workbook.add_worksheet("Fuel Report")
+        merge_format = workbook.add_format({
+            "bold": 1,
+            "align": "center",
+            "valign": "vcenter"
+        })
+        bold_format = workbook.add_format({
+            "bold": 1
+        })
+        worksheet.merge_range(0,0,0,len(table_header)-1,data="ဆိုဒ်များ ၏ ဆီသုံးစွဲမှု စာရင်း",cell_format=merge_format)
+        worksheet.merge_range(1,0,1,len(table_header)-1,data=date_diff[2],cell_format=merge_format)       
+        worksheet.write_row(3,0,table_header,cell_format=merge_format) 
+        for idx,pj_data in enumerate(projects_dct.items(),start=4):
+            if idx >= (len(projects_dct) + 2 ):
+                worksheet.write_row(idx,0,[pj_data[0]]+pj_data[1][:-2],cell_format=bold_format)
+                if idx == len(projects_dct) + 2:
+                    worksheet.merge_range(idx,len(table_header)-2,idx+1,len(table_header)-2,data=pj_data[1][-2],cell_format=merge_format)
+                    worksheet.merge_range(idx,len(table_header)-1,idx+1,len(table_header)-1,data=pj_data[1][-1],cell_format=merge_format)
+            else:
+                worksheet.write_row(idx,0,[pj_data[0]]+pj_data[1])
+        workbook.close()
+        return send_file(excel_path + 'FuelReport.xlsx',as_attachment=True) 
+    return render_template('site-reports.html',projects_dct=projects_dct,date_diff = date_diff,project_datas = project_datas,current_role = role,site_report_type="fuel")      
+
+
+
+@reports.route("/daily-activity-report",methods=["GET", "POST"])
+def daily_activity_report():
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
     conn = db_connect()
     cur = conn.cursor()
     user_id = session["cpu_user_id"]
@@ -1057,76 +1362,142 @@ def income_expense_report_view():
     start_dt = request.form.get('start_date_for_each')
     end_dt = request.form.get('end_date_for_each')
     for_what_type = request.form.get("for_what_type")
+    print(for_what_type)
     # print(pj_name,pj_code,pj_id,start_dt,end_dt,for_what_type)
     if pj_id == "" or start_dt == "" or end_dt == "" or pj_name == "":
         return redirect(url_for('views.home',mgs=f"Incomplete Field For Project Name - Project Code."))
-    extra_datas = [pj_name,pj_code,start_dt,end_dt]
+    extra_datas = [pj_name,pj_code,start_dt,end_dt,pj_id]
     cur.execute(""" 
-                    WITH PrevData AS (
-                        SELECT
-                        SUM(CASE WHEN form.income_status = 't' THEN line.amt ELSE 0.0 END) - SUM(CASE WHEN form.income_status = 'f' THEN line.amt ELSE 0.0 END) AS opening_balance
-                        FROM income_expense_line line
-                        INNER JOIN income_expense form
-                        ON line.income_expense_id = form.id
-                        WHERE form.set_date < %s AND form.project_id = %s
-                    )
-                    SELECT  COALESCE(PrevData.opening_balance,0.0),COALESCE(NowData.income,0.0),COALESCE(NowData.expense,0.0), COALESCE(( COALESCE(PrevData.opening_balance,0.0) + COALESCE(NowData.income,0.0) ) - COALESCE(NowData.expense,0.0),0.0) AS Balance
-                        FROM (
-                            SELECT
-                                SUM(CASE WHEN form.income_status = 't' THEN line.amt ELSE 0.0 END) AS income,
-                                SUM(CASE WHEN form.income_status = 'f' THEN line.amt ELSE 0.0 END) AS expense
-                            FROM income_expense_line line
-                            INNER JOIN income_expense form
-                            ON line.income_expense_id = form.id
-                            WHERE form.project_id = %s AND form.set_date BETWEEN %s AND %s
-                            ) AS NowData
-                        CROSS JOIN PrevData;
-                    """,(start_dt,pj_id,pj_id,start_dt,end_dt))
-    extra_datas.append(cur.fetchone())
-    result_datas = []
-    if extra_datas[1] != Decimal('0.0') and extra_datas[2] != Decimal('0.0'):
-        cur.execute(""" SELECT
-                            form.set_date AS date,
-                            line.description,
-                            line.invoice_no,
-                            CASE WHEN form.income_status = 't' THEN line.amt ELSE 0.0 END AS income ,
-                            CASE WHEN form.income_status = 'f' THEN line.amt ELSE 0.0 END AS expense,
-                            0.0 AS balance,
-                            line.remark
-                        FROM
-                            income_expense_line AS line
-                        INNER JOIN 
-                            income_expense AS form
-                        ON form.id = line.income_expense_id
-                        WHERE form.project_id = %s AND form.set_date BETWEEN %s AND %s
-                        ORDER BY date;""",(pj_id,start_dt,end_dt))
-        result_datas = cur.fetchall()
-        opening_balance = extra_datas[4][0]
-        for i, datas in enumerate(result_datas):
-            datas = list(datas)
-            datas[5] = (opening_balance + datas[3]) - datas[4]
-            opening_balance = datas[5]
-            result_datas[i] = tuple(datas)
-        extra_datas.append(pj_id)
-    table_header = ['နေ့စွဲ','အကြောင်းအရာ','ဘောင်ချာ','အဝင်','အထွက်','လက်ကျန်','မှတ်ချက်'] 
+        SELECT form.set_date,car.machine_name,j_type.name,j_function.name,line.way,line.duty_hour,ROUND(line.used_fuel*4.54,2),line.description
+            FROM daily_activity_lines AS line
+        INNER JOIN daily_activity AS form
+            ON line.daily_activity_id = form.id
+        INNER JOIN fleet_vehicle AS car
+            ON car.id = line.machine_id
+        LEFT JOIN activity_job_type AS j_type
+            ON line.job_type_id = j_type.id
+        LEFT JOIN activity_job_function As j_function
+            ON line.job_function_id = j_function.id
+        WHERE ( form.set_date BETWEEN %s AND %s ) AND ( form.project_id = %s )
+            ORDER BY form.set_date,car.id;
+    """,(start_dt, end_dt, pj_id))
+    result_datas = {}
+    datas = cur.fetchall()
+    idx = 0
+    temp_date = ""
+    for data in datas:
+        if data[0] not in result_datas:
+            if idx != 0:
+                temp_datas = result_datas[temp_date][:]
+                total_seconds = sum(temp_data[5].total_seconds() for temp_data in temp_datas)
+                formatted_duration = "{:0>2}:{:0>2}".format(int(total_seconds // 3600), int((total_seconds % 3600) // 60))                                    
+                result_datas[temp_date].insert(0,[len(set(temp_data[1] for temp_data in temp_datas)), sum(temp_data[4] for temp_data in temp_datas), formatted_duration , sum(temp_data[6] for temp_data in temp_datas)])
+            result_datas[data[0]] = [data]
+            temp_date = data[0]
+            idx += 1
+        else:
+            result_datas[data[0]].append(data)
+    if result_datas != {}:
+        temp_datas = result_datas[temp_date][:]  
+        total_seconds = sum(temp_data[5].total_seconds() for temp_data in temp_datas)
+        formatted_duration = "{:0>2}:{:0>2}".format(int(total_seconds // 3600), int((total_seconds % 3600) // 60))                                                
+        result_datas[temp_date].insert(0,[len(set(temp_data[1] for temp_data in temp_datas)), sum(temp_data[4] for temp_data in temp_datas), formatted_duration , sum(temp_data[6] for temp_data in temp_datas)])   
+    cur.execute(""" 
+        WITH feet_sud AS (
+            SELECT sum(complete_feet) AS feet,sum(complete_sud) AS sud,project_id 
+                FROM daily_activity AS form
+            WHERE ( form.set_date BETWEEN %s AND %s ) AND form.project_id = %s
+                GROUP BY project_id
+        ),
+        duty_fuel AS (
+            SELECT 
+                sum(line.way) as way,EXTRACT(HOUR FROM sum(line.duty_hour)) || ':' || EXTRACT(MINUTE FROM sum(line.duty_hour)) AS duty_hour,ROUND(sum(line.used_fuel)*4.54,2) AS fuel , project_id
+                    FROM daily_activity_lines AS line
+                INNER JOIN daily_activity AS form
+                    ON line.daily_activity_id = form.id
+                WHERE ( form.set_date BETWEEN %s AND %s ) AND form.project_id = %s
+            GROUP BY project_id
+        ) 
+        SELECT feet_sud.feet,feet_sud.sud,duty_fuel.way,duty_fuel.duty_hour,duty_fuel.fuel
+            FROM feet_sud
+        JOIN duty_fuel ON feet_sud.project_id = duty_fuel.project_id;
+    """,(start_dt,end_dt,pj_id,start_dt,end_dt,pj_id))
+    overall = [cur.fetchone()]
+    cur.execute(""" 
+        WITH actual_lines AS
+        (
+            SELECT 
+                EXTRACT(HOUR FROM sum(line.duty_hour)) + ROUND(EXTRACT(MINUTE FROM sum(line.duty_hour))/60,2) AS total_duty_hour, 
+                SUM(used_fuel) AS total_used_fuel
+            FROM daily_activity_lines AS line
+            LEFT JOIN daily_activity AS form ON line.daily_activity_id = form.id
+            WHERE form.project_id = %s
+        ),
+        actual_form AS
+        (
+            SELECT 
+                SUM(complete_feet) AS total_feet, 
+                SUM(complete_sud) AS total_sud
+            FROM daily_activity
+            WHERE project_id = %s
+        )
+        SELECT 
+            'ပေ',
+            ps.estimate_feet,
+            af.total_feet,
+            ps.estimate_feet - af.total_feet AS feet_difference,
+            'ကျင်း',
+            ps.estimate_sud,
+            af.total_sud,
+            ps.estimate_sud - af.total_sud AS sud_difference,
+            'ဂျူတီ',
+            ps.estimate_duty,
+            al.total_duty_hour,
+            ps.estimate_duty - al.total_duty_hour AS duty_difference,
+            'ဒီဇယ် ( ဂါလန် )',
+            ps.estimate_fuel,
+            al.total_used_fuel,
+            ps.estimate_fuel - al.total_used_fuel AS fuel_difference
+        FROM 
+            project_statistics AS ps
+        JOIN 
+            actual_form AS af ON ps.project_id = %s
+        JOIN 
+            actual_lines AS al ON ps.project_id = %s;
+        """,(pj_id,pj_id,pj_id,pj_id))
+    overall.append(cur.fetchone())
+    table_header = ["ရက်စွဲ","စက်အမည်","အလုပ်အမျိုးအစား","အလုပ် လုပ်ဆောင်ချက်","အခေါက်ရေ","အလုပ်ချိန်","လီတာ","မှတ်ချက်"] 
     if for_what_type == 'excel':
-        workbook = xlsxwriter.Workbook(excel_path)
+        workbook = xlsxwriter.Workbook(excel_path +  'DailyActivitiesReport.xlsx')
         worksheet = workbook.add_worksheet("Income Expense")
         merge_format = workbook.add_format({
             "bold": 1,
             "align": "center",
             "valign": "vcenter"
         })
-        worksheet.merge_range("A1:G1",data=pj_code,cell_format=merge_format)
-        worksheet.merge_range("A2:G2",data=pj_name,cell_format=merge_format) 
-        worksheet.merge_range("A3:G3",data="နေ့စဉ်ငွေ အဝင်အထွက်စာရင်း",cell_format=merge_format)
-        worksheet.write_row(3,0,table_header,cell_format=merge_format)  
-        worksheet.write_row(4,0,[result_datas[0][0],'Opening လက်ကျန်ငွေ','','','',extra_datas[4][0],''],cell_format=merge_format)          
-        for idx,lst in enumerate(result_datas,start=4):
-            worksheet.write_row(idx,0,lst)
-        worksheet.write_row(idx+1,0,['စုစုပေါင်း','','',extra_datas[4][1],extra_datas[4][2],extra_datas[4][3],''])
+        worksheet.merge_range("A1:I1",data="နေ့စဉ် လုပ်ငန်းဆောင်တာ စာရင်းဇယား",cell_format=merge_format)
+        worksheet.merge_range("A2:I2",data=pj_code + '( ' + pj_name + ' )',cell_format=merge_format) 
+        worksheet.merge_range("A3:I3",data=f" {start_dt} <==> {end_dt} ",cell_format=merge_format) 
+        worksheet.write_row(4,0,["","ပေ","ကျင်း","ဂျူတီ","ဂါလန်", "လီတာ"],cell_format=merge_format) 
+        state_temp = ["ခန့်မှန်း", "ပြီးစီး", "လက်ကျန်"]
+        for i in range(3):
+            worksheet.write_row(i+5,0,[state_temp[i],overall[1][i+1],overall[1][i+5],overall[1][i+9],overall[1][i+13],round(overall[1][i+13]*Decimal('4.54'),2)])
+        worksheet.merge_range("A9:B9",data="ရက်စွဲ",cell_format=merge_format)
+        worksheet.write_row(8,2,["ပေ","ကျင်း","အခေါက်ရေ","အလုပ်ချိန်","ဂါလန်","လီတာ"])
+        worksheet.write_row(9,0,[f"From : {start_dt}",f"To : {end_dt}", overall[0][0],overall[0][1],overall[0][2],overall[0][3],round(overall[0][4]/Decimal('4.54'),2),overall[0][4]])
+        worksheet.write_row(10,0,table_header,cell_format=merge_format) 
+        start_idx = 11 
+        for lst in result_datas.values():
+            for data in lst[1:]:
+                data = list(data)
+                # Use divmod to get hours and minutes
+                hours, remainder = divmod(data[5].seconds, 3600)
+                minutes = remainder // 60
+                data[5] = "{:02}:{:02}".format(hours, minutes)
+                worksheet.write_row(start_idx,0,data)
+                start_idx += 1
         workbook.close()
-        return send_file(excel_path,as_attachment=True) 
+        return send_file(excel_path + 'DailyActivitiesReport.xlsx',as_attachment=True) 
     elif for_what_type == 'pdf':
         tr_rows = ""
         for data in result_datas:
@@ -1222,4 +1593,192 @@ def income_expense_report_view():
     else:
         cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
     project_datas = cur.fetchall()       
-    return render_template("site-reports.html",result_datas=result_datas,extra_datas=extra_datas,project_datas = project_datas, current_role = role)
+    return render_template("site-reports.html",result_datas=result_datas,extra_datas=extra_datas,project_datas = project_datas, current_role = role,site_report_type="daily_activity",overall=overall)    
+
+
+@reports.route("/income-expense-report",methods=['GET','POST'])
+def income_expense_report_view():
+
+    if "cpu_user_id" not in session:
+        return redirect(url_for("auth.authenticate"))
+    conn = db_connect()
+    cur = conn.cursor()
+    user_id = session["cpu_user_id"]
+    cur.execute("SELECT user_access_id FROM user_auth WHERE id = %s;",(user_id,))
+    role = cur.fetchone()[0]
+    if not role:
+        return redirect(url_for('views.home'))
+    elif role not in [1,2,3,4,5] or request.method != 'POST':
+        return render_template('access_error.html')
+    pj_name, pj_code = request.form.get("pj_name").split('_&_')
+    pj_id = request.form.get("pj_id")
+    start_dt = request.form.get('start_date_for_each')
+    end_dt = request.form.get('end_date_for_each')
+    for_what_type = request.form.get("for_what_type")
+    print(for_what_type)
+    # print(pj_name,pj_code,pj_id,start_dt,end_dt,for_what_type)
+    if pj_id == "" or start_dt == "" or end_dt == "" or pj_name == "":
+        return redirect(url_for('views.home',mgs=f"Incomplete Field For Project Name - Project Code."))
+    extra_datas = [pj_name,pj_code,start_dt,end_dt]
+    cur.execute(""" 
+                    WITH PrevData AS (
+                        SELECT
+                        SUM(CASE WHEN form.income_status = 't' THEN line.amt ELSE 0.0 END) - SUM(CASE WHEN form.income_status = 'f' THEN line.amt ELSE 0.0 END) AS opening_balance
+                        FROM income_expense_line line
+                        INNER JOIN income_expense form
+                        ON line.income_expense_id = form.id
+                        WHERE form.set_date < %s AND form.project_id = %s
+                    )
+                    SELECT  COALESCE(PrevData.opening_balance,0.0),COALESCE(NowData.income,0.0),COALESCE(NowData.expense,0.0), COALESCE(( COALESCE(PrevData.opening_balance,0.0) + COALESCE(NowData.income,0.0) ) - COALESCE(NowData.expense,0.0),0.0) AS Balance
+                        FROM (
+                            SELECT
+                                SUM(CASE WHEN form.income_status = 't' THEN line.amt ELSE 0.0 END) AS income,
+                                SUM(CASE WHEN form.income_status = 'f' THEN line.amt ELSE 0.0 END) AS expense
+                            FROM income_expense_line line
+                            INNER JOIN income_expense form
+                            ON line.income_expense_id = form.id
+                            WHERE form.project_id = %s AND form.set_date BETWEEN %s AND %s
+                            ) AS NowData
+                        CROSS JOIN PrevData;
+                    """,(start_dt,pj_id,pj_id,start_dt,end_dt))
+    extra_datas.append(cur.fetchone())
+    result_datas = []
+    if extra_datas[1] != Decimal('0.0') and extra_datas[2] != Decimal('0.0'):
+        cur.execute(""" SELECT
+                            form.set_date AS date,
+                            line.description,
+                            line.invoice_no,
+                            CASE WHEN form.income_status = 't' THEN line.amt ELSE 0.0 END AS income ,
+                            CASE WHEN form.income_status = 'f' THEN line.amt ELSE 0.0 END AS expense,
+                            0.0 AS balance,
+                            line.remark
+                        FROM
+                            income_expense_line AS line
+                        INNER JOIN 
+                            income_expense AS form
+                        ON form.id = line.income_expense_id
+                        WHERE form.project_id = %s AND form.set_date BETWEEN %s AND %s
+                        ORDER BY date;""",(pj_id,start_dt,end_dt))
+        result_datas = cur.fetchall()
+        opening_balance = extra_datas[4][0]
+        for i, datas in enumerate(result_datas):
+            datas = list(datas)
+            datas[5] = (opening_balance + datas[3]) - datas[4]
+            opening_balance = datas[5]
+            result_datas[i] = tuple(datas)
+        extra_datas.append(pj_id)
+    table_header = ['နေ့စွဲ','အကြောင်းအရာ','ဘောင်ချာ','အဝင်','အထွက်','လက်ကျန်','မှတ်ချက်'] 
+    if for_what_type == 'excel':
+        workbook = xlsxwriter.Workbook(excel_path + 'IncomeExpenseReport.xlsx')
+        worksheet = workbook.add_worksheet("Income Expense")
+        merge_format = workbook.add_format({
+            "bold": 1,
+            "align": "center",
+            "valign": "vcenter"
+        })
+        worksheet.merge_range("A1:G1",data=pj_code,cell_format=merge_format)
+        worksheet.merge_range("A2:G2",data=pj_name,cell_format=merge_format) 
+        worksheet.merge_range("A3:G3",data="နေ့စဉ်ငွေ အဝင်အထွက်စာရင်း",cell_format=merge_format)
+        worksheet.write_row(3,0,table_header,cell_format=merge_format)  
+        worksheet.write_row(4,0,[result_datas[0][0],'Opening လက်ကျန်ငွေ','','','',extra_datas[4][0],''],cell_format=merge_format)          
+        for idx,lst in enumerate(result_datas,start=4):
+            worksheet.write_row(idx,0,lst)
+        worksheet.write_row(idx+1,0,['စုစုပေါင်း','','',extra_datas[4][1],extra_datas[4][2],extra_datas[4][3],''])
+        workbook.close()
+        return send_file(excel_path  + 'IncomeExpenseReport.xlsx',as_attachment=True) 
+    elif for_what_type == 'pdf':
+        tr_rows = ""
+        for data in result_datas:
+            tr_rows += """             
+                <tr>
+                    <td >{}</td>
+                    <td >{}</td>
+                    <td >{}</td>
+                    <td align="right">{:,}</td>
+                    <td align="right">{:,}</td>
+                    <td align="right">{:,}</td>
+                    <td >{}</td>
+                </tr> """.format(data[0],data[1],data[2],data[3],data[4],data[5],data[6])                   
+        html_data = f""" 
+                <p align='center' line-height='0.2'>{pj_name}</p>
+                <p align='center' line-height='0.2'>{pj_code}</p>
+                <p align='center' line-height='0.5'>{start_dt} - {end_dt}</p>
+                <p align='center'></p>
+                <div>
+                    <table border="black">
+                        <thead>
+                            <tr>
+                                <th>နေ့စွဲ</th>
+                                <th>အကြောင်းအရာ</th>
+                                <th>ဘောင်ချာ အမှတ်</th>
+                                <th>အဝင်</th>
+                                <th>အထွက်</th>
+                                <th>လက်ကျန်ငွေ</th>
+                                <th>မှတ်ချက်</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td >{result_datas[0][0]}</td>
+                                <td >Opening လက်ကျန်ငွေ</td>
+                                <td ></td>
+                                <td ></td>
+                                <td ></td>
+                                <td >{float(extra_datas[4][0]):,.2f}</td>
+                                <td ></td>
+                            </tr> 
+                            {tr_rows}
+                            <tr>
+                                <td >စုစုပေါင်း</td>
+                                <td ></td>
+                                <td ></td>
+                                <td align="right">{float(extra_datas[4][1]):,.2f}</td>
+                                <td align="right">{float(extra_datas[4][2]):,.2f}</td>
+                                <td align="right">{float(extra_datas[4][3]):,.2f}</td>
+                                <td ></td>
+                            </tr>                             
+                        </tbody>
+                    </table>
+                    <p></p><p></p>
+                    <div>
+                        <div>
+                            <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; စာရင်းကိုင် လက်မှတ် / အမည် &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        </div>
+                        <div>
+                            <span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ဆိုဒ်တာဝန်ခံ လက်မှတ် / အမည် </span>
+                        </div>
+                    </div>
+                </div>"""
+        # Execute the PHP script and pass data to it
+        with open(input_path,'w',encoding='utf-8') as file:
+            file.write(html_data)
+        # Execute the PHP script and capture its output with 'utf-8' encoding
+        result = subprocess.run([php_exe, php_script], stdout=subprocess.PIPE, text=True, encoding='utf-8')
+
+        # Extract the captured output (the converted text)
+        zawgyiText = result.stdout.strip()
+        # print(zawgyiText)
+
+        with open(output_path,'r',encoding='utf-8') as file:
+            datas = file.readlines()
+
+        pdf = FPDF('P', 'mm', 'A4')
+
+        # Add a page
+        pdf.add_page()
+
+        pdf.add_font('pyidaungsu', '', zawgyi_font_path)
+        pdf.add_font('pyidaungsu', 'B', zawgyi_font_path)
+        pdf.set_font('pyidaungsu', '', 10)
+
+        pdf.write_html("".join(datas),table_line_separators=True)
+
+        # Output the PDF to a file
+        pdf.output(pdf_path)
+        return send_file(pdf_path,as_attachment=True)
+    if role in [3,4]:
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
+    else:
+        cur.execute("SELECT pj.id,pj.code,pj.name FROM project_user_access access LEFT JOIN  analytic_project_code pj ON access.project_id = pj.id WHERE access.user_id = %s;",(user_id,))
+    project_datas = cur.fetchall()       
+    return render_template("site-reports.html",result_datas=result_datas,extra_datas=extra_datas,project_datas = project_datas, current_role = role,site_report_type="income_expense")

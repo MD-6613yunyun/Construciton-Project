@@ -60,8 +60,9 @@ function notWork(){
         })        
     }
     if(notWorking.checked){
-        activityTable.classList.add("d-none")
+        // activityTable.classList.add("d-none")
         activitiesInputs.forEach(inp => {
+            console.log(inp)
             inp.removeAttribute("required")
         })
         activitiesTable.querySelectorAll("input").forEach(inp => {
@@ -69,6 +70,7 @@ function notWork(){
         })
 
         const children = Array.from(activitiesTable.children);
+        console.log(children)
         const toRemove = children.slice(1, -2);
 
         toRemove.forEach(child => {
@@ -76,7 +78,7 @@ function notWork(){
             console.log(child)
         });
 
-        activityTable.previousElementSibling.classList.add("d-none")
+        // activityTable.previousElementSibling.classList.add("d-none")
         notWorkingInput.style.display = "inline"
         notWorkingInput.setAttribute("required","")
     }

@@ -23,16 +23,48 @@ function giveProjectCodes(idd = 'aboveProjectCodes'){
     }
 }
 
-function showModalAndGiveProjectCodes(opt='normal'){
-    // giveProjectCodes()
+function showModalAndGiveProjectCodes(opt='normal',btn){
+    // hide customize date input
+    let dateInput = document.getElementById("date-input-modal")
+    dateInput.querySelector("#date_for_each").removeAttribute("required")
+    dateInput.classList.add("d-none")
+
+    // show project input
+    let pjInput = document.getElementById("projectInput")
+    pjInput.classList.remove("d-none")
+    pjInput.children[1].firstElementChild.setAttribute("required","")
+    // hide one date input
+    let onlyOneDateInput = document.getElementById("only-one-date-div")
+    onlyOneDateInput.classList.add("d-none")
+    onlyOneDateInput.getElementsByTagName("input")[0].removeAttribute("required")  
+    // header class 
+    let headerClass = btn.classList[btn.classList.length-1]
     if (opt == 'normal'){
-        let modalContainer = document.getElementById("monthlyReport")
-        modalContainer.getElementsByClassName("modal-title")[0].textContent = "Income Expense Report"
+        let modalContainer = document.getElementById("monthlyReport") 
+        if (headerClass == "fuel-report"){
+            // hide project input
+            pjInput.classList.add("d-none")
+            pjInput.children[1].firstElementChild.removeAttribute("required")
+        }else if (headerClass == "machine-activity-report"){
+            // hide project input
+            pjInput.classList.add("d-none")
+            pjInput.children[1].firstElementChild.removeAttribute("required")    
+            // show one date input and set required        
+            onlyOneDateInput.classList.remove("d-none")
+            onlyOneDateInput.getElementsByTagName("input")[0].setAttribute("required","")
+        }
+        modalContainer.getElementsByClassName("modal-title")[0].textContent = headerClass
         let checkerRadio = modalContainer.getElementsByClassName("form-check-input")[0]
         checkerRadio.setAttribute("checked","")
         checkEachMachineOrAll(checkerRadio)
         checkerRadio.parentElement.classList.add("d-none")
-        modalContainer.querySelector("form").setAttribute("action","/duty/income-expense-report")
+        all_children_in_div = checkerRadio.parentElement.parentElement.children
+        if (headerClass == "machine-activity-report"){
+            // hide start date and end date
+            all_children_in_div = checkerRadio.parentElement.parentElement.children
+            all_children_in_div[3].classList.add('d-none')
+        }
+        modalContainer.querySelector("form").setAttribute("action",`/duty/${btn.classList[btn.classList.length - 1]}`)
     }else if (opt == 'monthly'){
         let modalContainer = document.getElementById("monthlyReport")
         modalContainer.getElementsByClassName("modal-title")[0].textContent = "Mothly Duty Report"
@@ -48,7 +80,11 @@ function showModalAndGiveProjectCodes(opt='normal'){
         checkerRadio.setAttribute("checked","")
         checkEachMachineOrAll(checkerRadio)
         checkerRadio.parentElement.nextElementSibling.classList.add("d-none")
+        console.log(checkerRadio.parentElement.nextElementSibling)
         checkerRadio.parentElement.classList.add("d-none")
+        dateInput.classList.remove("d-none")
+        dateInput.setAttribute("required", "")
+        console.log(url_route_part)
         modalContainer.querySelector("form").setAttribute("action",`/site-imports/${url_route_part}/create`)        
     }else if (opt == 'summary' || opt == 'job_type_function'){
         let modalContainer = document.getElementById("monthlyReport")
@@ -66,6 +102,46 @@ function showModalAndGiveProjectCodes(opt='normal'){
         }
     }
 }
+
+$(document).ready(function() {
+    // Initialize datepicker for all elements with the 'datepicker-custom-input' class
+    $(".datepicker-custom-input").datepicker({
+      dateFormat: "dd/mm/yy",
+      changeMonth: true,
+      changeYear: true
+    });
+
+    // Handle change event for all elements with the 'datepicker-custom-input' class
+    $(".datepicker-custom-input").on("change", function() {
+        var inputDate = $(this).val();
+        var dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+        if (!dateRegex.test(inputDate)) {
+            alert("Invalid date format. Please use the format dd/mm/yyyy.");
+            $(this).val("");
+        } else {
+            var minimumDate = new Date('2023-1-1');
+            let inputDatas = inputDate.split("/");
+            var temp = inputDatas[0];
+            inputDatas[0] = inputDatas[1];
+            inputDatas[1] = temp;
+            var inputDate = new Date(inputDatas.join("/"));
+
+            if (isNaN(inputDate.getFullYear())) {
+                alert("Invalid date entry.");
+                $(this).val("");
+            } else if (inputDate < minimumDate) {
+                alert(`Invalid date. Minimum allowed date is ${minimumDate.toLocaleDateString("en-GB")}.`);
+                $(this).val("");
+            } else {
+                let pj_id = $(this).attr('change-machine-edit')
+                $(this).val(`${inputDate.getDate()}/${inputDate.getMonth() + 1}/${inputDate.getFullYear()}`);
+                if(pj_id){
+                    changeAvailableMachines(`${inputDate.getDate()}-${inputDate.getMonth() + 1}-${inputDate.getFullYear()}`,pj_id)
+                }
+            }
+        }
+    });
+});
 
 function checkSupervisor(){
     let modalBody = document.getElementById("inside-statistics-modal-body")
@@ -92,6 +168,23 @@ function showDrop(selectRow){
         selectRow.children[1].style.maxHeight = "60vh";
     }else{
         selectRow.children[1].style.maxHeight = null;
+    }
+}
+
+function dutyReportDrop(row){
+    let dailySummary = document.querySelectorAll(".dutySubRow")
+    if(row.nextElementSibling.style.display == ""){
+        dailySummary.forEach(roww => roww.style.display = "grid");
+    }else{
+        dailySummary.forEach(roww => roww.style.display = "");
+    }
+}
+
+function dutyReportDropTwo(table){
+    if(table.querySelector(".dutyReportTable").style.display == ""){
+        table.querySelector(".dutyReportTable").style.display = "block";
+    }else{
+        table.querySelector(".dutyReportTable").style.display = "";
     }
 }
 
@@ -516,6 +609,7 @@ function checkEachMachineOrAll(btn){
         }
         action_of_form.setAttribute('action','/duty/get-monthly-duty')
     }
+    console.log(all_children_in_div[3])
 }
 
 function check_or_trace_start_date(inp){
@@ -927,7 +1021,7 @@ function checkValidMachine(inp,idd,mandatory=true){
     inp.previousElementSibling.value = found
     console.log(inp.id)
     if (inp.id == 'toCheckDuty' && found != ''){
-        let set_date = document.getElementById("set_date").value
+        let set_date = document.getElementById("set_date").value.replace(/\//g, "-");
         console.log(set_date)
         if (set_date.trim() == ''){
             alert("ရက်စွဲကို မသတ်မှတ်ရသေးပါ...")
@@ -1203,4 +1297,24 @@ function switchTab(tab){
         currentWorkingMachine.style.display = "none";
         historyWorkingMachine.style.display = ""
     }
+}
+
+function changeAvailableMachines(machineDate,pj_id){
+    if (pj_id){    
+        fetch(`/get-api/check-machines-within-date/${pj_id}~~${machineDate}`)
+        .then(response => response.json())
+        .then(result => {
+            console.log(result)
+            let machineDataHolder = document.getElementById("machineData")
+            machineDataHolder.innerHTML = ""
+            for (let res of result){
+                var newChild = document.createElement('option');
+                newChild.value = res[0]
+                newChild.setAttribute("getId",res[1])
+                machineDataHolder.appendChild(newChild)
+            }
+        })
+        .catch(err => console.log(err))
+    }
+
 }

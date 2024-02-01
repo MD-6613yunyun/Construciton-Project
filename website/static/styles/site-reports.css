@@ -50,12 +50,16 @@ ul{
     padding: 0 10px;
 }
 
-#inExReport #totalRow{
+#inExReport .totalRow{
     width: 100%;
     padding: 0;
     margin: 0 auto;
     display: grid;
     grid-template-columns: auto auto auto auto auto;
+}
+
+#inExReport .totalRow.duty-report{
+    grid-template-columns: auto auto auto auto auto auto;
 }
 
 #tbody tr{
@@ -67,12 +71,98 @@ ul{
     margin-bottom: -10px;
 }
 
-#totalRow{
+.totalRow{
     text-align: center;
 }
 
 #inExReport .inExRow li b:first-child{
     font-size: 25px;
+}
+
+.dutySubRow{
+    display: none;
+    grid-template-columns: auto auto auto auto auto auto;
+    background-color: rgb(255, 255, 255);
+    width: 90%;
+    margin: 0 auto;
+    padding: 5px;
+    text-align: center;
+    border-radius: 5px;
+    box-shadow: 0px 0px 3px rgb(8, 8, 8);
+    color: #2C41AD;
+    overflow: auto;
+}
+
+.dutySubRow p{
+    margin: 0;
+}
+
+#inExReport .dutyReportTable{
+    display: none;
+    width: 100%;
+
+    grid-column: span 6;
+}
+
+.dutySubRow .drpicn i{
+    font-size: 40px;
+}
+
+.dutyReportTable{
+    min-width: 600px;
+    overflow: auto;
+}
+
+#dutyReportNav div{
+    background-color: #2C41AD;
+
+    width: 99%;
+    padding: 5px;
+    margin: 0 auto;
+}
+
+@media(max-width: 800px){
+    .dutyReportTable th{
+        font-size: 12px;
+    }
+
+    .dutyReportTable td{
+        font-size: 10px;
+    }
+
+    .dutySubRow b{
+        font-size: 12px;
+    }
+
+    .dutySubRow p{
+        font-size: 12px;
+    }
+
+    #dutyReportNav div{
+        font-size: 13px;
+    }
+}
+
+@media(max-width: 750px){
+    .dutySubRow .drpicn i{
+        font-size: 30px;
+    }
+
+    #dutyReportNav div{
+        font-size: 10px;
+    }
+}
+
+@media(max-width: 600px){
+    .dutyReportTable th{
+        font-size: 10px;
+    }
+}
+
+@media(max-width: 500px){
+    #dutyReportNav div{
+        font-size: 8px;
+    }
 }
 
 @media(max-width: 660px){
@@ -88,7 +178,7 @@ ul{
         font-size: 13px !important;
     }
 
-    #inExReport .inExRow #totalRow li:not(:first-child){
+    #inExReport .inExRow .totalRow li:not(:first-child){
         font-size: 10px;
     }
 
@@ -110,8 +200,12 @@ ul{
         font-size: 10px !important;
     }
 
-    #inExReport .inExRow #totalRow li{
+    #inExReport .inExRow .totalRow li{
         font-size: 10px;
+    }
+
+    #dutyReportNav div{
+        font-size: 6px;
     }
 }
 
@@ -140,7 +234,7 @@ ul{
         font-size: 8px;
     }
 
-    #totalRow ul{
+    .totalRow ul{
         font-size: 10px;
     }
 
@@ -162,4 +256,64 @@ ul{
     #inExReport .inExRow li b:first-child{
         font-size: 15px;
     }
+}
+
+@media(max-width: 360px){
+    .dutySubRow b{
+        font-size: 8px;
+    }
+
+    .dutySubRow .drpicn i{
+        font-size: 20px;
+    }
+}
+
+.monthly-site-fuel-report table{
+    white-space: nowrap; 
+    table-layout: fixed;
+}
+
+.monthly-site-fuel-report table tr td:first-child,.monthly-site-fuel-report table tr th:first-child{
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    max-width: 300px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.monthly-site-fuel-report table tr th:first-child{
+    z-index: 30;
+}
+
+.monthly-site-fuel-report table tfoot tr td:first-child{
+    background-color: #2C41AD;
+}
+
+.monthly-site-fuel-report table thead tr th:first-child{
+    background-color: #2C41AD;
+}
+
+.monthly-site-fuel-report table tbody td{
+    background-color: #fff;
+}
+
+.monthly-site-fuel-report table td{
+    padding: 0 30px;
+    border: 1px solid black;
+
+    text-align: center;
+}
+
+.monthly-site-fuel-report table tfoot td{
+    padding: 10px 0;
+    font-weight: bold;
+}
+
+.monthly-site-fuel-report table tfoot{
+    background-color: #2C41AD;
+    color: #fff;
+    position: sticky;
+    bottom: 0;  
+    z-index: 20;
 }

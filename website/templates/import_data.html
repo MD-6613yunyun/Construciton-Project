@@ -146,7 +146,8 @@
                 <input type="text" name="location" class="form-control" required autocomplete="off"></div>
             <div class="col-sm-3">
                 <label class="mb-1 text-white">ဆိုဒ် စတင်ရက်</label>
-                <input type="date" id="pj-start-date"  name="pj-start-date" class="form-control" required autocomplete="off"></div>
+                <input type="text" id="pj-start-date" name="pj-start-date" class="form-control datepicker-custom-input" required autocomplete="off" placeholder="dd/mm/yyyy">
+            </div>
             <div class="col-sm-3">
                 <label class="mb-1 text-white">ဆိုဒ် တာဝန်ခံ</label>
                 <input type="text" name="supervisior" id="site-supervisors-id"  hidden autocomplete="off">
@@ -414,7 +415,8 @@
                     </div>
                     <div class="col-sm-3">
                         <label class="mb-1 text-white">ဆိုဒ် စတင်ရက်</label>
-                        <input disabled type="date" value="{{stat_datas[2]}}" name="pj_start_date" class="form-control"  required autocomplete="off"></div>
+                        <input disabled type="text" value="{{stat_datas[2].strftime('%d/%m/%Y')}}" name="pj_start_date" class="datepicker-custom-input form-control" required autocomplete="off" placeholder="dd/mm/yyyy">
+                    </div>
                     <div class="col-sm-3">
                         <label class="mb-1 text-white">ဆိုဒ် တာဝန်ခံ</label>
                         <input type="text" name="supervisor_id" id="site-supervisors-id" value="{{stat_datas[13]}}"  hidden autocomplete="off">

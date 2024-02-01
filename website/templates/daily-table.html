@@ -39,7 +39,7 @@
                 </div>
                 <div class="sec-div">
                     <span>နေ့စွဲ</span>
-                    <span>- <input type="date" value="{{extra_datas[0]}}" id="set_date" name="set_date"></span>
+                    <span>- <input type="text" id="set_date" name="set_date" value="{{extra_datas[0]}}" required readonly/></span>
                 </div>
             </section>
             <!-- xxx -->
@@ -167,13 +167,13 @@
                         </tr>
                         <tr class="d-none">
                             <td>1</td>
-                            <td><input type="text" class="shouldRequired" data-field-name="စက်ကား အမည်" name="machine_id" autocomplete="off" hidden><input id="toCheckDuty" type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
-                            <td><input type="text" class="shouldRequired" data-field-name="အလုပ် အမျိုးအစား" name="job_type_id" autocomplete="off" hidden><input type="text" list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
-                            <td><input type="text" class="shouldRequired" data-field-name="အလုပ် လုပ်ဆောင်ချက်" name="job_function_id" autocomplete="off" hidden><input type="text" list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
-                            <td><input type="number" step="any" name="ways" value="0" autocomplete="off"></td>
+                            <td><input type="text" class="shouldRequired notWorkInputActi" data-field-name="စက်ကား အမည်" name="machine_id" autocomplete="off" hidden><input id="toCheckDuty" type="text" list="machineData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                            <td><input type="text" class="shouldRequired notWorkInputActi" data-field-name="အလုပ် အမျိုးအစား" name="job_type_id" autocomplete="off" hidden><input type="text" list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
+                            <td><input type="text" class="shouldRequired notWorkInputActi" data-field-name="အလုပ် လုပ်ဆောင်ချက်" name="job_function_id" autocomplete="off" hidden><input type="text" list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
+                            <td><input type="number" class="notWorkInputActi" step="any" name="ways" value="0" autocomplete="off"></td>
                             <td class="duty-hour hourValueActivity">
-                                <input type="number" placeholder="hour" data-field-name="ဂျူတီ နာရီ"  onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class="shouldRequired">:<input type="number" data-field-name="ဂျူတီ မိနစ်" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" class="shouldRequired"></td>
-                            <td><input type="number" step="any"  style="width: 80px;" name="used_fuel" data-field-name="ဆီ လီတာ ပမာဏ"  autocomplete="off" class="shouldRequired fuelValueActivity" onchange="addValueToTraceFuel('fuelValueActivity','activitiesTable','calculatedtraceFuel','traceFuel')"></td>
+                                <input type="number" placeholder="hour" data-field-name="ဂျူတီ နာရီ"  onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class=" notWorkInputActi shouldRequired">:<input type="number"  data-field-name="ဂျူတီ မိနစ်" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" class="shouldRequired notWorkInputActi"></td>
+                            <td><input type="number" step="any"  style="width: 80px;" name="used_fuel" data-field-name="ဆီ လီတာ ပမာဏ"  autocomplete="off" class="shouldRequired notWorkInputActi fuelValueActivity" onchange="addValueToTraceFuel('fuelValueActivity','activitiesTable','calculatedtraceFuel','traceFuel')"></td>
                             <td><input type="text" name="description" autocomplete="off"></td>
                             <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                         </tr>
@@ -331,7 +331,7 @@
                     </div>
                 </form>
                 <button class="btn btn-secondary text-white mx-2"><i class="fa-solid fa-download"></i></button>
-                <button id="chooseProjectBeforeCreateForm" onclick="showModalAndGiveProjectCodes('remove-date')" data-bs-toggle="modal" data-bs-target="#monthlyReport" class="btn btn-success text-white ms-2 daily-activity">ဖန်တီးပါ</button>
+                <button id="chooseProjectBeforeCreateForm" onclick="showModalAndGiveProjectCodes('remove-date',this)" data-bs-toggle="modal" data-bs-target="#monthlyReport" class="btn btn-success text-white ms-2 daily-activity">ဖန်တီးပါ</button>
             </div>
             <div class="col-md-6 col-sm-12 text-end mt-2">
                 <div class="btn-group" role="group" aria-label="Basic example">
@@ -445,7 +445,7 @@
                 <span>နေ့စဉ် Report နံပါတ်</span>
                 <span>- {{form_datas[13]}}</span>
                 <span>နေ့စွဲ</span>
-                <span>- <input disabled type="date" value="{{form_datas[14]}}" id="set_date" name="set_date"></span>
+                <span>- <input type="text" disabled required change-machine-edit="{{form_datas[12]}}" class="datepicker-custom-input change-machine" id="set_date"  autocomplete="off" placeholder="dd/mm/yyyy" name="set_date" value="{{form_datas[14].strftime('%d/%m/%Y')}}"></span>
                 <input type="text" hidden name="daily_acitivty_edit_report_no" value="{{form_datas[13]}}"/>
             </div>
         </section>
@@ -541,8 +541,8 @@
             </tbody>
         </table>
         <!-- xxx -->
-        <h3 {% if not form_datas[15] %} class="d-none" {% endif %}>လုပ်ဆောင်ချက်<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
-        <div class="activities-table add-table toggle-table  {% if not form_datas[15] %} d-none {% endif %}">
+        <h3>လုပ်ဆောင်ချက်<i class="fa-solid fa-plus plus-sign" onclick="showUnderDisplay(this)"></i></h3>
+        <div class="activities-table add-table toggle-table  ">
             <table>
                 <thead>
                     <tr>
@@ -561,12 +561,12 @@
                     {% for line_data in line_datas[0] %}
                     <tr>
                         <td>1</td>
-                        <td><input type="text" value="{{line_data[1]}}" data-field-name="စက်ကား အမည်" required name="machine_id" autocomplete="off" hidden><input id="toCheckDuty" type="text" value="{{line_data[2]}}" list="machineData" autocomplete="off" disabled style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
-                        <td><input type="text" value="{{line_data[3]}}" data-field-name="အလုပ် အမျိုးအစား" required name="job_type_id" autocomplete="off" hidden><input type="text" value="{{line_data[4]}}" list="jobTypeData" autocomplete="off" disabled style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
-                        <td><input type="text" value="{{line_data[5]}}" data-field-name="အလုပ် လုပ်ဆောင်ချက်" required name="job_function_id" autocomplete="off" hidden><input type="text"  value="{{line_data[6]}}" list="jobFunctionData" autocomplete="off" disabled style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
-                        <td><input disabled type="number" step="any" value="{{line_data[11]}}" autocomplete="off" name="ways"></td>
-                        <td class="duty-hour"><input type="number" data-field-name="ဂျူတီ နာရီ" disabled value="{{line_data[7]}}" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" required>:<input data-field-name="ဂျူတီ မိနစ်" disabled type="number" value="{{line_data[8]}}" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
-                        <td><input disabled type="number" step="any"  style="width: 80px;" name="used_fuel" data-field-name="ဆီ လီတာ ပမာဏ"  autocomplete="off" value="{{line_data[9]}}" required></td>
+                        <td><input type="text" value="{{line_data[1]}}"  class="notWorkInputActi" data-field-name="စက်ကား အမည်" required name="machine_id" autocomplete="off" hidden><input id="toCheckDuty" type="text" value="{{line_data[2]}}" list="machineData" autocomplete="off" disabled style="width: 150px;" onchange="checkValidMachine(this,'machineData')"></td>
+                        <td><input type="text" value="{{line_data[3]}}"  class="notWorkInputActi" data-field-name="အလုပ် အမျိုးအစား" required name="job_type_id" autocomplete="off" hidden><input type="text" value="{{line_data[4]}}" list="jobTypeData" autocomplete="off" disabled style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
+                        <td><input type="text" value="{{line_data[5]}}"  class="notWorkInputActi" data-field-name="အလုပ် လုပ်ဆောင်ချက်" required name="job_function_id" autocomplete="off" hidden><input type="text"  value="{{line_data[6]}}" list="jobFunctionData" autocomplete="off" disabled style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
+                        <td><input disabled type="number" step="any" class="notWorkInputActi" value="{{line_data[11]}}" autocomplete="off" name="ways"></td>
+                        <td class="duty-hour"><input type="number" class="notWorkInputActi" data-field-name="ဂျူတီ နာရီ" disabled value="{{line_data[7]}}" placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" required>:<input class="notWorkInputActi" data-field-name="ဂျူတီ မိနစ်" disabled type="number" value="{{line_data[8]}}" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" required></td>
+                        <td><input disabled type="number" step="any"  class="notWorkInputActi" style="width: 80px;" name="used_fuel" data-field-name="ဆီ လီတာ ပမာဏ"  autocomplete="off" value="{{line_data[9]}}" required></td>
                         <td><input disabled type="text" name="description" value="{{line_data[10]}}" autocomplete="off"></td>
                         <td><button disabled  type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                     </tr>
@@ -576,12 +576,12 @@
                     </tr>
                     <tr class="d-none">
                         <td>1</td>
-                        <td><input type="text" class="shouldRequired" data-field-name="စက်ကား အမည်" name="machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" id="toCheckDuty" onchange="checkValidMachine(this,'machineData')"></td>
-                        <td><input type="text" class="shouldRequired" data-field-name="အလုပ် အမျိုးအစား" name="job_type_id" autocomplete="off" hidden><input type="text" list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
-                        <td><input type="text" class="shouldRequired" data-field-name="အလုပ် လုပ်ဆောင်ချက်" name="job_function_id" autocomplete="off" hidden><input type="text" list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
-                        <td><input type="number" step="any"  autocomplete="off" name="ways"></td>
-                        <td class="duty-hour"><input type="number" data-field-name="ဂျူတီ နာရီ"  placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class="shouldRequired">:<input data-field-name="ဂျူတီ မိနစ်" type="number" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" class="shouldRequired"></td>
-                        <td><input type="number" step="any"  style="width: 80px;" name="used_fuel" data-field-name="ဆီ လီတာ ပမာဏ"  autocomplete="off" class="shouldRequired"></td>
+                        <td><input type="text" class="shouldRequired notWorkInputActi" data-field-name="စက်ကား အမည်" name="machine_id" autocomplete="off" hidden><input type="text" list="machineData" autocomplete="off" style="width: 150px;" id="toCheckDuty" onchange="checkValidMachine(this,'machineData')"></td>
+                        <td><input type="text" class="shouldRequired notWorkInputActi" data-field-name="အလုပ် အမျိုးအစား" name="job_type_id" autocomplete="off" hidden><input type="text" list="jobTypeData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobTypeData')"></td>
+                        <td><input type="text" class="shouldRequired notWorkInputActi" data-field-name="အလုပ် လုပ်ဆောင်ချက်" name="job_function_id" autocomplete="off" hidden><input type="text" list="jobFunctionData" autocomplete="off" style="width: 150px;" onchange="checkValidMachine(this,'jobFunctionData')"></td>
+                        <td><input type="number" step="any"  class="notWorkInputActi" autocomplete="off" name="ways"></td>
+                        <td class="duty-hour"><input type="number" data-field-name="ဂျူတီ နာရီ"  placeholder="hour" onchange="checkHour(this)" id="dutyHour" name="dutyHour" autocomplete="off" class="shouldRequired notWorkInputActi">:<input data-field-name="ဂျူတီ မိနစ်" type="number" name="dutyMin"  placeholder="min" onchange="checkMin(this)" id="dutyMin" autocomplete="off" class="shouldRequired notWorkInputActi"></td>
+                        <td><input type="number" step="any"  style="width: 80px;" name="used_fuel" data-field-name="ဆီ လီတာ ပမာဏ"  autocomplete="off" class="shouldRequired notWorkInputActi"></td>
                         <td><input type="text" name="description" autocomplete="off"></td>
                         <td><button type="button" onclick="deleteRow(this)" class="btn btn-outline-danger"><i class="fa-solid fa-trash trash-icon"></i></button></td>
                     </tr>

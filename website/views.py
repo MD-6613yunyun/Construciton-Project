@@ -263,9 +263,9 @@ def configurations(what,mgs=None):
                     # print(duty_price_edit_id)
                     machine_type_id = request.form.get("machine_type_id")
                     start_date = request.form.get("start_date")
-                    end_date = request.form.get("end_date")
-                    end_date = None if end_date.strip() == "" else datetime.strptime(end_date, '%Y-%m-%d').date()
-                    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                    start_date = datetime.strptime(start_date, "%d/%m/%Y").date()
+                    end_date = request.form.get("end_date")             
+                    end_date = None if end_date.strip() == "" else datetime.strptime(end_date, "%d/%m/%Y").date()
                     price = request.form.get("price")
                     duty_price_history_id = duty_price_edit_id if duty_price_edit_id else 0
                     if end_date:
@@ -1057,7 +1057,8 @@ def call_api(for_what,data:str):
         conn.commit()
     elif for_what == 'duty-amt-check':
         machine_id, set_date = data.split("~~")
-        cur.execute(""" SELECT id FROM duty_price_history  WHERE machine_id = %s AND %s BETWEEN start_date AND COALESCE(end_date,%s) LIMIT 1;""",(data[0],set_date,set_date))
+        set_date = datetime.strptime(set_date, "%d-%m-%Y").strftime("%Y-%m-%d")
+        cur.execute(""" SELECT id FROM duty_price_history  WHERE machine_id = %s AND %s BETWEEN start_date AND COALESCE(end_date,%s) LIMIT 1;""",(machine_id,set_date,set_date))
     elif for_what == 'accountant-supervisor-check':
         sup , acc = data.split("~|~")
         result = []
@@ -1074,6 +1075,13 @@ def call_api(for_what,data:str):
     elif for_what == 'delete-employee-group-history':
         cur.execute("DELETE FROM employee_group_project WHERE id = %s RETURNING id;",(data,))
         conn.commit()
+    elif for_what == 'check-machines-within-date':
+        pj_id, set_date = data.split("~~") 
+        cur.execute(""" 
+            SELECT car.machine_name,car.id FROM machines_history
+                LEFT JOIN fleet_vehicle AS car ON car.id = machines_history.machine_id
+            WHERE project_id = %s AND %s BETWEEN start_time::date AND COALESCE(end_time::date,CURRENT_DATE);
+        """,(pj_id,datetime.strptime(set_date, "%d-%m-%Y").strftime("%Y-%m-%d")))
     elif for_what == 'transfer_machine_project':
         # print(data.split("~~"))
         his_id , project_id , start_time , machine_id = data.split("~~")

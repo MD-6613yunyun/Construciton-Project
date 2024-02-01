@@ -2,6 +2,7 @@ from flask import Blueprint,render_template,redirect,request,url_for, session
 from itertools import zip_longest
 from website import db_connect
 from decimal import Decimal
+from datetime import datetime
 
 site_imports = Blueprint('site_imports',__name__)
 
@@ -26,9 +27,9 @@ def income_expense(typ,mgs=None):
     elif not user_id:
         return redirect(url_for('auth.authenticate',typ='log'))
     if typ == 'create' and request.method == 'POST':
-        cur.execute("SELECT CURRENT_DATE;")
-        cur_date = cur.fetchone()[0]
         pj_id = request.form.get("pj_id")
+        import_date = request.form.get("date_for_import")
+        cur_date = datetime.strptime(import_date, "%d/%m/%Y").strftime("%d/%m/%Y")
         cur.execute(""" SELECT pj.code,emp_one.name,pj.name,stat.location,stat.pj_start_date,emp_two.name,pj.id
                         FROM  analytic_project_code pj
                         LEFT JOIN project_statistics stat
@@ -39,7 +40,11 @@ def income_expense(typ,mgs=None):
                         ON emp_two.id = stat.supervisor_id
                         WHERE pj.id = %s;""",(pj_id,))
         form_datas = cur.fetchone()
-        cur.execute("SELECT car.machine_name,car.id FROM machines_history LEFT JOIN fleet_vehicle AS car ON car.id = machines_history.machine_id WHERE project_id = %s AND end_time IS NULL;",(pj_id,))
+        cur.execute(""" 
+            SELECT car.machine_name,car.id FROM machines_history
+                LEFT JOIN fleet_vehicle AS car ON car.id = machines_history.machine_id
+            WHERE project_id = %s AND %s BETWEEN start_time::date AND COALESCE(end_time::date,CURRENT_DATE);
+        """,(pj_id,datetime.strptime(import_date, "%d/%m/%Y").strftime("%Y-%m-%d %H:%M:%S")))
         machine_datas = cur.fetchall()
         if current_role in [3,4]:
             cur.execute("SELECT pj.id,pj.code,pj.name FROM analytic_project_code AS pj;")
@@ -134,6 +139,7 @@ def daily_activity(typ,mgs=None):
         return redirect(url_for('auth.authenticate',typ='log'))
     if typ == 'create' and request.method == 'POST':
         pj_id = request.form.get("pj_id")
+        import_date = request.form.get("date_for_import")
         cur.execute(""" SELECT pj.code,emp_one.name,pj.name,stat.location,stat.pj_start_date,emp_two.name,estimate_day,estimate_feet,estimate_sud,estimate_duty,estimate_fuel,estimate_expense,pj.id
                         FROM  analytic_project_code pj
                         LEFT JOIN project_statistics stat
@@ -160,8 +166,8 @@ def daily_activity(typ,mgs=None):
                         WHERE emp_pj.project_id  = %s""",(pj_id,))
         machine_type_datas = cur.fetchall()
         extra_datas = []
-        cur.execute("SELECT CURRENT_DATE;")
-        extra_datas.append(cur.fetchone()[0])
+        cur_date = datetime.strptime(import_date, "%d/%m/%Y").strftime("%d/%m/%Y")
+        extra_datas.append(cur_date)
         zipped_machine_employee = list(zip_longest(machine_type_datas,emp_datas,fillvalue=("",0,0)))
         zipped_machine_employee.append([["Total",0,0],["Total",0,0]])
         for data in zipped_machine_employee[:-1]:
@@ -171,7 +177,8 @@ def daily_activity(typ,mgs=None):
         cur.execute(""" SELECT car.machine_name,car.id FROM machines_history AS his 
                         LEFT JOIN fleet_vehicle AS car ON his.machine_id = car.id
                         LEFT JOIN duty_price_history AS duty_his ON duty_his.machine_id = car.id
-                        WHERE his.project_id = %s AND his.end_time IS NULL AND duty_his.duty_price IS NOT NULL AND duty_his.end_date IS NULL;""",(pj_id,))
+                        WHERE his.project_id = %s AND (%s BETWEEN his.start_time::date AND COALESCE(his.end_time::date,CURRENT_DATE) ) AND duty_his.duty_price IS NOT NULL AND (%s BETWEEN duty_his.start_date AND COALESCE(duty_his.end_date,CURRENT_DATE) )
+                        ORDER BY car.id;""",(pj_id,datetime.strptime(import_date, "%d/%m/%Y").strftime("%Y-%m-%d"),datetime.strptime(import_date, "%d/%m/%Y").strftime("%Y-%m-%d")))
         machine_datas = cur.fetchall()
         cur.execute("SELECT name,id FROM activity_job_type;")
         activity_job_types = cur.fetchall()
